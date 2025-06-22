@@ -1,0 +1,440 @@
+# Agentic SQL Backend Architecture
+
+> The brain and nervous system of the autonomous SQL investigation agent
+
+## 🏗️ Backend Architecture Overview
+
+This backend implements a Claude Code-style autonomous SQL agent that investigates data through multiple iterations until complete insights are discovered.
+
+## 📁 Directory Structure
+
+```python
+app/
+├── __init__.py
+├── main.py                     # FastAPI application entry point
+├── config.py                   # Configuration management
+│
+├── core/                       # Core autonomous agent logic
+│   ├── __init__.py
+│   ├── agent.py               # Single autonomous SQL agent
+│   ├── investigation.py       # Investigation loop logic
+│   ├── planner.py            # Task planning and strategy
+│   └── memory.py             # Session and context management
+│
+├── mcp/                       # MCP Tool Server
+│   ├── __init__.py
+│   ├── server.py             # FastMCP server setup
+│   ├── tools/                # Individual MCP tools
+│   │   ├── __init__.py
+│   │   ├── database_tools.py    # SQL execution, schema analysis
+│   │   ├── knowledge_tools.py   # Pattern search, FAQ matching
+│   │   ├── session_tools.py     # Context management
+│   │   └── safety_tools.py      # Validation, guardrails
+│   └── lifespan.py          # Database connection lifecycle
+│
+├── database/                  # Database Layer
+│   ├── __init__.py
+│   ├── connections.py        # MariaDB, PostgreSQL connections
+│   ├── models.py            # SQLAlchemy models
+│   ├── memory_manager.py    # PostgreSQL memory operations
+│   └── query_executor.py    # Safe SQL execution
+│
+├── model/                    # AI Model Integration
+│   ├── __init__.py
+│   ├── sonnet.py           # Claude Sonnet 4 integration
+│   ├── embeddings.py       # BGE-M3 embedding service
+│   └── prompts.py          # Prompt templates
+│
+├── rag/                     # Knowledge Base
+│   ├── __init__.py
+│   ├── qdrant_client.py    # Qdrant vector operations
+│   ├── indexing.py         # Document indexing pipeline
+│   ├── retrieval.py        # Semantic search logic
+│   └── faq_matcher.py      # FAQ pattern matching
+│
+├── evals/                   # Evaluation System
+│   ├── __init__.py
+│   ├── sql_validator.py    # SQL syntax and logic validation
+│   ├── result_evaluator.py # Result quality assessment
+│   ├── performance.py      # Query performance analysis
+│   └── metrics.py          # Success metrics tracking
+│
+├── guardrails/             # Safety Systems
+│   ├── __init__.py
+│   ├── query_guard.py      # SQL injection, dangerous operations
+│   ├── rate_limiter.py     # API and query rate limiting
+│   ├── permission.py       # Access control
+│   └── data_privacy.py     # PII detection and masking
+│
+├── prompt_engineering/      # Advanced Prompting
+│   ├── __init__.py
+│   ├── templates.py        # Prompt templates
+│   ├── chain_of_thought.py # CoT prompting for complex queries
+│   ├── few_shot.py         # Dynamic example selection
+│   └── adaptive.py         # Context-aware prompting
+│
+├── asynchronous/           # Async Patterns
+│   ├── __init__.py
+│   ├── task_queue.py       # Background task management
+│   ├── parallel.py         # Parallel investigation execution
+│   └── websocket.py        # Real-time client updates
+│
+├── computer_use/           # Future: Agentic UI Interaction
+│   └── __init__.py         # Reserved for future features
+│
+├── api/                    # API Layer
+│   ├── __init__.py
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── agent.py        # Agent interaction endpoints
+│   │   ├── investigation.py # Investigation management
+│   │   └── faq.py          # FAQ management
+│   ├── websocket.py        # WebSocket handlers
+│   └── dependencies.py     # FastAPI dependencies
+│
+└── utils/                  # Utilities
+    ├── __init__.py
+    ├── logging.py          # Structured logging
+    ├── monitoring.py       # Metrics and observability
+    └── exceptions.py       # Custom exceptions
+```
+
+## 🧠 Core Components
+
+### 1. Autonomous SQL Agent (core/agent.py)
+The main brain that orchestrates investigations.
+
+```python
+class AutonomousSQLAgent:
+    """Claude Code-style autonomous SQL investigation agent"""
+    
+    def __init__(self):
+        self.planner = InvestigationPlanner()
+        self.memory = MemoryManager()
+        self.mcp_client = MCPClient()
+        self.sonnet = SonnetClient()
+    
+    async def investigate(self, user_query: str, session_id: str):
+        """Autonomous investigation loop"""
+        # 1. Plan investigation strategy
+        # 2. Execute tasks iteratively
+        # 3. Adapt based on findings
+        # 4. Continue until complete insights
+```
+
+### 2. MCP Tool Server (mcp/server.py)
+Provides safe, controlled access to all databases and tools.
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("Agentic SQL Tools")
+
+@asynccontextmanager
+async def lifespan(server: FastMCP):
+    """Initialize all connections on startup"""
+    # Connect to MariaDB, PostgreSQL, Qdrant
+    # Initialize BGE-M3 embeddings
+    yield resources
+    # Cleanup on shutdown
+```
+
+### 3. Memory System (database/memory_manager.py)
+Unified PostgreSQL-based memory management.
+
+```python
+class PostgreSQLMemoryManager:
+    """No Redis needed - PostgreSQL handles everything"""
+    
+    async def get_session_context(self, session_id: str):
+        # Short-term memory (current investigation)
+        
+    async def get_user_patterns(self, user_id: str):
+        # Long-term memory (historical patterns)
+        
+    async def cache_result(self, key: str, data: dict, ttl: int):
+        # Fast cache with automatic expiration
+```
+
+### 4. Knowledge Base (rag/faq_matcher.py)
+Semantic search and FAQ pattern matching.
+
+```python
+class FAQMatcher:
+    """Multi-tier query matching strategy"""
+    
+    def __init__(self):
+        self.embeddings = BGE_M3()
+        self.qdrant = QdrantClient()
+    
+    async def match_query(self, user_query: str):
+        # 1. Exact FAQ match (instant)
+        # 2. Semantic similarity (BGE-M3 + Qdrant)
+        # 3. Template matching (parameterized)
+        # 4. Fall back to Sonnet 4 generation
+```
+
+## 🚀 Implementation Priorities
+
+### Phase 1: Foundation (Week 1-2)
+
+#### Week 1: Core Infrastructure
+- [ ] **Day 1-2**: Project setup and configuration
+  - FastAPI application structure
+  - Environment configuration
+  - Logging and monitoring setup
+  
+- [ ] **Day 3-4**: Database connections
+  - MariaDB connection pool
+  - PostgreSQL connection pool
+  - Connection lifecycle management
+  
+- [ ] **Day 5**: MCP server foundation
+  - Basic FastMCP server
+  - Tool registration framework
+  - Lifespan management
+
+#### Week 2: Memory System
+- [ ] **Day 1-2**: PostgreSQL schema design
+  - Create memory tables (session_state, user_history, cache)
+  - Indexes for performance
+  - TTL cleanup functions
+  
+- [ ] **Day 3-4**: Memory manager implementation
+  - CRUD operations for all memory types
+  - Session context management
+  - Caching layer
+  
+- [ ] **Day 5**: Testing and validation
+  - Unit tests for memory operations
+  - Performance benchmarks
+  - Documentation
+
+### Phase 2: Intelligence Layer (Week 3-4)
+
+#### Week 3: AI Integration
+- [ ] **Day 1-2**: Sonnet 4 integration
+  - Anthropic API client
+  - Thinking mode implementation
+  - Error handling and retries
+  
+- [ ] **Day 3-4**: BGE-M3 embeddings
+  - Local model setup
+  - Embedding service
+  - Batch processing optimization
+  
+- [ ] **Day 5**: Qdrant setup
+  - Docker deployment
+  - Collection creation
+  - Initial indexing pipeline
+
+#### Week 4: Knowledge Base
+- [ ] **Day 1-2**: FAQ system
+  - FAQ storage schema
+  - Pattern matching logic
+  - Confidence scoring
+  
+- [ ] **Day 3-4**: Semantic search
+  - Vector indexing pipeline
+  - Hybrid search implementation
+  - Result ranking
+  
+- [ ] **Day 5**: Integration testing
+  - End-to-end retrieval tests
+  - Performance optimization
+  - Cache warming strategies
+
+### Phase 3: Autonomous Behavior (Week 5-6)
+
+#### Week 5: Core Agent Loop
+- [ ] **Day 1-2**: Investigation planner
+  - Task decomposition logic
+  - Strategy selection
+  - Progress tracking
+  
+- [ ] **Day 3-4**: Autonomous execution
+  - Investigation loop implementation
+  - Self-correction mechanisms
+  - Result synthesis
+  
+- [ ] **Day 5**: MCP tools
+  - Database execution tools
+  - Schema analysis tools
+  - Safety validation tools
+
+#### Week 6: Production Features
+- [ ] **Day 1-2**: Guardrails
+  - Query validation
+  - Rate limiting
+  - Permission system
+  
+- [ ] **Day 3-4**: Evaluation system
+  - SQL validation
+  - Result quality metrics
+  - Performance tracking
+  
+- [ ] **Day 5**: WebSocket integration
+  - Real-time progress updates
+  - Streaming results
+  - Error handling
+
+### Phase 4: UI Integration (Week 7-8)
+
+#### Week 7: API Development
+- [ ] **Day 1-2**: REST endpoints
+  - Agent interaction API
+  - Investigation management
+  - FAQ management
+  
+- [ ] **Day 3-4**: WebSocket handlers
+  - Real-time communication
+  - Progress streaming
+  - Result updates
+  
+- [ ] **Day 5**: API documentation
+  - OpenAPI specification
+  - Integration examples
+  - Authentication setup
+
+#### Week 8: Testing & Optimization
+- [ ] **Day 1-2**: Integration testing
+  - Full system tests
+  - Load testing
+  - Error scenarios
+  
+- [ ] **Day 3-4**: Performance optimization
+  - Query optimization
+  - Caching strategies
+  - Resource management
+  
+- [ ] **Day 5**: Deployment preparation
+  - Docker containerization
+  - Environment configurations
+  - Monitoring setup
+
+## 💡 Key Implementation Guidelines
+
+### 1. Start Simple, Iterate Fast
+- Begin with basic SQL execution
+- Add autonomous features incrementally
+- Test each component thoroughly
+
+### 2. Safety First
+- Implement guardrails before complex features
+- Validate all SQL before execution
+- Log everything for audit trails
+
+### 3. Observable by Design
+- Structured logging throughout
+- Metrics for every operation
+- Clear error messages
+
+### 4. Modular Architecture
+- Each component independently testable
+- Clear interfaces between modules
+- Dependency injection patterns
+
+## 📊 Success Metrics
+
+### Technical Metrics
+- Query success rate > 95%
+- Response time < 2s for FAQ queries
+- Investigation completion rate > 80%
+- Zero SQL injection vulnerabilities
+
+### Business Metrics
+- User satisfaction score > 4.5/5
+- 70% reduction in time to insights
+- 90% of common queries handled by FAQ
+- 50% reduction in data analyst workload
+
+## 🔧 Development Setup
+
+### Prerequisites
+```bash
+# Python 3.11+
+python --version
+
+# PostgreSQL 15+
+psql --version
+
+# Docker for Qdrant
+docker --version
+```
+
+### Installation
+```bash
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup databases
+python scripts/setup_databases.py
+```
+
+### Running the Backend
+```bash
+# Start MCP server
+python -m app.mcp.server
+
+# Start FastAPI application
+uvicorn app.main:app --reload --port 8000
+```
+
+## 🧪 Testing Strategy
+
+### Unit Tests
+- Test each component in isolation
+- Mock external dependencies
+- Aim for 80%+ coverage
+
+### Integration Tests
+- Test component interactions
+- Use test databases
+- Validate full workflows
+
+### End-to-End Tests
+- Test complete investigation flows
+- Include UI interaction
+- Performance benchmarks
+
+## 📈 Monitoring & Observability
+
+### Logging
+- Structured JSON logs
+- Correlation IDs for request tracking
+- Log levels: DEBUG, INFO, WARNING, ERROR
+
+### Metrics
+- Prometheus metrics for monitoring
+- Custom dashboards in Grafana
+- Alerts for critical issues
+
+### Tracing
+- OpenTelemetry for distributed tracing
+- Trace autonomous investigation flows
+- Performance bottleneck identification
+
+## 🚨 Production Considerations
+
+### Scalability
+- Horizontal scaling with load balancer
+- Connection pooling for databases
+- Caching strategies for common queries
+
+### Security
+- API authentication (JWT tokens)
+- Database connection encryption
+- Input sanitization and validation
+
+### Reliability
+- Health check endpoints
+- Graceful shutdown handling
+- Circuit breakers for external services
+
+---
+
+This backend architecture provides the foundation for a production-ready autonomous SQL investigation agent that works like Claude Code but for data analysis. Start with Phase 1 and iterate based on user feedback!
