@@ -1,7 +1,85 @@
 [project]
-name = "agentic-sql"
+name = "agentic-sql-app"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "Autonomous SQL investigation agent backend with FastAPI + MCP integration"
+readme = "README.app.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "uvicorn[standard]>=0.32.0",
+    "websockets>=13.0",
+    # Database
+    "sqlalchemy>=2.0.36",
+    "asyncpg>=0.30.0", # PostgreSQL async driver
+    "aiomysql>=0.2.0", # MySQL/MariaDB async driver
+    "alembic>=1.14.0", # Database migrations
+    # AI and ML
+    "anthropic>=0.54.0",
+    "openai>=1.55.0", # For DeepSeek and OpenAI models
+    # MCP Integration
+    "mcp>=1.0.0",
+    "fastapi-mcp>=0.1.0",
+    # Configuration and Environment
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    "python-dotenv>=1.0.1",
+    # Async and Utilities
+    "aiofiles>=24.1.0",
+    "httpx>=0.28.0",
+    "tenacity>=9.0.0", # Retry logic
+    # Security
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.12",
+    # Monitoring and Logging
+    "structlog>=24.4.0",
+    "prometheus-client>=0.21.0",
+    # Development and Testing
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "fastapi>=0.115.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=23.9.0",
+    "isort>=5.12.0",
+    "mypy>=1.6.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.5.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = ["E", "F", "W", "I", "N", "B", "A", "S", "T"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

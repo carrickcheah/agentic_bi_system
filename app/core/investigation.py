@@ -11,7 +11,7 @@ from datetime import datetime
 from enum import Enum
 
 from ..utils.logging import logger
-from ..utils.exceptions import InvestigationStepError
+from ..api.websocket import send_investigation_progress, send_investigation_result, send_investigation_error
 
 
 class StepType(Enum):
@@ -535,3 +535,165 @@ class InvestigationEngine:
             has_errors = bool(step_result.get("error"))
             low_confidence = step_result.get("confidence", 1.0) < 0.5
             return has_errors or low_confidence
+
+
+class SimpleInvestigationEngine:
+    """
+    Simplified investigation engine for initial implementation.
+    
+    This engine provides a basic autonomous investigation flow
+    while we develop the full MCP integration.
+    """
+    
+    def __init__(self, investigation_id: str):
+        self.investigation_id = investigation_id
+        self.steps_completed = 0
+        self.max_steps = 20
+        self.results = {}
+        self.context = {}
+    
+    async def investigate(self, query: str, context: Dict[str, Any] = None):
+        """
+        Run autonomous investigation for the given query.
+        
+        This method provides a simplified investigation flow that will
+        be enhanced with real MCP tool calls.
+        """
+        self.context = context or {}
+        
+        try:
+            await self._send_progress("Starting investigation", 0.0)
+            
+            # Step 1: Analyze the query and plan investigation
+            await self._send_progress("Analyzing query", 0.1)
+            investigation_plan = await self._plan_investigation(query)
+            
+            # Step 2: Execute investigation steps
+            await self._send_progress("Executing investigation plan", 0.2)
+            results = await self._execute_investigation_plan(investigation_plan)
+            
+            # Step 3: Synthesize final results
+            await self._send_progress("Synthesizing results", 0.9)
+            final_results = await self._synthesize_results(results)
+            
+            # Send final results
+            await self._send_progress("Investigation completed", 1.0)
+            await send_investigation_result(self.investigation_id, final_results)
+            
+            logger.info(f"Investigation {self.investigation_id} completed successfully")
+            
+        except Exception as e:
+            error_msg = f"Investigation failed: {str(e)}"
+            logger.error(f"Investigation {self.investigation_id} failed: {e}")
+            await send_investigation_error(self.investigation_id, error_msg)
+            raise
+    
+    async def _plan_investigation(self, query: str) -> Dict[str, Any]:
+        """Plan investigation strategy (simplified version)."""
+        # Simple planning logic - will be enhanced with LLM integration
+        plan = {
+            "query": query,
+            "steps": [
+                {"action": "get_schema", "description": "Discover available tables"},
+                {"action": "analyze_query", "description": "Understand what data is needed"},
+                {"action": "execute_queries", "description": "Execute SQL to get data"},
+                {"action": "analyze_results", "description": "Analyze and interpret results"}
+            ]
+        }
+        return plan
+    
+    async def _execute_investigation_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute investigation plan (simplified version)."""
+        results = {"steps": [], "data": {}}
+        total_steps = len(plan["steps"])
+        
+        for i, step in enumerate(plan["steps"]):
+            progress = 0.2 + (0.7 * i / total_steps)
+            await self._send_progress(step["description"], progress)
+            
+            try:
+                step_result = await self._execute_investigation_step(step)
+                results["steps"].append({
+                    "step": step,
+                    "result": step_result,
+                    "success": True
+                })
+                results["data"][step["action"]] = step_result
+                
+            except Exception as e:
+                results["steps"].append({
+                    "step": step,
+                    "error": str(e),
+                    "success": False
+                })
+                continue
+        
+        return results
+    
+    async def _execute_investigation_step(self, step: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute a single investigation step (mock implementation)."""
+        action = step["action"]
+        
+        # Simulate work
+        await asyncio.sleep(0.5)
+        
+        if action == "get_schema":
+            return {
+                "tables": [
+                    {"name": "customers", "columns": ["id", "name", "email", "created_at"]},
+                    {"name": "orders", "columns": ["id", "customer_id", "amount", "order_date"]},
+                    {"name": "products", "columns": ["id", "name", "price", "category"]}
+                ]
+            }
+        elif action == "analyze_query":
+            return {
+                "intent": "customer_analysis",
+                "entities": ["customers", "orders"],
+                "metrics": ["count", "revenue"]
+            }
+        elif action == "execute_queries":
+            return {
+                "queries_executed": [
+                    {"sql": "SELECT COUNT(*) FROM customers", "result": [{"count": 1500}]},
+                    {"sql": "SELECT SUM(amount) FROM orders", "result": [{"total": 25340.50}]}
+                ]
+            }
+        elif action == "analyze_results":
+            return {
+                "insights": [
+                    "Total customers: 1,500",
+                    "Total revenue: $25,340.50",
+                    "Average revenue per customer: $16.89"
+                ]
+            }
+        else:
+            raise ValueError(f"Unknown investigation step: {action}")
+    
+    async def _synthesize_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+        """Synthesize final investigation results."""
+        successful_steps = [step for step in results["steps"] if step["success"]]
+        
+        # Extract insights
+        insights = []
+        if "analyze_results" in results["data"]:
+            insights = results["data"]["analyze_results"].get("insights", [])
+        
+        return {
+            "investigation_id": self.investigation_id,
+            "summary": {
+                "total_steps": len(results["steps"]),
+                "successful_steps": len(successful_steps)
+            },
+            "insights": insights,
+            "data": results["data"],
+            "completed_at": datetime.utcnow().isoformat()
+        }
+    
+    async def _send_progress(self, message: str, progress: float):
+        """Send progress update via WebSocket."""
+        await send_investigation_progress(
+            self.investigation_id,
+            message,
+            progress,
+            {"steps_completed": self.steps_completed}
+        )

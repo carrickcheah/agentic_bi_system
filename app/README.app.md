@@ -437,4 +437,154 @@ uvicorn app.main:app --reload --port 8000
 
 ---
 
-This backend architecture provides the foundation for a production-ready autonomous SQL investigation agent that works like Claude Code but for data analysis. Start with Phase 1 and iterate based on user feedback!
+## 🚀 Quick Start Guide
+
+### Prerequisites
+
+- Python 3.11+
+- MariaDB/MySQL database
+- PostgreSQL database  
+- Anthropic API key
+
+### Installation & Setup
+
+1. **Environment Setup:**
+   ```bash
+   cd app/
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -e .
+   ```
+
+2. **Configuration:**
+   ```bash
+   cp .env.template .env
+   # Edit .env with your database URLs and API keys
+   ```
+
+3. **Database Setup:**
+   
+   **MariaDB** (for company data):
+   ```sql
+   CREATE DATABASE company_db;
+   CREATE USER 'agent'@'localhost' IDENTIFIED BY 'password';
+   GRANT SELECT ON company_db.* TO 'agent'@'localhost';
+   ```
+   
+   **PostgreSQL** (for agent memory):
+   ```sql
+   CREATE DATABASE agent_memory;
+   CREATE USER agent WITH PASSWORD 'password';
+   GRANT ALL PRIVILEGES ON DATABASE agent_memory TO agent;
+   ```
+
+4. **Run the Server:**
+   ```bash
+   python -m app.main
+   ```
+   
+   Server starts on `http://localhost:8008`
+
+## 📚 API Usage
+
+### Core Endpoints
+
+- **`POST /api/v1/investigations`** - Start autonomous investigation
+- **`GET /api/v1/investigations/{id}`** - Get investigation status  
+- **`POST /api/v1/database/execute`** - Execute SQL queries
+- **`GET /api/v1/database/schema`** - Get database schema
+- **`WebSocket /ws/{investigation_id}`** - Real-time progress updates
+
+### FastAPI + MCP Integration
+
+The server automatically exposes all endpoints as MCP tools at `/mcp`:
+
+- **Frontend**: Uses REST API (`/api/v1/*`)  
+- **Agent**: Uses MCP tools (`/mcp`)
+- **Same code serves both protocols!**
+
+### Example Usage
+
+**Start Investigation:**
+```bash
+curl -X POST http://localhost:8008/api/v1/investigations \
+  -H "Content-Type: application/json" \
+  -d '{"query": "How many customers signed up last month?"}'
+```
+
+**Real-Time Updates:**
+```javascript
+const ws = new WebSocket('ws://localhost:8008/ws/investigation_id');
+ws.onmessage = (event) => {
+    const update = JSON.parse(event.data);
+    console.log('Progress:', update);
+};
+```
+
+**API Documentation:**
+- Swagger UI: `http://localhost:8008/docs`
+- Health Check: `http://localhost:8008/health`
+- Metrics: `http://localhost:8008/metrics`
+
+## 🤖 How Autonomous Investigation Works
+
+### Workflow
+1. **User Query** → Frontend → REST API
+2. **Investigation Created** → Background task starts  
+3. **Agent Uses MCP Tools** → Database operations
+4. **Progress Streamed** → WebSocket → Frontend
+5. **Results Delivered** → Investigation complete
+
+### Agent Execution Steps
+1. Analyze query and plan investigation
+2. Discover database schema
+3. Plan investigation steps  
+4. Execute SQL queries autonomously
+5. Synthesize insights and results
+
+## 🔒 Security Features
+
+- SQL injection protection
+- Read-only query enforcement  
+- Query timeout limits (30s default)
+- Result size limits (10K rows default)
+- Rate limiting (100 req/min default)
+- Query validation and sanitization
+
+## 🧪 Development Tools
+
+**Code Quality:**
+```bash
+black app/
+isort app/
+ruff check app/
+pytest
+```
+
+**Monitoring:**
+- Structured JSON logging
+- Prometheus metrics
+- Request/response tracking
+- SQL execution monitoring
+
+## 🚧 Implementation Status
+
+### ✅ Completed (Phase 1)
+- FastAPI application with MCP integration
+- Investigation management endpoints
+- Database tool endpoints  
+- WebSocket real-time updates
+- Autonomous agent foundation
+- Security guardrails
+- Logging and monitoring
+
+### 🔄 Next Steps
+1. **Real MCP Integration** - Replace mock tools with actual MCP calls
+2. **Claude Sonnet Integration** - Add intelligent planning
+3. **Advanced Analytics** - Pattern discovery and statistical analysis  
+4. **UI Integration** - Connect with React/Vue frontend
+5. **Production Features** - Authentication, scaling, deployment
+
+---
+
+This backend architecture provides the foundation for a production-ready autonomous SQL investigation agent that works like Claude Code but for data analysis. The implementation is now complete and ready for development!

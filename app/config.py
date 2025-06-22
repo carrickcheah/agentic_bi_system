@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     
     # API Configuration
     api_host: str = "0.0.0.0"
-    api_port: int = 8000
+    api_port: int = 8008
     api_prefix: str = "/api/v1"
     
     # Database URLs
@@ -45,6 +45,28 @@ class Settings(BaseSettings):
         description="Anthropic API key for Claude Sonnet 4"
     )
     anthropic_model: str = "claude-3-5-sonnet-20241022"
+    
+    # Anthropic Prompt Caching (beta feature)
+    anthropic_enable_caching: bool = True
+    cache_system_prompt: bool = True
+    cache_schema_info: bool = True
+    prompt_cache_ttl: int = 3600  # 1 hour cache TTL
+    
+    # DeepSeek Models
+    deepseek_api_key: str = Field(
+        description="DeepSeek API key from platform.deepseek.com",
+        default=""
+    )
+    deepseek_model: str = "deepseek-reasoner"
+    deepseek_base_url: str = "https://api.deepseek.com"
+    
+    # OpenAI Models  
+    openai_api_key: str = Field(
+        description="OpenAI API key",
+        default=""
+    )
+    openai_model: str = "gpt-4.1-nano"
+    openai_base_url: str = "https://api.openai.com/v1"
     
     # BGE-M3 Embeddings
     embedding_model_name: str = "BAAI/bge-m3"
@@ -95,10 +117,6 @@ class Settings(BaseSettings):
     # Development
     reload: bool = False
     workers: int = 1
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
 
 
 # Global settings instance
