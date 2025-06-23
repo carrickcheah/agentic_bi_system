@@ -28,16 +28,23 @@ class Settings(BaseSettings):
     api_port: int = 8008
     api_prefix: str = "/api/v1"
     
-    # Database URLs
-    mariadb_url: str = Field(
-        description="MariaDB connection URL for company data"
-    )
-    postgres_url: str = Field(
-        description="PostgreSQL connection URL for agent memory"
-    )
+    # MCP Database Configuration
+    # MariaDB (via MCP)
+    mariadb_host: str = Field(description="MariaDB host for MCP connection")
+    mariadb_port: int = Field(description="MariaDB port for MCP connection")
+    mariadb_user: str = Field(description="MariaDB user for MCP connection")
+    mariadb_password: str = Field(description="MariaDB password for MCP connection")
+    mariadb_database: str = Field(description="MariaDB database for MCP connection")
     
-    # Vector Database
-    qdrant_url: str = "http://localhost:6333"
+    # PostgreSQL (via MCP)
+    postgres_url: str = Field(description="PostgreSQL connection URL for MCP")
+    
+    # Supabase (via MCP)
+    supabase_access_token: str = Field(description="Supabase access token for MCP")
+    
+    # Qdrant Cloud (via MCP)
+    qdrant_url: str = Field(description="Qdrant cloud URL for MCP")
+    qdrant_api_key: str = Field(description="Qdrant API key for MCP")
     qdrant_collection_name: str = "sql_knowledge"
     
     # AI Models
@@ -73,9 +80,9 @@ class Settings(BaseSettings):
     embedding_device: str = "cpu"  # or "cuda" if GPU available
     embedding_batch_size: int = 32
     
-    # MCP Configuration
-    mcp_host: str = "localhost"
-    mcp_port: int = 8001
+    # MCP Server Configuration
+    mcp_config_path: str = "mcp.json"
+    mcp_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     
     # Safety and Security
     max_query_timeout: int = 30  # seconds
@@ -123,22 +130,39 @@ class Settings(BaseSettings):
 settings = Settings()
 
 
-# Database connection strings
-def get_mariadb_url() -> str:
-    """Get MariaDB connection URL."""
-    return settings.mariadb_url
+# MCP Database Configuration Helpers
+def get_mariadb_mcp_config() -> dict:
+    """Get MariaDB MCP configuration."""
+    return {
+        "host": settings.mariadb_host,
+        "port": settings.mariadb_port,
+        "user": settings.mariadb_user,
+        "password": settings.mariadb_password,
+        "database": settings.mariadb_database
+    }
 
 
-def get_postgres_url() -> str:
-    """Get PostgreSQL connection URL."""
-    return settings.postgres_url
+def get_postgres_mcp_config() -> dict:
+    """Get PostgreSQL MCP configuration."""
+    return {
+        "url": settings.postgres_url
+    }
 
 
-def get_qdrant_config() -> dict:
-    """Get Qdrant configuration."""
+def get_supabase_mcp_config() -> dict:
+    """Get Supabase MCP configuration."""
+    return {
+        "access_token": settings.supabase_access_token
+    }
+
+
+def get_qdrant_mcp_config() -> dict:
+    """Get Qdrant MCP configuration."""
     return {
         "url": settings.qdrant_url,
-        "collection_name": settings.qdrant_collection_name
+        "api_key": settings.qdrant_api_key,
+        "collection_name": settings.qdrant_collection_name,
+        "embedding_model": settings.mcp_embedding_model
     }
 
 

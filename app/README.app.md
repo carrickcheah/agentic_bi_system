@@ -21,23 +21,20 @@ app/
 │   ├── planner.py            # Task planning and strategy
 │   └── memory.py             # Session and context management
 │
-├── mcp/                       # MCP Tool Server
+├── mcp/                       # MCP Client Infrastructure
 │   ├── __init__.py
-│   ├── server.py             # FastMCP server setup
-│   ├── tools/                # Individual MCP tools
-│   │   ├── __init__.py
-│   │   ├── database_tools.py    # SQL execution, schema analysis
-│   │   ├── knowledge_tools.py   # Pattern search, FAQ matching
-│   │   ├── session_tools.py     # Context management
-│   │   └── safety_tools.py      # Validation, guardrails
-│   └── lifespan.py          # Database connection lifecycle
+│   ├── client_manager.py     # Manages all MCP client connections
+│   ├── mariadb_client.py     # MariaDB MCP client wrapper
+│   ├── postgres_client.py    # PostgreSQL MCP client wrapper
+│   ├── supabase_client.py    # Supabase MCP client wrapper
+│   ├── qdrant_client.py      # Qdrant vector MCP client wrapper
+│   └── mcp.json             # MCP server configuration (4 databases)
 │
-├── database/                  # Database Layer
+├── database/                  # Database Layer (MCP-based)
 │   ├── __init__.py
-│   ├── connections.py        # MariaDB, PostgreSQL connections
-│   ├── models.py            # SQLAlchemy models
-│   ├── memory_manager.py    # PostgreSQL memory operations
-│   └── query_executor.py    # Safe SQL execution
+│   ├── models.py            # Data models and schemas
+│   ├── memory_manager.py    # PostgreSQL memory operations via MCP
+│   └── operations.py        # Safe SQL execution via MCP clients
 │
 ├── model/                    # AI Model Integration
 │   ├── __init__.py
@@ -122,56 +119,64 @@ class AutonomousSQLAgent:
         # 4. Continue until complete insights
 ```
 
-### 2. MCP Tool Server (mcp/server.py)
-Provides safe, controlled access to all databases and tools.
-
+### 2. MCP Dual Architecture
+**External Database MCP Servers** (via MCP Python SDK):
 ```python
-from mcp.server.fastmcp import FastMCP
+# mcp.json - External MCP servers for databases
+{
+  "mcpServers": {
+    "postgres": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres", "${POSTGRES_URL}"]},
+    "mariadb": {"command": "npx", "args": ["-y", "mariadb-mcp-server"], "env": {...}},
+    "supabase": {"command": "npx", "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "${SUPABASE_ACCESS_TOKEN}"]},
+    "qdrant": {"command": "uvx", "args": ["mcp-server-qdrant"], "env": {...}}
+  }
+}
+```
 
-mcp = FastMCP("Agentic SQL Tools")
+**FastAPI as MCP Server** (via FastAPI-MCP):
+```python
+# app_factory.py - FastAPI exposes REST endpoints as MCP tools
+from fastapi_mcp import FastAPIMCP
 
-@asynccontextmanager
-async def lifespan(server: FastMCP):
-    """Initialize all connections on startup"""
-    # Connect to MariaDB, PostgreSQL, Qdrant
-    # Initialize BGE-M3 embeddings
-    yield resources
-    # Cleanup on shutdown
+mcp = FastAPIMCP(app)
+mcp.mount()  # Exposes /api/* endpoints as MCP tools at /mcp
 ```
 
 ### 3. Memory System (database/memory_manager.py)
-Unified PostgreSQL-based memory management.
+Unified PostgreSQL-based memory management via MCP.
 
 ```python
-class PostgreSQLMemoryManager:
-    """No Redis needed - PostgreSQL handles everything"""
+class MemoryManager:
+    """No Redis needed - PostgreSQL via MCP handles everything"""
     
-    async def get_session_context(self, session_id: str):
-        # Short-term memory (current investigation)
+    def __init__(self, postgres_client: PostgreSQLClient):
+        self.postgres_client = postgres_client
+    
+    async def create_session(self, session_data: Dict[str, Any]):
+        # Uses PostgreSQL MCP client for session storage
+        await self.postgres_client.create_session(session_data)
         
-    async def get_user_patterns(self, user_id: str):
-        # Long-term memory (historical patterns)
-        
-    async def cache_result(self, key: str, data: dict, ttl: int):
-        # Fast cache with automatic expiration
+    async def get_recent_context(self, session_id: str, limit: int = 10):
+        # Retrieves context via MCP client
+        return await self.postgres_client.get_recent_memories(session_id, limit)
 ```
 
-### 4. Knowledge Base (rag/faq_matcher.py)
-Semantic search and FAQ pattern matching.
+### 4. Knowledge Base (mcp/qdrant_client.py)
+Semantic search and FAQ pattern matching via MCP.
 
 ```python
-class FAQMatcher:
-    """Multi-tier query matching strategy"""
+class QdrantClient:
+    """Multi-tier query matching strategy via MCP"""
     
-    def __init__(self):
-        self.embeddings = BGE_M3()
-        self.qdrant = QdrantClient()
+    def __init__(self, session: ClientSession):
+        self.session = session
     
-    async def match_query(self, user_query: str):
-        # 1. Exact FAQ match (instant)
-        # 2. Semantic similarity (BGE-M3 + Qdrant)
-        # 3. Template matching (parameterized)
-        # 4. Fall back to Sonnet 4 generation
+    async def search_similar(self, query: str, limit: int = 10):
+        # Uses Qdrant MCP server for semantic search
+        result = await self.session.call_tool("qdrant-find", {
+            "query": query, "limit": limit, "collection": "sql_knowledge"
+        })
+        return result.get("results", [])
 ```
 
 ## 🚀 Implementation Priorities
@@ -495,13 +500,16 @@ uvicorn app.main:app --reload --port 8000
 - **`GET /api/v1/database/schema`** - Get database schema
 - **`WebSocket /ws/{investigation_id}`** - Real-time progress updates
 
-### FastAPI + MCP Integration
+### Dual MCP Architecture
 
-The server automatically exposes all endpoints as MCP tools at `/mcp`:
-
+**1. FastAPI as MCP Server** (FastAPI-MCP):
 - **Frontend**: Uses REST API (`/api/v1/*`)  
-- **Agent**: Uses MCP tools (`/mcp`)
-- **Same code serves both protocols!**
+- **Agent**: Uses MCP tools (`/mcp`) - same endpoints, different protocol!
+
+**2. FastAPI as MCP Client** (MCP Python SDK):
+- **Database Operations**: Connects to external MCP servers
+- **4 Database MCP Servers**: PostgreSQL, MariaDB, Supabase, Qdrant
+- **Configuration**: `mcp.json` with environment variable substitution
 
 ### Example Usage
 
@@ -578,12 +586,17 @@ pytest
 - Security guardrails
 - Logging and monitoring
 
+### ✅ MCP Integration Complete
+1. **✅ Full MCP Architecture** - 4 databases via MCP clients, FastAPI as MCP server
+2. **✅ External MCP Servers** - PostgreSQL, MariaDB, Supabase, Qdrant
+3. **✅ FastAPI-MCP Integration** - REST endpoints exposed as MCP tools
+4. **✅ MCP Client Infrastructure** - Complete client manager and database wrappers
+
 ### 🔄 Next Steps
-1. **Real MCP Integration** - Replace mock tools with actual MCP calls
-2. **Claude Sonnet Integration** - Add intelligent planning
-3. **Advanced Analytics** - Pattern discovery and statistical analysis  
-4. **UI Integration** - Connect with React/Vue frontend
-5. **Production Features** - Authentication, scaling, deployment
+1. **Claude Sonnet Integration** - Add intelligent planning
+2. **Advanced Analytics** - Pattern discovery and statistical analysis  
+3. **UI Integration** - Connect with React/Vue frontend
+4. **Production Features** - Authentication, scaling, deployment
 
 ---
 

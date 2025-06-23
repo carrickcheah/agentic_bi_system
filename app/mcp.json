@@ -1,0 +1,47 @@
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "${SUPABASE_ACCESS_TOKEN}"
+      ]
+    },
+    "mariadb": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mariadb-mcp-server"
+      ],
+      "env": {
+        "MARIADB_HOST": "${MARIADB_HOST}",
+        "MARIADB_PORT": "${MARIADB_PORT}",
+        "MARIADB_USER": "${MARIADB_USER}",
+        "MARIADB_PASSWORD": "${MARIADB_PASSWORD}",
+        "MARIADB_DATABASE": "${MARIADB_DATABASE}"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "${POSTGRES_URL}"
+      ]
+    },
+    "qdrant": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-qdrant"
+      ],
+      "env": {
+        "QDRANT_URL": "${QDRANT_URL}",
+        "QDRANT_API_KEY": "${QDRANT_API_KEY}",
+        "COLLECTION_NAME": "sql_knowledge",
+        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
+      }
+    }
+  }
+}

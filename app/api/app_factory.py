@@ -17,11 +17,11 @@ from ..utils.logging import setup_logging, logger
 from ..utils.monitoring import setup_monitoring
 from .routes import investigations, database, sessions
 from .websocket import websocket_router
-from ..database.connections import DatabaseManager
+from ..mcp.client_manager import MCPClientManager
 
 
-# Global database manager
-db_manager: DatabaseManager = None
+# Global MCP client manager
+mcp_manager: MCPClientManager = None
 
 
 @asynccontextmanager
@@ -29,34 +29,34 @@ async def lifespan(app: FastAPI):
     """
     Application lifespan management.
     
-    Handles startup and shutdown of database connections and other services.
+    Handles startup and shutdown of MCP clients and other services.
     """
-    global db_manager
+    global mcp_manager
     
     # Startup
     logger.info("Starting Agentic SQL Backend...")
     
     try:
-        # Initialize database connections
-        logger.info("Initializing database connections...")
-        db_manager = DatabaseManager()
-        await db_manager.initialize()
+        # Initialize MCP client connections
+        logger.info("Initializing MCP client connections...")
+        mcp_manager = MCPClientManager()
+        await mcp_manager.initialize()
         
-        logger.info("✅ All services initialized successfully!")
+        logger.info("✅ All MCP services initialized successfully!")
         
         yield
         
     except Exception as e:
-        logger.error(f"Failed to initialize services: {e}")
+        logger.error(f"Failed to initialize MCP services: {e}")
         raise
     finally:
         # Shutdown
         logger.info("Shutting down Agentic SQL Backend...")
         
-        if db_manager:
-            await db_manager.close()
+        if mcp_manager:
+            await mcp_manager.close()
             
-        logger.info("✅ All services shut down gracefully")
+        logger.info("✅ All MCP services shut down gracefully")
 
 
 def create_app() -> FastAPI:
@@ -119,7 +119,7 @@ def create_app() -> FastAPI:
             "status": "healthy",
             "version": settings.app_version,
             "services": {
-                "database": db_manager.is_healthy() if db_manager else False,
+                "mcp_clients": mcp_manager.is_healthy() if mcp_manager else False,
             }
         }
     
@@ -150,6 +150,6 @@ def create_app() -> FastAPI:
     return app
 
 
-def get_database_manager() -> DatabaseManager:
-    """Get the global database manager instance."""
-    return db_manager
+def get_mcp_manager() -> MCPClientManager:
+    """Get the global MCP client manager instance."""
+    return mcp_manager

@@ -1,7 +1,7 @@
 """
 Database Operations
 
-Provides safe SQL execution and database introspection operations.
+Provides safe SQL execution and database introspection operations using MCP.
 """
 
 import time
@@ -10,14 +10,16 @@ from typing import List, Dict, Any, Optional
 from ..database.models import QueryResult, TableSchema, ColumnInfo, ForeignKeyInfo
 from ..utils.logging import logger, log_sql_execution
 from ..utils.monitoring import track_sql_execution
-from .connections import DatabaseManager
+from ..mcp.mariadb_client import MariaDBClient
+from ..mcp.postgres_client import PostgreSQLClient
 
 
 class DatabaseOperations:
-    """Handles safe database operations and schema introspection."""
+    """Handles safe database operations and schema introspection via MCP."""
     
-    def __init__(self, db_manager: DatabaseManager):
-        self.db_manager = db_manager
+    def __init__(self, mariadb_client: MariaDBClient, postgres_client: PostgreSQLClient):
+        self.mariadb_client = mariadb_client
+        self.postgres_client = postgres_client
     
     @track_sql_execution("mariadb")
     async def execute_query(
@@ -46,9 +48,13 @@ class DatabaseOperations:
             limited_query = self._add_limit_clause(query, max_rows)
             
             if database == "mariadb":
-                result = await self._execute_mariadb_query(limited_query, timeout)
+                result = await self.mariadb_client.execute_query(
+                    limited_query, max_rows=max_rows, timeout=timeout
+                )
             elif database == "postgres":
-                result = await self._execute_postgres_query(limited_query, timeout)
+                result = await self.postgres_client.execute_query(
+                    limited_query, max_rows=max_rows, timeout=timeout
+                )
             else:
                 raise ValueError(f"Unsupported database: {database}")
             
@@ -89,45 +95,7 @@ class DatabaseOperations:
                 execution_time=execution_time
             )
     
-    async def _execute_mariadb_query(self, query: str, timeout: int):
-        """Execute query on MariaDB."""
-        async with self.db_manager.get_mariadb_connection() as conn:
-            result = await conn.execute(query)
-            
-            # Fetch results
-            if result.returns_rows:
-                rows = result.fetchall()
-                columns = list(result.keys()) if rows else []
-                data = [dict(row) for row in rows] if rows else []
-            else:
-                columns = []
-                data = []
-            
-            return QueryResult(
-                success=True,
-                data=data,
-                columns=columns
-            )
     
-    async def _execute_postgres_query(self, query: str, timeout: int):
-        """Execute query on PostgreSQL."""
-        async with self.db_manager.get_postgres_connection() as conn:
-            result = await conn.execute(query)
-            
-            # Fetch results
-            if result.returns_rows:
-                rows = result.fetchall()
-                columns = list(result.keys()) if rows else []
-                data = [dict(row) for row in rows] if rows else []
-            else:
-                columns = []
-                data = []
-            
-            return QueryResult(
-                success=True,
-                data=data,
-                columns=columns
-            )
     
     def _add_limit_clause(self, query: str, max_rows: int) -> str:
         """Add LIMIT clause to query if not present."""
@@ -181,9 +149,8 @@ class DatabaseOperations:
         if table_name:
             table_query += f" AND TABLE_NAME = '{table_name}'"
         
-        async with self.db_manager.get_mariadb_connection() as conn:
-            table_result = await conn.execute(table_query)
-            table_names = [row[0] for row in table_result.fetchall()]
+        result = await self.mariadb_client.execute_query(table_query)
+        table_names = [row[0] for row in result.data]
         
         # Get detailed info for each table
         for table in table_names:
@@ -211,19 +178,18 @@ class DatabaseOperations:
         """
         
         columns = []
-        async with self.db_manager.get_mariadb_connection() as conn:
-            result = await conn.execute(query, (table_name,))
-            
-            for row in result.fetchall():
-                columns.append(ColumnInfo(
-                    name=row[0],
-                    data_type=row[1],
-                    is_nullable=row[2] == 'YES',
-                    default_value=row[3],
-                    max_length=row[4],
-                    precision=row[5],
-                    scale=row[6]
-                ))
+        result = await self.mariadb_client.execute_query(query)
+        
+        for row in result.data:
+            columns.append(ColumnInfo(
+                name=row[0],
+                data_type=row[1],
+                is_nullable=row[2] == 'YES',
+                default_value=row[3],
+                max_length=row[4],
+                precision=row[5],
+                scale=row[6]
+            ))
         
         return columns
     
@@ -235,9 +201,8 @@ class DatabaseOperations:
         WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND CONSTRAINT_NAME = 'PRIMARY'
         """
         
-        async with self.db_manager.get_mariadb_connection() as conn:
-            result = await conn.execute(query, (table_name,))
-            return [row[0] for row in result.fetchall()]
+        result = await self.mariadb_client.execute_query(query)
+        return [row[0] for row in result.data]
     
     async def _get_mariadb_foreign_keys(self, table_name: str) -> List[ForeignKeyInfo]:
         """Get foreign key information for MariaDB table."""
@@ -249,15 +214,14 @@ class DatabaseOperations:
         """
         
         foreign_keys = []
-        async with self.db_manager.get_mariadb_connection() as conn:
-            result = await conn.execute(query, (table_name,))
-            
-            for row in result.fetchall():
-                foreign_keys.append(ForeignKeyInfo(
-                    column=row[0],
-                    referenced_table=row[1],
-                    referenced_column=row[2]
-                ))
+        result = await self.mariadb_client.execute_query(query)
+        
+        for row in result.data:
+            foreign_keys.append(ForeignKeyInfo(
+                column=row[0],
+                referenced_table=row[1],
+                referenced_column=row[2]
+            ))
         
         return foreign_keys
     
@@ -277,9 +241,8 @@ class DatabaseOperations:
                 WHERE TABLE_SCHEMA = DATABASE()
                 ORDER BY TABLE_NAME
                 """
-                async with self.db_manager.get_mariadb_connection() as conn:
-                    result = await conn.execute(query)
-                    return [row[0] for row in result.fetchall()]
+                result = await self.mariadb_client.execute_query(query)
+                return [row[0] for row in result.data]
             
             elif database == "postgres":
                 query = """
@@ -288,9 +251,8 @@ class DatabaseOperations:
                 WHERE schemaname = 'public'
                 ORDER BY tablename
                 """
-                async with self.db_manager.get_postgres_connection() as conn:
-                    result = await conn.execute(query)
-                    return [row[0] for row in result.fetchall()]
+                result = await self.postgres_client.execute_query(query)
+                return [row[0] for row in result.data]
             
             else:
                 raise ValueError(f"Unsupported database: {database}")
