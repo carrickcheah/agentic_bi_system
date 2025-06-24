@@ -39,6 +39,7 @@ export function ConversationPanel({
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
   const [showStreamingSQL, setShowStreamingSQL] = useState(false);
   const [streamingCompleted, setStreamingCompleted] = useState(false);
+  const [thinkingMode, setThinkingMode] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -258,7 +259,43 @@ export function ConversationPanel({
               
               <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm">
                 <StreamingText 
-                  text={`I'll analyze your business intelligence query step by step.
+                  text={thinkingMode ? `<thinking>
+Let me break down this business intelligence query systematically:
+
+1. Query Analysis:
+   - Understanding the business context and intent
+   - Identifying key metrics, dimensions, and KPIs needed
+   - Mapping business language to data warehouse schema
+
+2. Data Source Evaluation:
+   - Checking available tables: sales_orders, customers, products, transactions
+   - Validating data quality and completeness for the requested timeframe
+   - Identifying any potential data gaps or limitations
+
+3. Query Strategy:
+   - Determining optimal SQL approach (aggregations vs detailed analysis)
+   - Planning JOIN operations for multi-table relationships
+   - Considering performance implications for large datasets
+
+4. Business Logic Application:
+   - Applying domain-specific calculations (revenue recognition, churn rates, etc.)
+   - Incorporating business rules and filters
+   - Ensuring compliance with company reporting standards
+</thinking>
+
+I'll analyze your business intelligence query step by step.
+
+First, let me understand what you're looking for and identify the key metrics and dimensions needed for this analysis.
+
+Connecting to your business data warehouse... I can see we have access to sales data, customer records, and performance metrics across multiple tables.
+
+Let me examine the data structure and relationships to build the most comprehensive analysis for your query.
+
+Running the analysis now... Processing customer segments, sales trends, and performance indicators.
+
+Based on my analysis of the data, I've identified several key insights that directly address your question. The patterns show some interesting trends that I think you'll find valuable.
+
+Here are the key findings from my investigation:` : `I'll analyze your business intelligence query step by step.
 
 First, let me understand what you're looking for and identify the key metrics and dimensions needed for this analysis.
 
@@ -271,7 +308,7 @@ Running the analysis now... Processing customer segments, sales trends, and perf
 Based on my analysis of the data, I've identified several key insights that directly address your question. The patterns show some interesting trends that I think you'll find valuable.
 
 Here are the key findings from my investigation:`}
-                  speed={50}
+                  speed={thinkingMode ? 30 : 50}
                   showCursor={true}
                   onComplete={handleStreamingComplete}
                   className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line leading-relaxed"
@@ -363,6 +400,30 @@ Here are the key findings from my investigation:`}
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                 <span>Powered by Claude Sonnet 4.0</span>
               </span>
+              
+              {/* Thinking Mode Toggle */}
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={thinkingMode}
+                    onChange={(e) => setThinkingMode(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`relative w-8 h-4 rounded-full transition-colors duration-200 ${
+                    thinkingMode 
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500' 
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  }`}>
+                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform duration-200 ${
+                      thinkingMode ? 'translate-x-4' : 'translate-x-0'
+                    }`}></div>
+                  </div>
+                  <span className="text-xs">
+                    Thinking mode
+                  </span>
+                </label>
+              </div>
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">Enter</kbd>
