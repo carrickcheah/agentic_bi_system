@@ -267,6 +267,11 @@ export function ConversationPanel({
                 <Zap className="w-3 h-3" />
                 <span>Intelligent caching enabled</span>
               </span>
+              {/* Example Yellow Button */}
+              <button className="btn-yellow" onClick={(e) => { e.preventDefault(); alert('Yellow button clicked!'); }}>
+                <Sparkles className="w-4 h-4 mr-1" />
+                Quick Action
+              </button>
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">Enter</kbd>
