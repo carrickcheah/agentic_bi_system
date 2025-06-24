@@ -91,28 +91,45 @@ async def tier1a_anthropic_cache(user_query: str) -> Optional[dict]:
     return None  # Proceed to Layer 1b
 ```
 
-#### Layer 1b: PostgreSQL Application Cache (100ms)
+#### Layer 1b: PostgreSQL Application Cache - Hybrid Approach (100ms)
 ```python
-async def tier1b_postgres_cache(user_query: str) -> Optional[dict]:
-    """Persistent application cache with smart TTL"""
+async def tier1b_hybrid_postgres_cache(user_query: str, user_id: str) -> Optional[dict]:
+    """Hybrid personal + organizational cache with smart TTL"""
     
-    cache_result = await postgres_agent.check_query_cache(
-        query_hash=hash_query(user_query),
+    query_hash = hash_query(user_query)
+    
+    # Check personal cache first (most relevant)
+    personal_result = await postgres_agent.check_personal_cache(
+        user_id=user_id,
+        query_hash=query_hash,
         current_time=datetime.now()
     )
     
-    if cache_result.hit and not cache_result.expired:
-        await postgres_agent.increment_hit_count(cache_result.id)
-        return cache_result
+    if personal_result.hit and not personal_result.expired:
+        await postgres_agent.increment_hit_count(personal_result.id, cache_type="personal")
+        return personal_result
+    
+    # Check organizational cache (shared knowledge)
+    organizational_result = await postgres_agent.check_organizational_cache(
+        query_hash=query_hash,
+        organization_id=get_user_organization(user_id),
+        current_time=datetime.now()
+    )
+    
+    if organizational_result.hit and not organizational_result.expired:
+        await postgres_agent.increment_hit_count(organizational_result.id, cache_type="organizational")
+        return organizational_result
     
     return None  # Proceed to Tier 2
 ```
 
-**PostgreSQL Cache Schema:**
+**PostgreSQL Cache Schema - Hybrid Approach:**
 ```sql
-CREATE TABLE query_cache (
+-- Personal Cache Table
+CREATE TABLE personal_cache (
     id SERIAL PRIMARY KEY,
-    query_hash VARCHAR(64) UNIQUE,
+    user_id VARCHAR(64),
+    query_hash VARCHAR(64),
     original_query TEXT,
     response_data JSONB,
     complexity_type VARCHAR(20),        -- simple/analytical/computational/investigative
@@ -121,8 +138,31 @@ CREATE TABLE query_cache (
     created_at TIMESTAMP DEFAULT NOW(),
     expires_at TIMESTAMP,
     hit_count INTEGER DEFAULT 0,
-    user_satisfaction BOOLEAN
+    user_satisfaction BOOLEAN,
+    UNIQUE(user_id, query_hash)
 );
+
+-- Organizational Shared Cache Table
+CREATE TABLE organizational_cache (
+    id SERIAL PRIMARY KEY,
+    query_hash VARCHAR(64) UNIQUE,
+    original_query TEXT,
+    response_data JSONB,
+    complexity_type VARCHAR(20),
+    database_scope VARCHAR(20),
+    databases_used TEXT[],
+    created_at TIMESTAMP DEFAULT NOW(),
+    expires_at TIMESTAMP,
+    hit_count INTEGER DEFAULT 0,
+    user_satisfaction BOOLEAN,
+    created_by VARCHAR(64),             -- Who first created this cache entry
+    organization_id VARCHAR(64)         -- Organization scope
+);
+
+-- Cache Strategy: Check personal first, then organizational
+-- Time-based TTL by data type:
+-- Sales data (24h), Inventory (4h), Real-time metrics (1h)
+-- User context: Personal vs shared based on query sensitivity
 ```
 
 ### Tier 2: Complexity + Database Scope Detection (200-500ms)
@@ -132,7 +172,7 @@ async def tier2_enhanced_analysis(user_query: str) -> QueryAnalysis:
     """Analyze both complexity AND database scope"""
     
     analysis = await anthropic_client.messages.create(
-        model="claude-3-5-sonnet-20241022",
+        model="claude-sonnet-4-20250514",
         system="""
         Analyze this business query across multiple dimensions:
         
@@ -480,20 +520,24 @@ async def cache_successful_result(
     await postgres_agent.store_cache_entry(cache_entry)
 ```
 
-### Complete Cache Flow
+### Complete Hybrid Cache Flow
 
 ```
-User Query
+User Query (with user_id)
     ↓
-Tier 1a: Anthropic Cache (50ms) → Hit? Return
+Tier 1a: Anthropic Cache (50ms) → Hit? Return (organization-wide cache benefit)
     ↓ (miss)
-Tier 1b: PostgreSQL Cache (100ms) → Hit? Return  
-    ↓ (miss)
-Tier 2: Complexity + Database Scope Detection (200-500ms)
-Tier 3: Context Building (100-300ms)  
+Tier 1b: Hybrid PostgreSQL Cache (100ms)
+    ├── Personal Cache Check → Hit? Return (user-specific results)
+    ├── Organizational Cache Check → Hit? Return (team knowledge sharing)
+    └── Both MISS ↓
+Tier 2: Complexity + Database Scope Detection (200-500ms) 
+Tier 3: Context Building (100-300ms)
 Tier 4: Database-Boundary Execution (2-15s)
     ↓
-Store Result → PostgreSQL Cache (for future Layer 1b hits)
+Store Result → Personal + Organizational Cache (based on query sensitivity)
+    ├── Sensitive queries → Personal cache only
+    └── Business insights → Both personal + organizational cache
 ```
 
 ---
@@ -502,20 +546,20 @@ Store Result → PostgreSQL Cache (for future Layer 1b hits)
 
 ```python
 @mcp.tool()
-async def database_boundary_business_agent(user_query: str) -> dict:
-    """Complete database-boundary intelligent business agent"""
+async def database_boundary_business_agent(user_query: str, user_id: str) -> dict:
+    """Complete database-boundary intelligent business agent with hybrid caching"""
     
-    # Tier 1a: Anthropic cache
+    # Tier 1a: Anthropic cache (organization-wide)
     anthropic_result = await tier1a_anthropic_cache(user_query)
     if anthropic_result:
         return anthropic_result
     
-    # Tier 1b: PostgreSQL cache
-    postgres_cache_result = await tier1b_postgres_cache(user_query)
+    # Tier 1b: Hybrid PostgreSQL cache (personal + organizational)
+    postgres_cache_result = await tier1b_hybrid_postgres_cache(user_query, user_id)
     if postgres_cache_result:
         return postgres_cache_result
     
-    # Tier 2: Enhanced analysis (complexity + database scope)
+    # Tier 2: Enhanced analysis (complexity + database scope) - Sonnet 4.0
     analysis = await tier2_enhanced_analysis(user_query)
     
     # Tier 3: Scope-aware context building
@@ -524,21 +568,25 @@ async def database_boundary_business_agent(user_query: str) -> dict:
     # Tier 4: Database-boundary execution
     result = await tier4_database_boundary_execution(user_query, analysis, context)
     
-    # Cache successful results
-    await cache_successful_result(user_query, result, analysis, result.execution_time)
+    # Cache successful results (hybrid storage)
+    await cache_successful_result_hybrid(user_query, result, analysis, result.execution_time, user_id)
     
     return {
         "query": user_query,
+        "user_id": user_id,
         "analysis": analysis,
         "execution_strategy": analysis.agent_strategy,
         "databases_used": analysis.databases_needed,
         "response": result,
         "performance_metrics": {
-            "tier1_cache": "miss",
+            "tier1a_anthropic": "miss",
+            "tier1b_personal": "miss", 
+            "tier1b_organizational": "miss",
             "tier2_analysis": f"{analysis.confidence:.1%} confidence",
             "tier3_context": context["optimization_mode"],
             "tier4_execution": analysis.agent_strategy,
-            "total_time": result.execution_time
+            "total_time": result.execution_time,
+            "cache_strategy": "hybrid_personal_organizational"
         }
     }
 ```
@@ -561,11 +609,38 @@ async def database_boundary_business_agent(user_query: str) -> dict:
 - **Single Database**: 70-80% of queries (MariaDB business queries most common)
 - **Multi-Database**: 20-30% of queries (complex investigations, correlations)
 
-### Cache Effectiveness
+### Cache Effectiveness & Team Collaboration
 
-- **Anthropic Cache**: 15-25% hit rate, 90% cost savings
-- **PostgreSQL Cache**: 35-45% hit rate for non-Anthropic cached queries
-- **Combined Cache**: 50-70% total cache hit rate
+**Anthropic's Built-in Cache (Organization-Level):**
+- **Scope**: Organization-wide sharing across all team members using same API key
+- **Hit Rate**: 15-25% individual, 40-60% organization-wide
+- **Benefits**: 90% cost savings, team prompt engineering ROI
+- **Storage**: Anthropic's servers (automatic, invisible to application)
+- **Duration**: 5 minutes standard, 1 hour enterprise
+
+**PostgreSQL Application Cache (Hybrid Approach):**
+- **Personal Cache**: Individual user queries and sensitive data
+- **Organizational Cache**: Shared business insights and common patterns
+- **Hit Rate**: 35-45% personal + 25-35% organizational = 60-80% combined
+- **Team Benefits**: Knowledge building, cache warming, learning acceleration
+
+**Team Collaboration Benefits:**
+- **Prompt Engineering ROI**: One person optimizes prompt, whole team benefits
+- **Knowledge Building**: Each query improves cache hit rate for everyone  
+- **Cost Efficiency**: Team's combined usage creates better cache performance
+- **Learning Acceleration**: New team members immediately benefit from existing cache
+
+**Cache Strategy for Team Efficiency:**
+- **Morning Queries**: First person "warms up" cache for entire team
+- **Common Questions**: FAQ-style queries become instant for everyone after first ask
+- **Schema Queries**: Database exploration cached for all analysts
+- **Business Rules**: Complex business logic cached across all team investigations
+
+**PostgreSQL Cache Optimization:**
+- **Time-based TTL**: Sales data (24h), Inventory (4h), Real-time metrics (1h)
+- **User Context**: Personal vs shared cache based on query sensitivity
+- **Data Freshness**: Balance between speed and accuracy requirements  
+- **Storage Costs**: PostgreSQL storage vs API costs optimization
 
 ---
 
