@@ -50,14 +50,17 @@
   /* Stunning Buttons */
   .btn-primary {
     @apply relative inline-flex items-center justify-center px-6 py-3 
-           bg-gradient-to-r from-primary-600 to-primary-700 
-           hover:from-primary-700 hover:to-primary-800
            text-white font-medium rounded-2xl
-           shadow-lg shadow-primary-500/25 hover:shadow-xl hover:shadow-primary-500/40
+           shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/40
            transition-all duration-300 ease-out
-           focus:outline-none focus:ring-4 focus:ring-primary-500/30
+           focus:outline-none focus:ring-4 focus:ring-purple-500/30
            transform hover:scale-[1.02] active:scale-[0.98]
            overflow-hidden;
+    background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #a855f7 100%);
   }
 
   .btn-primary::before {
