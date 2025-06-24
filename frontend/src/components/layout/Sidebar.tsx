@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../contexts/ThemeContext';
 import { 
   FolderOpen, 
   Plus, 
@@ -11,7 +12,9 @@ import {
   BarChart3,
   TrendingUp,
   Users,
-  Settings
+  Settings,
+  Moon,
+  Sun
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -23,6 +26,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarProps) {
   const { t, i18n } = useTranslation();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [selectedChat, setSelectedChat] = useState('agentic-sql-research');
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
@@ -282,8 +286,18 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
               <button className="w-full px-4 py-2 text-left text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 {t('get_help')}
               </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                {t('upgrade_plan')}
+              <button 
+                onClick={toggleDarkMode}
+                className="w-full px-4 py-2 text-left text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between"
+              >
+                <span>{t('dark_mode')}</span>
+                <div className="flex items-center">
+                  {isDarkMode ? (
+                    <Moon className="w-4 h-4" />
+                  ) : (
+                    <Sun className="w-4 h-4" />
+                  )}
+                </div>
               </button>
               <button className="w-full px-4 py-2 text-left text-sm text-text-primary-light dark:text-text-primary-dark hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-between">
                 <span>{t('learn_more')}</span>

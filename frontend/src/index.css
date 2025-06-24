@@ -43,13 +43,22 @@
     @apply bg-primary-200 text-primary-900;
   }
 
-  /* Black text for left and right panels, excluding buttons */
+  /* Text color for left and right panels, excluding buttons - respects dark mode */
   .conversation-panel *:not(button):not(button *) {
     color: black !important;
   }
 
   .results-panel *:not(button):not(button *) {
     color: black !important;
+  }
+
+  /* Dark mode text color overrides */
+  .dark .conversation-panel *:not(button):not(button *) {
+    color: white !important;
+  }
+
+  .dark .results-panel *:not(button):not(button *) {
+    color: white !important;
   }
 
   /* Increase font size by 1px for Business Analyst label and main message content */

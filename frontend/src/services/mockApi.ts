@@ -120,12 +120,12 @@ const investigationScenarios = {
   revenueForecast: {
     phases: [
       { name: 'Query Processing', insights: ['Revenue forecast analysis requested', 'Q1 2024 projection scope'] },
-      { name: 'Data Source Discovery', insights: ['Connected to Supabase analytics', 'Retrieved 3-year historical data'] },
-      { name: 'Strategy Planning', insights: ['Applied ARIMA forecasting model', 'Including economic indicators'] },
-      { name: 'Feature Engineering', insights: ['Created seasonal adjustment factors', 'Normalized currency fluctuations'] },
-      { name: 'Model Training', insights: ['Training ensemble models', '89% accuracy on validation set'] },
-      { name: 'Scenario Modeling', insights: ['Generated best/worst case scenarios', 'Monte Carlo simulations run'] },
-      { name: 'Analysis Execution', insights: ['Forecast models converged', 'Confidence intervals calculated'] },
+      { name: 'Data Source Discovery', insights: ['Connected to financial database', 'Retrieved 3-year revenue history'] },
+      { name: 'Strategy Planning', insights: ['Selected trend analysis methodology', 'Including seasonal patterns'] },
+      { name: 'Historical Analysis', insights: ['Analyzed revenue patterns', 'Identified growth trends and seasonality'] },
+      { name: 'Market Research', insights: ['Reviewed industry benchmarks', 'Assessed economic indicators impact'] },
+      { name: 'Scenario Planning', insights: ['Developed optimistic/conservative projections', 'Created risk-adjusted forecasts'] },
+      { name: 'Analysis Execution', insights: ['Revenue projections completed', 'Confidence ranges established'] },
       { name: 'Insight Synthesis', insights: ['23% growth projected', 'Key risk factors identified'] },
     ],
     insights: [
@@ -148,20 +148,20 @@ const investigationScenarios = {
   productAnalytics: {
     phases: [
       { name: 'Query Processing', insights: ['Product performance analysis requested', 'Multi-dimensional analysis scope'] },
-      { name: 'Data Source Discovery', insights: ['Connected to product analytics warehouse', 'Found 2.3M user interactions'] },
-      { name: 'Strategy Planning', insights: ['Cohort analysis methodology selected', 'Including feature adoption metrics'] },
-      { name: 'User Segmentation', insights: ['Identified 7 distinct user segments', 'Power users represent 12% of base'] },
-      { name: 'Feature Impact Analysis', insights: ['A/B test results integrated', 'Feature correlation matrix built'] },
-      { name: 'Conversion Funnel Analysis', insights: ['Mapped 5-step conversion funnel', 'Identified 3 major drop-off points'] },
-      { name: 'Analysis Execution', insights: ['Product metrics calculated', 'Retention curves generated'] },
-      { name: 'Insight Synthesis', insights: ['Feature X drives 34% more engagement', 'Onboarding improvements needed'] },
+      { name: 'Data Source Discovery', insights: ['Connected to product database', 'Found 2.3M user interactions'] },
+      { name: 'Strategy Planning', insights: ['Selected customer behavior analysis', 'Including feature adoption metrics'] },
+      { name: 'Customer Segmentation', insights: ['Identified 7 distinct customer segments', 'Premium users represent 12% of base'] },
+      { name: 'Usage Pattern Analysis', insights: ['Analyzed feature usage patterns', 'Mapped customer journey touchpoints'] },
+      { name: 'Performance Evaluation', insights: ['Reviewed conversion metrics', 'Identified 3 major drop-off points'] },
+      { name: 'Analysis Execution', insights: ['Product metrics calculated', 'Customer retention analyzed'] },
+      { name: 'Insight Synthesis', insights: ['Premium feature drives 34% more engagement', 'Onboarding improvements needed'] },
     ],
     insights: [
       {
         id: 'product-finding-1',
         type: 'finding' as const,
-        title: 'Feature X Increases Engagement 34%',
-        description: 'Users who adopt Feature X show 34% higher monthly engagement and 28% better retention',
+        title: 'Premium Feature Increases Engagement 34%',
+        description: 'Customers who use premium features show 34% higher monthly engagement and 28% better retention',
         confidence: 0.93,
       },
       {
@@ -176,12 +176,12 @@ const investigationScenarios = {
   marketTrends: {
     phases: [
       { name: 'Query Processing', insights: ['Market trend analysis requested', 'Competitive landscape scope'] },
-      { name: 'Data Source Discovery', insights: ['Connected to external market APIs', 'Integrated social sentiment feeds'] },
-      { name: 'Strategy Planning', insights: ['Time-series analysis approach', 'Sentiment correlation modeling'] },
-      { name: 'Competitive Intelligence', insights: ['Analyzed 12 competitor strategies', 'Price positioning matrix built'] },
-      { name: 'Social Sentiment Analysis', insights: ['Processed 45K social mentions', 'Brand sentiment trending positive'] },
-      { name: 'Market Signal Detection', insights: ['Emerging trend patterns identified', 'Early adoption indicators found'] },
-      { name: 'Analysis Execution', insights: ['Market share calculations complete', 'Growth opportunity matrix ready'] },
+      { name: 'Data Source Discovery', insights: ['Connected to market research database', 'Integrated industry reports'] },
+      { name: 'Strategy Planning', insights: ['Selected competitive analysis framework', 'Including market positioning review'] },
+      { name: 'Competitive Research', insights: ['Analyzed 12 competitor strategies', 'Reviewed pricing and positioning'] },
+      { name: 'Market Intelligence', insights: ['Processed industry reports', 'Brand perception trending positive'] },
+      { name: 'Opportunity Assessment', insights: ['Emerging market opportunities identified', 'Growth potential indicators found'] },
+      { name: 'Analysis Execution', insights: ['Market share analysis complete', 'Opportunity evaluation ready'] },
       { name: 'Insight Synthesis', insights: ['Untapped market segment found', 'Competitive advantage identified'] },
     ],
     insights: [
