@@ -52,28 +52,6 @@ export function Header() {
             </div>
           </div>
 
-          {/* Cache Performance */}
-          <div className="glass-card px-4 py-2 interactive-hover">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Zap className="w-5 h-5 text-accent-500" />
-                <div className="absolute inset-0 bg-accent-400 rounded blur-sm opacity-30 animate-glow"></div>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">
-                  Cache Hit Rate
-                </p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm font-bold text-text-primary-light dark:text-text-primary-dark">
-                    68%
-                  </p>
-                  <div className="w-8 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="w-[68%] h-full bg-gradient-to-r from-accent-400 to-primary-400 rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Action Buttons */}
           <div className="flex items-center space-x-3">
