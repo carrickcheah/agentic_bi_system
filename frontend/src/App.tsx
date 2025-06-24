@@ -8,6 +8,8 @@ function App() {
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
   const [isInvestigating, setIsInvestigating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(50); // percentage
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     // Simulate app loading
@@ -26,6 +28,47 @@ function App() {
       setIsInvestigating(false);
     }
   };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const containerWidth = window.innerWidth;
+    const newLeftWidth = (e.clientX / containerWidth) * 100;
+    
+    // Constrain between 20% and 80%
+    const constrainedWidth = Math.min(Math.max(newLeftWidth, 20), 80);
+    setLeftPanelWidth(constrainedWidth);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isDragging]);
 
   if (!isLoaded) {
     return (
@@ -76,10 +119,10 @@ function App() {
       
       <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Left Panel - Conversation */}
-        <div className="w-1/2 flex flex-col relative">
-          {/* Gradient divider */}
-          <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary-200 dark:via-primary-800 to-transparent"></div>
-          
+        <div 
+          className="flex flex-col relative"
+          style={{ width: `${leftPanelWidth}%` }}
+        >
           <ConversationPanel
             onNewQuery={handleNewQuery}
             onInvestigationUpdate={handleInvestigationUpdate}
@@ -87,8 +130,32 @@ function App() {
           />
         </div>
 
+        {/* Resizable Divider */}
+        <div 
+          className={`relative flex-shrink-0 w-1 cursor-col-resize transition-all duration-200 ${
+            isDragging ? 'w-2' : ''
+          }`}
+          style={{
+            background: isDragging 
+              ? 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
+              : 'linear-gradient(to bottom, transparent, rgba(96, 165, 250, 0.3), rgba(167, 139, 250, 0.3), rgba(192, 132, 252, 0.3), transparent)'
+          }}
+          onMouseDown={handleMouseDown}
+        >
+          {/* Drag handle indicator */}
+          <div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200"
+            style={{
+              background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
+            }}
+          ></div>
+        </div>
+
         {/* Right Panel - Results */}
-        <div className="w-1/2 flex flex-col">
+        <div 
+          className="flex flex-col"
+          style={{ width: `${100 - leftPanelWidth}%` }}
+        >
           <ResultsPanel
             investigation={currentInvestigation}
             isInvestigating={isInvestigating}

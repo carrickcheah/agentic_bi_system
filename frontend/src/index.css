@@ -14,11 +14,9 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-background-light via-primary-50/30 to-accent-50/20 
-           dark:from-background-dark dark:via-primary-900/30 dark:to-accent-900/20
+    @apply bg-background-light dark:bg-background-dark
            text-text-primary-light dark:text-text-primary-dark 
            antialiased font-sans;
-    background-attachment: fixed;
     min-height: 100vh;
   }
 

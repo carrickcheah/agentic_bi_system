@@ -46,20 +46,20 @@ export default {
         },
         background: {
           light: '#fafbfc',
-          dark: '#0a0b0d',
+          dark: '#1a1a1a',
         },
         surface: {
           light: '#ffffff',
-          dark: '#1a1b1e',
+          dark: '#2a2a2a',
         },
         text: {
           primary: {
             light: '#0f172a',
-            dark: '#f8fafc',
+            dark: '#ffffff',
           },
           secondary: {
             light: '#64748b',
-            dark: '#94a3b8',
+            dark: '#b0b0b0',
           },
         },
       },
