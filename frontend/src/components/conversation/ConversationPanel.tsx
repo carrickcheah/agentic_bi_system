@@ -363,10 +363,6 @@ Here are the key findings from my investigation:`}
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
                 <span>Powered by Claude Sonnet 4.0</span>
               </span>
-              <span className="flex items-center space-x-1">
-                <Zap className="w-3 h-3" />
-                <span>Intelligent caching enabled</span>
-              </span>
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">Enter</kbd>
