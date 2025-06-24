@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ConversationPanel } from './components/conversation/ConversationPanel';
 import { ResultsPanel } from './components/results/ResultsPanel';
 import { Header } from './components/layout/Header';
+import { Sidebar } from './components/layout/Sidebar';
 import { Investigation } from './services/mockApi';
 
 function App() {
@@ -10,6 +11,8 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(50); // percentage
   const [isDragging, setIsDragging] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(240); // px
 
   useEffect(() => {
     // Simulate app loading
@@ -114,48 +117,58 @@ function App() {
       <Header />
       
       <div className="flex-1 flex overflow-hidden relative z-10">
-        {/* Left Panel - Conversation */}
-        <div 
-          className="flex flex-col relative"
-          style={{ width: `${leftPanelWidth}%` }}
-        >
-          <ConversationPanel
-            onNewQuery={handleNewQuery}
-            onInvestigationUpdate={handleInvestigationUpdate}
-            isInvestigating={isInvestigating}
-          />
-        </div>
-
-        {/* Resizable Divider */}
-        <div 
-          className={`relative flex-shrink-0 w-1 cursor-col-resize transition-all duration-200 ${
-            isDragging ? 'w-2' : ''
-          }`}
-          style={{
-            background: isDragging 
-              ? 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
-              : 'linear-gradient(to bottom, transparent, rgba(96, 165, 250, 0.3), rgba(167, 139, 250, 0.3), rgba(192, 132, 252, 0.3), transparent)'
-          }}
-          onMouseDown={handleMouseDown}
-        >
-          {/* Drag handle indicator */}
+        {/* Sidebar */}
+        <Sidebar 
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          width={sidebarWidth}
+        />
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Panel - Conversation */}
           <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200"
-            style={{
-              background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
-            }}
-          ></div>
-        </div>
+            className="flex flex-col relative"
+            style={{ width: `${leftPanelWidth}%` }}
+          >
+            <ConversationPanel
+              onNewQuery={handleNewQuery}
+              onInvestigationUpdate={handleInvestigationUpdate}
+              isInvestigating={isInvestigating}
+            />
+          </div>
 
-        {/* Right Panel - Results */}
-        <div 
-          className="flex flex-col"
-          style={{ width: `${100 - leftPanelWidth}%` }}
-        >
-          <ResultsPanel
-            investigation={currentInvestigation}
-            isInvestigating={isInvestigating}
-          />
+          {/* Resizable Divider */}
+          <div 
+            className={`relative flex-shrink-0 w-1 cursor-col-resize transition-all duration-200 ${
+              isDragging ? 'w-2' : ''
+            }`}
+            style={{
+              background: isDragging 
+                ? 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
+                : 'linear-gradient(to bottom, transparent, rgba(96, 165, 250, 0.3), rgba(167, 139, 250, 0.3), rgba(192, 132, 252, 0.3), transparent)'
+            }}
+            onMouseDown={handleMouseDown}
+          >
+            {/* Drag handle indicator */}
+            <div 
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200"
+              style={{
+                background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)'
+              }}
+            ></div>
+          </div>
+
+          {/* Right Panel - Results */}
+          <div 
+            className="flex flex-col"
+            style={{ width: `${100 - leftPanelWidth}%` }}
+          >
+            <ResultsPanel
+              investigation={currentInvestigation}
+              isInvestigating={isInvestigating}
+            />
+          </div>
         </div>
       </div>
 
