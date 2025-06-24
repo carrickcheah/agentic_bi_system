@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ConversationPanel } from './components/conversation/ConversationPanel';
 import { ResultsPanel } from './components/results/ResultsPanel';
-import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { Investigation } from './services/mockApi';
 
@@ -113,19 +112,16 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col relative overflow-hidden bg-background-light dark:bg-background-dark">
-      <Header />
+    <div className="h-screen flex relative overflow-hidden bg-background-light dark:bg-background-dark">
+      {/* Sidebar */}
+      <Sidebar 
+        collapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        width={sidebarWidth}
+      />
       
-      <div className="flex-1 flex overflow-hidden relative z-10">
-        {/* Sidebar */}
-        <Sidebar 
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          width={sidebarWidth}
-        />
-        
-        {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Conversation */}
           <div 
             className="flex flex-col relative"
@@ -170,8 +166,6 @@ function App() {
             />
           </div>
         </div>
-      </div>
-
     </div>
   );
 }
