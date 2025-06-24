@@ -44,7 +44,7 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
       style={{ width: collapsed ? '60px' : `${width}px` }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className={`p-4 border-b border-gray-200 dark:border-gray-700 ${collapsed ? 'flex justify-center' : 'flex items-center justify-between'}`}>
         {!collapsed && (
           <div className="flex items-center space-x-2">
             <Database className="w-6 h-6 text-primary-600 dark:text-primary-400" />
@@ -55,21 +55,27 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
         )}
         <button
           onClick={onToggle}
-          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className={`${collapsed ? 'p-2 rounded-xl' : 'p-2 rounded-xl'} hover:opacity-90 transition-all duration-200`}
+          style={{
+            background: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #c084fc 100%)',
+            width: collapsed ? '40px' : 'auto',
+            height: collapsed ? '40px' : 'auto'
+          }}
         >
           {collapsed ? (
-            <ChevronRight className="w-4 h-4 text-text-secondary-light dark:text-text-secondary-dark" />
+            <ChevronRight className="w-4 h-4 text-white" />
           ) : (
-            <ChevronLeft className="w-4 h-4 text-text-secondary-light dark:text-text-secondary-dark" />
+            <ChevronLeft className="w-4 h-4 text-white" />
           )}
         </button>
       </div>
 
       {/* New Chat Button */}
-      <div className="p-3">
+      <div className={`p-3 ${collapsed ? 'flex justify-center' : ''}`}>
         <button 
           onClick={onNewAnalysis}
-          className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 group"
+          className={`${collapsed ? 'p-2 rounded-xl' : 'w-full p-3 rounded-lg'} flex items-center ${collapsed ? 'justify-center' : 'space-x-3'} bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white transition-all duration-200 group`}
+          style={collapsed ? { width: '40px', height: '40px' } : {}}
         >
           <Plus className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span className="text-sm font-medium">New Analysis</span>}
@@ -90,9 +96,12 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
         </div>
       )}
 
+      {/* Spacer to push user profile to bottom */}
+      <div className="flex-1"></div>
+
       {/* Recent Chats */}
       {!collapsed && (
-        <div className="flex-1 overflow-hidden">
+        <div className="overflow-hidden">
           <div className="px-3 py-2">
             <h3 className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
               Recents
