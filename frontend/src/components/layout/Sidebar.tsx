@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { 
-  MessageSquare, 
   FolderOpen, 
   Plus, 
   ChevronLeft, 
@@ -18,9 +17,10 @@ interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   width: number;
+  onNewAnalysis?: () => void;
 }
 
-export function Sidebar({ collapsed, onToggle, width }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarProps) {
   const [selectedChat, setSelectedChat] = useState('agentic-sql-research');
 
   const recentChats = [
@@ -67,7 +67,10 @@ export function Sidebar({ collapsed, onToggle, width }: SidebarProps) {
 
       {/* New Chat Button */}
       <div className="p-3">
-        <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 group">
+        <button 
+          onClick={onNewAnalysis}
+          className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg transition-all duration-200 group"
+        >
           <Plus className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span className="text-sm font-medium">New Analysis</span>}
         </button>
@@ -76,10 +79,6 @@ export function Sidebar({ collapsed, onToggle, width }: SidebarProps) {
       {/* Navigation */}
       {!collapsed && (
         <div className="px-3 space-y-1">
-          <button className="w-full flex items-center space-x-3 p-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-            <MessageSquare className="w-4 h-4" />
-            <span className="text-sm">Conversations</span>
-          </button>
           <button className="w-full flex items-center space-x-3 p-2 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
             <BarChart3 className="w-4 h-4" />
             <span className="text-sm">Reports</span>

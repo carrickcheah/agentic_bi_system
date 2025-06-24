@@ -10,7 +10,7 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState(50); // percentage
   const [isDragging, setIsDragging] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(240); // px
 
   useEffect(() => {
@@ -29,6 +29,16 @@ function App() {
       console.log('🔧 DEBUG: Setting isInvestigating to false');
       setIsInvestigating(false);
     }
+  };
+
+  const handleNewAnalysis = () => {
+    // Reset the conversation state
+    setCurrentInvestigation(null);
+    setIsInvestigating(false);
+    console.log('🔧 DEBUG: Starting new analysis - cleared conversation state');
+    
+    // Trigger conversation panel reset
+    window.dispatchEvent(new Event('resetConversation'));
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -118,6 +128,7 @@ function App() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         width={sidebarWidth}
+        onNewAnalysis={handleNewAnalysis}
       />
       
       {/* Main Content Area */}

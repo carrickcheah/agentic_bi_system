@@ -19,12 +19,14 @@ interface ConversationPanelProps {
   onNewQuery: (query: string) => void;
   onInvestigationUpdate: (investigation: Investigation) => void;
   isInvestigating: boolean;
+  onReset?: () => void;
 }
 
 export function ConversationPanel({
   onNewQuery,
   onInvestigationUpdate,
   isInvestigating,
+  onReset,
 }: ConversationPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -48,6 +50,29 @@ export function ConversationPanel({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (onReset) {
+      // Reset messages to initial state when onReset is triggered
+      const resetMessages = () => {
+        setMessages([
+          {
+            id: '1',
+            type: 'assistant',
+            content: 'Hello! I\'m your autonomous business intelligence analyst. Ask me anything about your business data - from simple metrics to complex investigations.',
+            timestamp: new Date(),
+          },
+        ]);
+        setCurrentInvestigation(null);
+        setShowStreamingSQL(false);
+        setStreamingCompleted(false);
+      };
+      
+      // Listen for reset calls
+      window.addEventListener('resetConversation', resetMessages);
+      return () => window.removeEventListener('resetConversation', resetMessages);
+    }
+  }, [onReset]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
