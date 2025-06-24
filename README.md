@@ -1,4 +1,4 @@
-# Agentic SQL - World-Class Autonomous Business Intelligence System
+# Agentic BI - World-Class Autonomous Business Intelligence System
 
 > Transform your organization from reactive data reporting to proactive intelligence generation
 
@@ -17,7 +17,7 @@ Every investigation improves the system for the entire organization. When one pe
 
 ## 🚀 Key Capabilities
 
-- **Database-Boundary Intelligence**: Single specialist agent for coherent domains, multi-agent orchestration for cross-database complexity
+- **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
 - **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
 - **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
 - **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Supabase (operations), Qdrant (semantic search)
@@ -28,7 +28,7 @@ Every investigation improves the system for the entire organization. When one pe
 
 ## 🤖 What Makes This Different?
 
-### Traditional SQL Tools vs Database-Boundary Intelligence
+### Traditional SQL Tools vs Autonomous Business Intelligence
 
 ### Rapid Response Mode (FAQ Cache Hit)
 ```
@@ -39,7 +39,7 @@ Traditional Tool:
 ├── Execute against database (2-5 seconds)
 └── Return raw numbers
 
-Agentic SQL Intelligence:
+Autonomous Business Analyst:
 ├── Semantic Pattern Recognition → 98% similarity to cached analysis
 ├── Context Enrichment → User role, department, historical interest
 ├── Instant Response → "Yesterday's sales: $47,832 (↑12% vs prior day, exceeding target by 8%)"
@@ -55,7 +55,7 @@ Traditional Tool:
 ├── Human analysis of disconnected data
 └── Manual report generation
 
-Agentic SQL Investigation:
+Autonomous Business Investigation:
 ├── Phase 1: Discovery → 6-month satisfaction trends, support tickets, usage patterns
 ├── Phase 2: Pattern Analysis → Temporal correlations, segment breakdown, competitive factors
 ├── Phase 3: Hypothesis Testing → Product update correlation confirmed
@@ -87,51 +87,59 @@ Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
 └── Team knowledge compounds exponentially
 ```
 
-## 🏗️ Database-Boundary Multi-Agent Architecture
+## 🏗️ Autonomous Business Intelligence Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                Database-Boundary Orchestrator                      │
-│              (Claude Sonnet 4.0 - Decision Brain)                  │
+│           AUTONOMOUS BUSINESS ANALYST (Single Brain)                │
+│                    Claude Sonnet 4.0 System                        │
 ├─────────────────────────────────────────────────────────────────────┤
-│  Core Principle: Database Boundaries = Agent Boundaries            │
-│  • Single Database = Single Agent (natural context coherence)      │
-│  • Multiple Databases = Multi-Agent (specialized domains)          │
-│  • Hybrid Caching: Personal + Organizational (team multiplier)     │
+│  🧠 Business Intelligence First - Thinks about business methodology │
+│  🔄 Autonomous Investigation - Multi-phase analysis & synthesis     │
+│  📈 Organizational Learning - Every investigation improves system   │
 └─────────────────┬───────────────────────────────────────────────────┘
                   │
-    ┌─────────────┴─────────────┐
-    │     MCP Protocol Hub      │
-    │   (FastAPI Dual Role)     │
-    │  • MCP Client → External  │
-    │  • MCP Server → Frontend  │
+    ┌─────────────▼─────────────┐
+    │   FIVE-PHASE WORKFLOW     │
+    │ 1️⃣ Query Processing      │
+    │ 2️⃣ Strategy Planning     │
+    │ 3️⃣ Service Orchestration │
+    │ 4️⃣ Investigation Engine  │
+    │ 5️⃣ Insight Synthesis     │
     └─────────────┬─────────────┘
                   │
     ┌─────────────▼─────────────┐
-    │   4-Database Specialists  │
+    │  MULTI-TIER CACHE CASCADE │
+    │ 50ms Anthropic + 100ms PG │
     └─────────────┬─────────────┘
                   │
-┌─────────────────┼─────────────────┐
-│                 │                 │
-▼                 ▼                 ▼
+    ┌─────────────▼─────────────┐
+    │     MCP SERVICE LAYER     │
+    │   (Database Specialists)  │
+    └─────────────┬─────────────┘
+                  │
+┌─────────────────┼─────────────────────────────────────────┐
+│                 │                 │                       │
+▼                 ▼                 ▼                       ▼
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│  MariaDB Agent  │ │PostgreSQL Agent │ │ Supabase Agent  │ │  Qdrant Agent   │
+│ Business Data   │ │  Memory Cache   │ │  Operations     │ │ Vector Search   │
+│   Service       │ │    Service      │ │    Service      │ │    Service      │
 │                 │ │                 │ │                 │ │                 │
-│ Business Ops    │ │ Memory & Cache  │ │ Operations Data │ │ Vector Search   │
-│ • Sales Data    │ │ • User Sessions │ │ • Additional    │ │ • Embeddings    │
-│ • Customers     │ │ • Query Cache   │ │   Business      │ │ • Semantic      │
-│ • Products      │ │ • Agent Memory  │ │   Logic         │ │   Search        │
-│ • Orders        │ │ • Performance   │ │ • Workflows     │ │ • Pattern       │
-│                 │ │   Metrics       │ │                 │ │   Matching      │
+│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Supabase MCP    │ │ Qdrant MCP      │
+│ • Sales Logic   │ │ • User Cache    │ │ • Workflow Data │ │ • Embeddings    │
+│ • Customer 360° │ │ • Org Memory    │ │ • Additional    │ │ • Semantic      │
+│ • Revenue Ops   │ │ • Learning      │ │   Business      │ │   Matching      │
+│ • Product Data  │ │ • Patterns      │ │   Operations    │ │ • FAQ Search    │
 └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
-### Two-Layer Hybrid Caching Strategy
+### Multi-Tier Cache Cascade Strategy
 ```
-User Query → Anthropic Cache (Org-wide) → Personal Cache → Organizational Cache → Full Execution
-     ↓              ↓                         ↓                    ↓
-   50ms        90% cost savings        User-specific        Team knowledge
-(15-25% hit)   (Organization-wide)     sensitive data       sharing benefits
+Business Query → Tier 1a: Anthropic Cache → Tier 1b: PostgreSQL Hybrid → Full Investigation
+      ↓              ↓                           ↓                              ↓
+    50ms        Organization-wide           Personal + Org Cache        Five-Phase Workflow
+ (Target hit)    90% cost savings           100ms target response        Complete Analysis
+              Complete conversations        Permission-aware results     Strategic Insights
 ```
 
 ## 🏭 Enterprise Production Architecture
@@ -193,9 +201,9 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Database-boundary orchestration with thinking mode |
+| AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Single autonomous business analyst with five-phase workflow |
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
-| Database 2 | PostgreSQL (via MCP) | Agent memory, sessions, hybrid caching |
+| Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
 | Database 3 | Supabase (via MCP) | Additional operations and data processing |
 | Database 4 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
@@ -362,6 +370,429 @@ The interface follows Claude.ai's elegant two-panel design:
 - Export to CSV/Excel/PDF
 - Dark/light mode
 
+# 📁 Agentic SQL - Alphabetically Sorted Structure
+
+## 🎯 **Status Legend**
+- ✅ **KEEP** - Excellent, use as-is
+- 🔧 **ENHANCE** - Good foundation, needs completion  
+- 🆕 **CREATE** - New file needed
+- 📝 **MIGRATE** - Move/rename existing file
+
+---
+
+## 📂 **Project Root Files (Alphabetical)**
+
+```
+agentic_sql/
+├── .env                                   ✅ KEEP (Configure)
+├── .env.template                          ✅ KEEP (Good)
+├── .gitignore                            ✅ KEEP (Good)
+├── .pre-commit-config.yaml               🆕 CREATE
+├── docker-compose.yml                    🆕 CREATE (Development)
+├── mcp.json                              📝 MIGRATE to app/mcp.json
+├── package.json                          🆕 CREATE (Root-level coordination)
+├── pyproject.toml                        ✅ KEEP (Excellent)
+└── README.md                             🆕 CREATE (Project overview)
+```
+
+---
+
+## 📂 **app/ Directory (Alphabetical)**
+
+```
+app/
+├── __init__.py                           ✅ KEEP
+├── config.py                             ✅ KEEP (Perfect!)
+├── main.py                               🆕 CREATE - FastAPI entry point
+│
+├── analytics/                            # 📈 ADVANCED ANALYTICS ENGINE
+│   ├── __init__.py                       🆕 CREATE
+│   ├── anomaly_detector.py               🆕 CREATE - Anomaly detection
+│   ├── correlation_engine.py             🆕 CREATE - Cross-metric correlations
+│   ├── forecaster.py                     🆕 CREATE - Predictive analytics
+│   ├── risk_assessor.py                  🆕 CREATE - Risk assessment
+│   ├── scenario_modeler.py               🆕 CREATE - What-if modeling
+│   ├── statistical_analyzer.py           🆕 CREATE - Statistical analysis
+│   └── trend_analyzer.py                 🆕 CREATE - Trend analysis
+│
+├── api/                                  # 🌐 FASTAPI WEB LAYER
+│   ├── __init__.py                       ✅ KEEP
+│   ├── app_factory.py                    ✅ KEEP (Excellent MCP integration)
+│   ├── dependencies.py                   🆕 CREATE - FastAPI dependencies
+│   ├── middleware/
+│   │   ├── __init__.py                   🆕 CREATE
+│   │   ├── caching_middleware.py         🆕 CREATE - Request-level caching
+│   │   ├── error_handler.py              🆕 CREATE - Graceful error handling
+│   │   ├── monitoring_middleware.py      🆕 CREATE - Request monitoring
+│   │   └── security_middleware.py        🆕 CREATE - Security & auth
+│   ├── routes/
+│   │   ├── __init__.py                   🆕 CREATE
+│   │   ├── admin.py                      🆕 CREATE - Administrative endpoints
+│   │   ├── analytics.py                  🆕 CREATE - Advanced analytics
+│   │   ├── cache.py                      🆕 CREATE - Cache management
+│   │   ├── collaboration.py              🆕 CREATE - Team collaboration
+│   │   ├── database.py                   ✅ KEEP (Good foundation)
+│   │   ├── intelligence.py               🆕 CREATE - BI endpoints
+│   │   ├── investigations.py             📝 MIGRATE from database.py + expand
+│   │   ├── monitoring.py                 🆕 CREATE - Health & metrics
+│   │   └── sessions.py                   🔧 ENHANCE (partial implementation)
+│   └── websocket/
+│       ├── __init__.py                   🆕 CREATE
+│       ├── collaboration_ws.py           🆕 CREATE - Team collaboration
+│       ├── investigation_ws.py           🆕 CREATE - Real-time investigation
+│       └── monitoring_ws.py              🆕 CREATE - System monitoring
+│
+├── cache/                                # ⚡ MULTI-TIER CACHE CASCADE
+│   ├── __init__.py                       🆕 CREATE
+│   ├── anthropic_cache.py                🆕 CREATE - Tier 1a: 50ms target
+│   ├── cache_manager.py                  🆕 CREATE - Cache cascade orchestrator
+│   ├── cache_warming.py                  🆕 CREATE - Predictive warming
+│   ├── postgresql_cache.py               🆕 CREATE - Tier 1b: 100ms target
+│   ├── semantic_cache.py                 🆕 CREATE - Intent-based caching
+│   └── ttl_manager.py                    🆕 CREATE - Dynamic TTL management
+│
+├── collaboration/                        # 🤝 TEAM COLLABORATION ENGINE
+│   ├── __init__.py                       🆕 CREATE
+│   ├── expertise_router.py               🆕 CREATE - Stakeholder inclusion
+│   ├── feedback_processor.py             🆕 CREATE - Expert validation
+│   ├── knowledge_synthesizer.py          🆕 CREATE - Cross-functional insights
+│   ├── morning_cache_warmer.py           🆕 CREATE - Cache warming strategy
+│   ├── real_time_sharing.py              🆕 CREATE - Investigation sharing
+│   └── team_patterns.py                  🆕 CREATE - Departmental patterns
+│
+├── core/                                 # 🧠 CORE AUTONOMOUS INTELLIGENCE
+│   ├── __init__.py                       🆕 CREATE
+│   ├── business_analyst.py               🆕 CREATE - Main orchestrator
+│   ├── execution_orchestrator.py         🆕 CREATE - Phase 4: Execution
+│   ├── insight_synthesizer.py            🆕 CREATE - Phase 5: Insights
+│   ├── investigation_engine.py           🆕 CREATE - Multi-phase investigations
+│   ├── memory.py                         🔧 ENHANCE (exists, needs completion)
+│   ├── organizational_memory.py          🆕 CREATE - Learning system
+│   ├── query_processor.py                🆕 CREATE - Phase 1: Query processing
+│   └── strategy_planner.py               🆕 CREATE - Phase 2: BI planning
+│
+├── database/                             # 📊 DATABASE LAYER
+│   ├── __init__.py                       ✅ KEEP
+│   ├── business_schema.py                🆕 CREATE - Business-aware schema
+│   ├── data_validator.py                 🆕 CREATE - Data quality validation
+│   ├── models.py                         ✅ KEEP (Good foundation)
+│   ├── performance_optimizer.py          🆕 CREATE - Query optimization
+│   ├── query_generator.py                🆕 CREATE - Business-intelligent queries
+│   └── security_enforcer.py              🆕 CREATE - Access control
+│
+├── guardrails/                           # 🛡️ SAFETY & QUALITY
+│   ├── __init__.py                       🆕 CREATE
+│   ├── business_validator.py             🆕 CREATE - Business logic validation
+│   ├── compliance_checker.py             🆕 CREATE - Regulatory compliance
+│   ├── quality_enforcer.py               🆕 CREATE - Quality enforcement
+│   ├── rate_limiter.py                   🆕 CREATE - Intelligent rate limiting
+│   ├── result_validator.py               🆕 CREATE - Result sanity checking
+│   └── sql_validator.py                  🆕 CREATE - SQL safety validation
+│
+├── intelligence/                         # 🎓 BUSINESS INTELLIGENCE LAYER
+│   ├── __init__.py                       🆕 CREATE
+│   ├── business_context.py               🆕 CREATE - Organizational context
+│   ├── complexity_analyzer.py            🆕 CREATE - Query complexity assessment
+│   ├── domain_expert.py                  🆕 CREATE - Business domain classification
+│   ├── hypothesis_generator.py           🆕 CREATE - Business hypothesis testing
+│   ├── methodology_selector.py           🆕 CREATE - Investigation methodology
+│   └── pattern_recognizer.py             🆕 CREATE - Cross-domain correlations
+│
+├── investigation/                        # 🔍 INVESTIGATION WORKFLOW
+│   ├── __init__.py                       🆕 CREATE
+│   ├── adaptive_planner.py               🆕 CREATE - Dynamic adaptation
+│   ├── collaboration_manager.py          🆕 CREATE - Multi-user collaboration
+│   ├── investigation_state.py            🆕 CREATE - State management
+│   ├── parallel_processor.py             🆕 CREATE - Multi-step parallel
+│   ├── progress_tracker.py               🆕 CREATE - Real-time progress
+│   ├── step_executor.py                  🆕 CREATE - Step execution
+│   └── validation_engine.py              🆕 CREATE - Cross-domain validation
+│
+├── learning/                             # 🧠 ORGANIZATIONAL LEARNING
+│   ├── __init__.py                       🆕 CREATE
+│   ├── adaptation_engine.py              🆕 CREATE - System adaptation
+│   ├── expertise_network.py              🆕 CREATE - Expert collaboration
+│   ├── knowledge_builder.py              🆕 CREATE - Institutional memory
+│   ├── methodology_optimizer.py          🆕 CREATE - Method refinement
+│   ├── pattern_learner.py                🆕 CREATE - Cross-investigation patterns
+│   └── success_tracker.py                🆕 CREATE - Outcome assessment
+│
+├── mcp/                                  # ✅ MCP CLIENT INFRASTRUCTURE
+│   ├── __init__.py                       ✅ KEEP
+│   ├── client_manager.py                 ✅ KEEP (Excellent foundation)
+│   ├── health_monitor.py                 🆕 CREATE - Connection health monitoring
+│   ├── mariadb_client.py                 🔧 ENHANCE (40% complete → Full business data)
+│   ├── postgres_client.py                🔧 ENHANCE (40% complete → Full memory ops)
+│   ├── qdrant_client.py                  🔧 ENHANCE (15% complete → Vector search)
+│   └── supabase_client.py                🔧 ENHANCE (20% complete → Operations)
+│
+├── model/                                # ✅ AI MODEL INTEGRATION
+│   ├── __init__.py                       ✅ KEEP
+│   ├── anthropic_model.py                ✅ KEEP (Perfect caching implementation)
+│   ├── context_manager.py                🆕 CREATE - Conversation context
+│   ├── deepseek_model.py                 🔧 ENHANCE (exists, verify completeness)
+│   ├── model_manager.py                  ✅ KEEP (Excellent fallback system)
+│   ├── openai_model.py                   🔧 ENHANCE (exists, verify completeness)
+│   └── prompt_optimizer.py               🆕 CREATE - Advanced prompt engineering
+│
+├── monitoring/                           # 📊 ENTERPRISE MONITORING
+│   ├── __init__.py                       🆕 CREATE
+│   ├── alert_manager.py                  🆕 CREATE - Proactive alerting
+│   ├── dashboard_generator.py            🆕 CREATE - Executive dashboards
+│   ├── health_checker.py                 🆕 CREATE - Component health
+│   ├── investigation_metrics.py          🆕 CREATE - Investigation success
+│   ├── performance_monitor.py            🆕 CREATE - System performance
+│   └── resource_optimizer.py             🆕 CREATE - Resource allocation
+│
+├── prompt_engineering/                   # ✅ ADVANCED PROMPTING
+│   ├── __init__.py                       🆕 CREATE
+│   ├── business_prompts.py               🆕 CREATE - BI-specific prompts
+│   ├── chain_of_thought.py               🆕 CREATE - CoT for complex analysis
+│   ├── context_composer.py               🆕 CREATE - Context-aware composition
+│   ├── few_shot_examples.py              🆕 CREATE - Dynamic examples
+│   ├── investigation_prompts.py          🆕 CREATE - Investigation workflows
+│   ├── prompt_optimizer.py               🆕 CREATE - A/B testing & optimization
+│   └── system_prompts.py                 ✅ KEEP (Excellent XML implementation)
+│
+├── security/                             # 🛡️ ZERO-TRUST SECURITY
+│   ├── __init__.py                       🆕 CREATE
+│   ├── access_controller.py              🆕 CREATE - RBAC
+│   ├── audit_logger.py                   🆕 CREATE - Audit trails
+│   ├── data_masker.py                    🆕 CREATE - Dynamic masking
+│   ├── lineage_tracker.py                🆕 CREATE - Data lineage
+│   ├── permission_enforcer.py            🆕 CREATE - Query permissions
+│   └── privacy_protector.py              🆕 CREATE - GDPR/CCPA compliance
+│
+├── services/                             # 🛠️ SERVICE ORCHESTRATION
+│   ├── __init__.py                       🆕 CREATE
+│   ├── analytics_service.py              🆕 CREATE - Advanced analytics
+│   ├── business_data_service.py          📝 MIGRATE from app/mcp/mariadb_client.py
+│   ├── external_service.py               📝 MIGRATE from app/mcp/supabase_client.py
+│   ├── memory_service.py                 📝 MIGRATE from app/mcp/postgres_client.py
+│   ├── service_orchestrator.py           🆕 CREATE - Service coordination
+│   └── vector_service.py                 📝 MIGRATE from app/mcp/qdrant_client.py
+│
+└── utils/                                # 🔧 SHARED UTILITIES
+    ├── __init__.py                       ✅ KEEP
+    ├── exceptions.py                     🆕 CREATE - Custom exception hierarchy
+    ├── formatters.py                     🆕 CREATE - Data formatting
+    ├── helpers.py                        🆕 CREATE - Common utilities
+    ├── logging.py                        🔧 ENHANCE (exists, verify completeness)
+    ├── monitoring.py                     🔧 ENHANCE (exists, verify completeness)
+    └── validators.py                     🆕 CREATE - Common validation
+```
+
+---
+
+## 📂 **deploy/ Directory (Alphabetical)**
+
+```
+deploy/
+├── docker/
+│   ├── Dockerfile.backend                🆕 CREATE
+│   ├── Dockerfile.cache                  🆕 CREATE
+│   ├── Dockerfile.frontend               🆕 CREATE
+│   └── docker-compose.yml                🆕 CREATE
+├── kubernetes/
+│   ├── backend-deployment.yaml           🆕 CREATE
+│   ├── cache-deployment.yaml             🆕 CREATE
+│   ├── configmaps.yaml                   🆕 CREATE
+│   ├── frontend-deployment.yaml          🆕 CREATE
+│   ├── ingress.yaml                      🆕 CREATE
+│   ├── namespace.yaml                    🆕 CREATE
+│   ├── secrets.yaml                      🆕 CREATE
+│   └── services.yaml                     🆕 CREATE
+├── monitoring/
+│   ├── alerts.yaml                       🆕 CREATE
+│   ├── grafana-dashboard.json            🆕 CREATE
+│   └── prometheus.yaml                   🆕 CREATE
+└── scripts/
+    ├── backup.sh                         🆕 CREATE
+    ├── deploy.sh                         🆕 CREATE
+    ├── health_check.sh                   🆕 CREATE
+    ├── rollback.sh                       🆕 CREATE
+    └── setup.sh                          🆕 CREATE
+```
+
+---
+
+## 📂 **docs/ Directory (Alphabetical)**
+
+```
+docs/
+├── API_REFERENCE.md                      🆕 CREATE
+├── ARCHITECTURE.md                       🆕 CREATE
+├── BUSINESS_INTELLIGENCE.md              🆕 CREATE
+├── CACHING_STRATEGY.md                   🆕 CREATE
+├── COLLABORATION.md                      🆕 CREATE
+├── DEPLOYMENT.md                         🆕 CREATE
+├── INVESTIGATION_WORKFLOW.md             🆕 CREATE
+├── README.md                             🆕 CREATE
+├── SECURITY.md                           🆕 CREATE
+└── USER_GUIDE.md                         🆕 CREATE
+```
+
+---
+
+## 📂 **frontend/ Directory (Alphabetical)**
+
+```
+frontend/
+├── package.json                          📝 MIGRATE from ui/web_app/package.json
+├── README.md                             📝 MIGRATE from ui/web_app/README.md
+├── tailwind.config.js                    📝 MIGRATE from ui/web_app/tailwind.config.js
+├── vite.config.ts                        📝 MIGRATE from ui/web_app/vite.config.ts
+├── public/
+│   ├── assets/                           📝 MIGRATE from ui/web_app/public/
+│   └── index.html                        📝 MIGRATE from ui/web_app/public/
+└── src/
+    ├── App.tsx                           📝 MIGRATE from ui/web_app/src/App.tsx
+    ├── main.tsx                          📝 MIGRATE from ui/web_app/src/main.tsx
+    ├── components/
+    │   ├── collaboration/
+    │   │   ├── ExpertiseNetwork.tsx       🆕 CREATE
+    │   │   ├── FeedbackSystem.tsx         🆕 CREATE
+    │   │   ├── KnowledgeSharing.tsx       🆕 CREATE
+    │   │   └── TeamWorkspace.tsx          🆕 CREATE
+    │   ├── conversation/
+    │   │   ├── BusinessQueryInput.tsx     🆕 CREATE
+    │   │   ├── ConversationPanel.tsx      🆕 CREATE
+    │   │   ├── InsightCard.tsx            🆕 CREATE
+    │   │   ├── InvestigationFlow.tsx      🆕 CREATE
+    │   │   ├── ProgressIndicator.tsx      🆕 CREATE
+    │   │   └── RecommendationList.tsx     🆕 CREATE
+    │   ├── intelligence/
+    │   │   ├── DomainExplorer.tsx         🆕 CREATE
+    │   │   ├── HypothesisTracker.tsx      🆕 CREATE
+    │   │   ├── ScenarioModeler.tsx        🆕 CREATE
+    │   │   └── TrendAnalyzer.tsx          🆕 CREATE
+    │   ├── layout/
+    │   │   ├── Header.tsx                 🆕 CREATE
+    │   │   ├── Sidebar.tsx                🆕 CREATE
+    │   │   └── TwoPanelLayout.tsx         🆕 CREATE - Claude.ai-style
+    │   ├── monitoring/
+    │   │   ├── CacheStatus.tsx            🆕 CREATE
+    │   │   ├── PerformanceMetrics.tsx     🆕 CREATE
+    │   │   └── SystemDashboard.tsx        🆕 CREATE
+    │   └── results/
+    │       ├── DataVisualization.tsx      🆕 CREATE
+    │       ├── ExportTools.tsx            🆕 CREATE
+    │       ├── MetricsOverview.tsx        🆕 CREATE
+    │       ├── PatternAnalysis.tsx        🆕 CREATE
+    │       ├── ResultsPanel.tsx           🆕 CREATE
+    │       └── SQLQueryDisplay.tsx        🆕 CREATE
+    ├── hooks/
+    │   ├── useAnalytics.ts                🆕 CREATE
+    │   ├── useBusinessContext.ts          🆕 CREATE
+    │   ├── useCache.ts                    🆕 CREATE
+    │   ├── useCollaboration.ts            🆕 CREATE
+    │   ├── useInvestigation.ts            🆕 CREATE
+    │   └── useWebSocket.ts                🆕 CREATE
+    ├── services/
+    │   ├── analytics.ts                   🆕 CREATE
+    │   ├── api.ts                         🆕 CREATE
+    │   ├── collaboration.ts               🆕 CREATE
+    │   ├── export.ts                      🆕 CREATE
+    │   └── websocket.ts                   🆕 CREATE
+    ├── stores/
+    │   ├── businessContextStore.ts        🆕 CREATE
+    │   ├── cacheStore.ts                  🆕 CREATE
+    │   ├── collaborationStore.ts          🆕 CREATE
+    │   ├── investigationStore.ts          🆕 CREATE
+    │   └── userPreferencesStore.ts        🆕 CREATE
+    ├── types/
+    │   ├── analytics.ts                   🆕 CREATE
+    │   ├── api.ts                         🆕 CREATE
+    │   ├── business.ts                    🆕 CREATE
+    │   ├── collaboration.ts               🆕 CREATE
+    │   └── investigation.ts               🆕 CREATE
+    └── utils/
+        ├── constants.ts                   🆕 CREATE
+        ├── export.ts                      🆕 CREATE
+        ├── formatting.ts                  🆕 CREATE
+        └── validation.ts                  🆕 CREATE
+```
+
+---
+
+## 📂 **scripts/ Directory (Alphabetical)**
+
+```
+scripts/
+├── cache_warmup.sh                       🆕 CREATE
+├── code_quality.sh                       🆕 CREATE
+├── data_migration.sh                     🆕 CREATE
+├── performance_benchmark.sh              🆕 CREATE
+├── run_tests.sh                          🆕 CREATE
+└── setup_dev.sh                          🆕 CREATE
+```
+
+---
+
+## 📂 **testing/ Directory (Alphabetical)**
+
+```
+testing/
+├── e2e/
+│   ├── test_business_intelligence_workflow.py 🆕 CREATE
+│   ├── test_collaboration_scenarios.py       🆕 CREATE
+│   ├── test_production_scenarios.py          🆕 CREATE
+│   └── test_user_journey.py                  🆕 CREATE
+├── fixtures/
+│   ├── investigation_scenarios.py            🆕 CREATE
+│   ├── mock_responses.py                     🆕 CREATE
+│   ├── sample_business_data.py               🆕 CREATE
+│   └── test_configurations.py                📝 MIGRATE from mcp_test_results.md
+├── integration/
+│   ├── test_cache_performance.py             🆕 CREATE
+│   ├── test_full_investigation_flow.py       🆕 CREATE
+│   ├── test_organizational_learning.py       🆕 CREATE
+│   ├── test_real_time_collaboration.py       🆕 CREATE
+│   └── test_security_compliance.py           🆕 CREATE
+├── performance/
+│   ├── test_cache_performance.py             🆕 CREATE
+│   ├── test_concurrent_investigations.py     🆕 CREATE
+│   ├── test_memory_usage.py                  🆕 CREATE
+│   └── test_scalability.py                   🆕 CREATE
+├── scripts/
+│   ├── quick_mcp_test.py                     🔧 ENHANCE (exists)
+│   ├── test_end_to_end.py                    🆕 CREATE
+│   ├── test_four_mcp_servers.py              🔧 ENHANCE (exists)
+│   └── test_model_fallback.py                🆕 CREATE
+└── unit/
+    ├── test_business_analyst.py              🆕 CREATE
+    ├── test_cache_cascade.py                 🆕 CREATE
+    ├── test_collaboration.py                 🆕 CREATE
+    ├── test_intelligence_layer.py            🆕 CREATE
+    ├── test_investigation_engine.py          🆕 CREATE
+    └── test_mcp_clients.py                   📝 MIGRATE from existing MCP tests
+```
+
+---
+
+## 🎯 **Priority Implementation Order**
+
+### **🔥 Week 1 - Critical Foundation**
+1. `app/main.py` 🆕 CREATE
+2. `app/mcp/mariadb_client.py` 🔧 ENHANCE  
+3. `app/mcp/postgres_client.py` 🔧 ENHANCE
+4. `app/mcp/qdrant_client.py` 🔧 ENHANCE
+5. `app/core/business_analyst.py` 🆕 CREATE
+
+### **⚡ Week 2 - Core Intelligence**  
+6. `app/intelligence/domain_expert.py` 🆕 CREATE
+7. `app/core/investigation_engine.py` 🆕 CREATE
+8. `app/cache/cache_manager.py` 🆕 CREATE
+9. `app/api/websocket/investigation_ws.py` 🆕 CREATE
+
+### **📈 Week 3 - Advanced Features**
+10. `app/learning/knowledge_builder.py` 🆕 CREATE
+11. `app/collaboration/real_time_sharing.py` 🆕 CREATE
+12. `frontend/` 📝 MIGRATE from ui/web_app/
+13. `testing/integration/` 🆕 CREATE
+
+Perfect alphabetical organization! Every file is now sorted A→Z within each directory. 🔤
+
 ## 🔧 Configuration
 
 ### Database Connections
@@ -503,15 +934,15 @@ Example: New product launch analysis synthesized:
 
 This project leverages cutting-edge research and insights from:
 - **Claude Code's autonomous problem-solving approach** - Multi-step reasoning and tool orchestration
-- **Anthropic's multi-agent research** - Parallel processing and specialist agent coordination
-- **Cognition.ai's context preservation principles** - Solving fragmentation through natural boundaries
-- **Database-boundary architecture insight** - Single agent for coherent domains, multi-agent for specialization
+- **Anthropic's autonomous reasoning research** - Advanced reasoning and problem-solving capabilities
+- **Cognition.ai's context preservation principles** - Solving fragmentation through natural service boundaries
+- **Business intelligence architecture insight** - Single autonomous analyst with specialized database services
 - **Model Context Protocol (MCP)** - Standardized tool communication and database integration
 - **BGE-M3 embeddings** - MIT-licensed dense + sparse + multi-vector embeddings
 - **Qdrant vector database** - Open-source semantic search and pattern matching
 
 ### Research Foundation
-Our architecture synthesizes the best insights from both Anthropic's multi-agent benefits and Cognition.ai's context preservation concerns, creating a system that is both sophisticated and reliable for production business intelligence workloads through natural database boundaries.
+Our architecture synthesizes the best insights from Anthropic's autonomous reasoning capabilities and Cognition.ai's context preservation principles, creating a sophisticated yet reliable single-analyst system for production business intelligence workloads through natural service boundaries.
 
 ## 📄 License
 

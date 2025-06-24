@@ -1,18 +1,30 @@
-"""
-Core Autonomous Agent Logic
+# AUTONOMOUS INTELLIGENCE CORE
 
-This module contains the main autonomous SQL investigation agent
-that works like Claude Code but for data analysis.
+This module contains the core business intelligence engine that implements
+the three revolutionary principles:
+
+1. Business Intelligence First, Technology Second
+2. Autonomous Investigation, Not Query Translation  
+3. Organizational Learning, Not Individual Tools
+
+The core engine orchestrates five-phase investigations that transform
+business questions into strategic insights.
 """
 
-from .agent import AutonomousSQLAgent
-from .investigation import InvestigationEngine
-from .planner import TaskPlanner
-from .memory import MemoryManager
+from .business_analyst import AutonomousBusinessAnalyst
+from .investigation_engine import InvestigationEngine
+from .query_processor import QueryProcessor
+from .strategy_planner import StrategyPlanner
+from .execution_orchestrator import ExecutionOrchestrator
+from .insight_synthesizer import InsightSynthesizer
+from .organizational_memory import OrganizationalMemory
 
 __all__ = [
-    "AutonomousSQLAgent",
+    "AutonomousBusinessAnalyst",
     "InvestigationEngine", 
-    "TaskPlanner",
-    "MemoryManager"
+    "QueryProcessor",
+    "StrategyPlanner",
+    "ExecutionOrchestrator",
+    "InsightSynthesizer",
+    "OrganizationalMemory"
 ]

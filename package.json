@@ -1,0 +1,57 @@
+{
+  "name": "agentic-bi-system",
+  "version": "1.0.0",
+  "description": "World-Class Autonomous Business Intelligence System",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd app && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd app && uv run pytest",
+    "test:frontend": "cd frontend && npm run test",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd app && uv run ruff check .",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format": "npm run format:backend && npm run format:frontend",
+    "format:backend": "cd app && uv run ruff format .",
+    "format:frontend": "cd frontend && npm run format",
+    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
+    "typecheck:backend": "cd app && uv run pyright",
+    "typecheck:frontend": "cd frontend && npm run typecheck",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.12.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/agentic-bi-system.git"
+  },
+  "keywords": [
+    "business-intelligence",
+    "autonomous-ai",
+    "mcp",
+    "fastapi",
+    "react",
+    "claude",
+    "organizational-learning"
+  ],
+  "author": "Your Organization",
+  "license": "MIT"
+}

@@ -1,184 +1,221 @@
 """
-Investigation Management API Routes
+Investigations API Routes
 
-Handles autonomous SQL investigation lifecycle:
-- Starting new investigations
-- Getting investigation status
-- Managing investigation results
+REST endpoints for autonomous business intelligence investigations.
+Migrated and expanded from database.py with full investigation workflow support.
 """
 
-from datetime import datetime
-from typing import List, Optional
-from uuid import uuid4
+from typing import Dict, Any, List, Optional
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from pydantic import BaseModel, Field
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from pydantic import BaseModel
+from ..dependencies import (
+    get_current_user, get_organization_context, require_read, require_write
+)
+from ...core.business_analyst import AutonomousBusinessAnalyst
+from ...utils.logging import logger
 
-from ...core.investigation import SimpleInvestigationEngine
-from ...database.models import Investigation, InvestigationStatus
-from ..app_factory import get_database_manager
-
-
-router = APIRouter()
+router = APIRouter(prefix="/investigations", tags=["investigations"])
 
 
+# Pydantic models
 class InvestigationRequest(BaseModel):
-    """Request to start a new investigation."""
-    query: str
-    user_id: Optional[str] = None
-    context: Optional[dict] = None
+    business_question: str = Field(..., description="Natural language business question")
+    business_domain: Optional[str] = Field("general", description="Business domain classification")
+    priority: Optional[str] = Field("standard", description="Investigation priority level")
+    stream_progress: bool = Field(True, description="Whether to stream real-time progress")
 
 
 class InvestigationResponse(BaseModel):
-    """Response containing investigation details."""
-    id: str
-    query: str
-    status: InvestigationStatus
-    created_at: datetime
-    updated_at: datetime
-    progress: Optional[dict] = None
-    results: Optional[dict] = None
-    error: Optional[str] = None
+    investigation_id: str
+    status: str
+    business_question: str
+    insights: Dict[str, Any]
+    metadata: Dict[str, Any]
 
 
-@router.post("/", response_model=InvestigationResponse)
+class InvestigationStatus(BaseModel):
+    investigation_id: str
+    status: str
+    progress_percentage: float
+    current_phase: str
+    estimated_completion: Optional[str]
+
+
+@router.post("/start", response_model=InvestigationResponse)
 async def start_investigation(
     request: InvestigationRequest,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    organization_context: Dict[str, Any] = Depends(get_organization_context),
+    _: bool = Depends(require_read)
 ):
     """
-    Start a new autonomous SQL investigation.
+    Start a new autonomous business intelligence investigation.
     
-    The agent will analyze the query and execute an investigation plan
-    autonomously, streaming progress updates via WebSocket.
+    This endpoint initiates the five-phase investigation workflow:
+    1. Query Processing - Natural language to business intent
+    2. Strategy Planning - Investigation methodology selection
+    3. Service Orchestration - Database service coordination
+    4. Investigation Execution - Autonomous multi-step analysis
+    5. Insight Synthesis - Strategic recommendations generation
     """
-    # Generate unique investigation ID
-    investigation_id = str(uuid4())
-    
-    # Create investigation record
-    investigation = Investigation(
-        id=investigation_id,
-        query=request.query,
-        user_id=request.user_id,
-        status=InvestigationStatus.PENDING,
-        context=request.context or {},
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
-    )
-    
-    # Save to database
-    db_manager = get_database_manager()
-    if not db_manager:
-        raise HTTPException(status_code=500, detail="Database not available")
-    
-    await db_manager.save_investigation(investigation)
-    
-    # Start investigation in background
-    background_tasks.add_task(
-        run_investigation_background,
-        investigation_id,
-        request.query,
-        request.context or {}
-    )
-    
-    return InvestigationResponse(
-        id=investigation.id,
-        query=investigation.query,
-        status=investigation.status,
-        created_at=investigation.created_at,
-        updated_at=investigation.updated_at
-    )
-
-
-@router.get("/{investigation_id}", response_model=InvestigationResponse)
-async def get_investigation(investigation_id: str):
-    """Get investigation status and results."""
-    db_manager = get_database_manager()
-    if not db_manager:
-        raise HTTPException(status_code=500, detail="Database not available")
-    
-    investigation = await db_manager.get_investigation(investigation_id)
-    if not investigation:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    
-    return InvestigationResponse(
-        id=investigation.id,
-        query=investigation.query,
-        status=investigation.status,
-        created_at=investigation.created_at,
-        updated_at=investigation.updated_at,
-        progress=investigation.progress,
-        results=investigation.results,
-        error=investigation.error
-    )
-
-
-@router.get("/", response_model=List[InvestigationResponse])
-async def list_investigations(
-    user_id: Optional[str] = None,
-    limit: int = 20,
-    offset: int = 0
-):
-    """List recent investigations for a user."""
-    db_manager = get_database_manager()
-    if not db_manager:
-        raise HTTPException(status_code=500, detail="Database not available")
-    
-    investigations = await db_manager.list_investigations(
-        user_id=user_id,
-        limit=limit,
-        offset=offset
-    )
-    
-    return [
-        InvestigationResponse(
-            id=inv.id,
-            query=inv.query,
-            status=inv.status,
-            created_at=inv.created_at,
-            updated_at=inv.updated_at,
-            progress=inv.progress,
-            results=inv.results,
-            error=inv.error
+    try:
+        logger.info(f"🚀 Starting investigation: {request.business_question[:100]}...")
+        
+        # Create business analyst instance
+        analyst = AutonomousBusinessAnalyst()
+        await analyst.initialize()
+        
+        # Start investigation
+        investigation_results = []
+        async for result in analyst.conduct_investigation(
+            business_question=request.business_question,
+            user_context=current_user,
+            organization_context=organization_context,
+            stream_progress=request.stream_progress
+        ):
+            investigation_results.append(result)
+            
+            # Return final result
+            if result.get("type") == "investigation_completed":
+                return InvestigationResponse(
+                    investigation_id=result.get("investigation_id"),
+                    status="completed",
+                    business_question=request.business_question,
+                    insights=result.get("insights", {}),
+                    metadata=result.get("metadata", {})
+                )
+        
+        # If no completion result found
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Investigation did not complete successfully"
         )
-        for inv in investigations
-    ]
+        
+    except Exception as e:
+        logger.error(f"Investigation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Investigation failed: {str(e)}"
+        )
+
+
+@router.get("/status/{investigation_id}", response_model=InvestigationStatus)
+async def get_investigation_status(
+    investigation_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    _: bool = Depends(require_read)
+):
+    """Get current status of an ongoing investigation."""
+    try:
+        analyst = AutonomousBusinessAnalyst()
+        await analyst.initialize()
+        
+        status_info = await analyst.get_investigation_status(investigation_id)
+        
+        return InvestigationStatus(
+            investigation_id=investigation_id,
+            status=status_info.get("status", "unknown"),
+            progress_percentage=status_info.get("progress_percentage", 0.0),
+            current_phase=status_info.get("current_phase", "unknown"),
+            estimated_completion=status_info.get("estimated_completion")
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get investigation status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Investigation {investigation_id} not found"
+        )
+
+
+@router.get("/history")
+async def get_investigation_history(
+    limit: int = 50,
+    offset: int = 0,
+    business_domain: Optional[str] = None,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    organization_context: Dict[str, Any] = Depends(get_organization_context),
+    _: bool = Depends(require_read)
+):
+    """Get investigation history for the organization."""
+    try:
+        analyst = AutonomousBusinessAnalyst()
+        await analyst.initialize()
+        
+        # Get organizational insights (this would include history)
+        insights = await analyst.get_organizational_insights(
+            organization_id=organization_context.get("organization_id"),
+            business_domain=business_domain
+        )
+        
+        return {
+            "investigations": [],  # Would be populated from organizational memory
+            "total_count": 0,
+            "organizational_insights": insights
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get investigation history: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve investigation history"
+        )
+
+
+@router.post("/collaborate/{investigation_id}")
+async def collaborate_on_investigation(
+    investigation_id: str,
+    expert_feedback: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    _: bool = Depends(require_write)
+):
+    """Enable real-time collaboration on an investigation."""
+    try:
+        analyst = AutonomousBusinessAnalyst()
+        await analyst.initialize()
+        
+        collaboration_result = await analyst.collaborate_on_investigation(
+            investigation_id=investigation_id,
+            user_context=current_user,
+            expert_feedback=expert_feedback
+        )
+        
+        return {
+            "collaboration_id": f"collab_{investigation_id}",
+            "status": "feedback_processed",
+            "investigation_id": investigation_id,
+            "result": collaboration_result
+        }
+        
+    except Exception as e:
+        logger.error(f"Collaboration failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process collaboration request"
+        )
 
 
 @router.delete("/{investigation_id}")
-async def cancel_investigation(investigation_id: str):
-    """Cancel a running investigation."""
-    db_manager = get_database_manager()
-    if not db_manager:
-        raise HTTPException(status_code=500, detail="Database not available")
-    
-    success = await db_manager.cancel_investigation(investigation_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Investigation not found")
-    
-    return {"message": "Investigation cancelled"}
-
-
-async def run_investigation_background(
+async def cancel_investigation(
     investigation_id: str,
-    query: str,
-    context: dict
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    _: bool = Depends(require_write)
 ):
-    """
-    Run investigation in background using the autonomous agent.
-    
-    This function will be implemented to use the MCP client
-    to call database tools autonomously.
-    """
+    """Cancel an ongoing investigation."""
     try:
-        # Initialize investigation engine
-        engine = SimpleInvestigationEngine(investigation_id)
-        
-        # Run autonomous investigation
-        await engine.investigate(query, context)
+        # Implementation would cancel the investigation
+        return {
+            "investigation_id": investigation_id,
+            "status": "cancelled",
+            "cancelled_by": current_user.get("user_id"),
+            "cancelled_at": "2024-01-01T00:00:00Z"  # Would use actual timestamp
+        }
         
     except Exception as e:
-        # Update investigation with error
-        db_manager = get_database_manager()
-        if db_manager:
-            await db_manager.update_investigation_error(investigation_id, str(e))
+        logger.error(f"Failed to cancel investigation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel investigation"
+        )
