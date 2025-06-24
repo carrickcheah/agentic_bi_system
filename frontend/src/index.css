@@ -42,6 +42,15 @@
   ::selection {
     @apply bg-primary-200 text-primary-900;
   }
+
+  /* Black text for left and right panels, excluding buttons */
+  .conversation-panel *:not(button):not(button *) {
+    color: black !important;
+  }
+
+  .results-panel *:not(button):not(button *) {
+    color: black !important;
+  }
 }
 
 @layer components {
