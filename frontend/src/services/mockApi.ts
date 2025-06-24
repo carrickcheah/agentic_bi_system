@@ -64,19 +64,24 @@ const investigationScenarios = {
   salesDecline: {
     phases: [
       { name: 'Query Processing', insights: ['Detected Q4 sales analysis request', 'Identified time-series pattern'] },
+      { name: 'Data Source Discovery', insights: ['Connected to MariaDB sales database', 'Found 247K transaction records'] },
       { name: 'Strategy Planning', insights: ['Selected trend analysis methodology', 'Including YoY comparison'] },
       { name: 'Data Collection', insights: ['Retrieved 12 months sales data', 'Gathered regional breakdowns'] },
+      { name: 'Pattern Recognition', insights: ['Applied ML algorithms', 'Detected seasonal anomalies'] },
+      { name: 'Cross-Reference Analysis', insights: ['Analyzed competitor pricing data', 'Correlated with market events'] },
       { name: 'Analysis Execution', insights: ['15% decline in Q4 identified', 'Northeast region most affected'] },
       { name: 'Insight Synthesis', insights: ['Root cause: Competitor pricing', 'Recommendation: Targeted promotions'] },
     ],
     insights: [
       {
+        id: 'sales-finding-1',
         type: 'finding' as const,
         title: 'Q4 Sales Declined 15%',
         description: 'Sales dropped from MYR 4.5M to MYR 3.8M compared to Q3, primarily in Northeast region',
         confidence: 0.92,
       },
       {
+        id: 'sales-rec-1',
         type: 'recommendation' as const,
         title: 'Implement Regional Promotions',
         description: 'Launch targeted 10% discount campaign in Northeast to counter competitor pricing',
@@ -87,19 +92,24 @@ const investigationScenarios = {
   customerChurn: {
     phases: [
       { name: 'Query Processing', insights: ['Customer satisfaction investigation requested', 'Multi-factor analysis needed'] },
+      { name: 'Data Source Discovery', insights: ['Connected to PostgreSQL CRM', 'Accessed Qdrant vector database'] },
       { name: 'Strategy Planning', insights: ['Hypothesis: Product changes impact', 'Cross-reference support tickets'] },
       { name: 'Data Collection', insights: ['6-month satisfaction trends', 'Support ticket analysis'] },
+      { name: 'Sentiment Analysis', insights: ['Processing customer feedback', 'NLP analysis on 15K reviews'] },
+      { name: 'Behavioral Modeling', insights: ['User journey mapping completed', 'Identified friction points'] },
       { name: 'Analysis Execution', insights: ['340% increase in navigation complaints', 'Enterprise segment most affected'] },
       { name: 'Insight Synthesis', insights: ['UI changes causing confusion', 'Immediate action required'] },
     ],
     insights: [
       {
+        id: 'churn-warning-1',
         type: 'warning' as const,
         title: 'Critical: Navigation Issues',
         description: 'Enterprise customers reporting 340% increase in navigation-related support tickets',
         confidence: 0.94,
       },
       {
+        id: 'churn-rec-1',
         type: 'recommendation' as const,
         title: 'Rollback UI Changes',
         description: 'Revert to previous navigation for enterprise accounts while improving onboarding',
@@ -107,11 +117,109 @@ const investigationScenarios = {
       },
     ],
   },
+  revenueForecast: {
+    phases: [
+      { name: 'Query Processing', insights: ['Revenue forecast analysis requested', 'Q1 2024 projection scope'] },
+      { name: 'Data Source Discovery', insights: ['Connected to Supabase analytics', 'Retrieved 3-year historical data'] },
+      { name: 'Strategy Planning', insights: ['Applied ARIMA forecasting model', 'Including economic indicators'] },
+      { name: 'Feature Engineering', insights: ['Created seasonal adjustment factors', 'Normalized currency fluctuations'] },
+      { name: 'Model Training', insights: ['Training ensemble models', '89% accuracy on validation set'] },
+      { name: 'Scenario Modeling', insights: ['Generated best/worst case scenarios', 'Monte Carlo simulations run'] },
+      { name: 'Analysis Execution', insights: ['Forecast models converged', 'Confidence intervals calculated'] },
+      { name: 'Insight Synthesis', insights: ['23% growth projected', 'Key risk factors identified'] },
+    ],
+    insights: [
+      {
+        id: 'revenue-finding-1',
+        type: 'finding' as const,
+        title: 'Q1 2024 Revenue: MYR 5.8M',
+        description: 'Projected 23% growth with 85% confidence interval of MYR 5.2M - 6.4M',
+        confidence: 0.89,
+      },
+      {
+        id: 'revenue-rec-1',
+        type: 'recommendation' as const,
+        title: 'Accelerate Enterprise Sales',
+        description: 'Focus on enterprise segment which shows highest growth potential for Q1',
+        confidence: 0.91,
+      },
+    ],
+  },
+  productAnalytics: {
+    phases: [
+      { name: 'Query Processing', insights: ['Product performance analysis requested', 'Multi-dimensional analysis scope'] },
+      { name: 'Data Source Discovery', insights: ['Connected to product analytics warehouse', 'Found 2.3M user interactions'] },
+      { name: 'Strategy Planning', insights: ['Cohort analysis methodology selected', 'Including feature adoption metrics'] },
+      { name: 'User Segmentation', insights: ['Identified 7 distinct user segments', 'Power users represent 12% of base'] },
+      { name: 'Feature Impact Analysis', insights: ['A/B test results integrated', 'Feature correlation matrix built'] },
+      { name: 'Conversion Funnel Analysis', insights: ['Mapped 5-step conversion funnel', 'Identified 3 major drop-off points'] },
+      { name: 'Analysis Execution', insights: ['Product metrics calculated', 'Retention curves generated'] },
+      { name: 'Insight Synthesis', insights: ['Feature X drives 34% more engagement', 'Onboarding improvements needed'] },
+    ],
+    insights: [
+      {
+        id: 'product-finding-1',
+        type: 'finding' as const,
+        title: 'Feature X Increases Engagement 34%',
+        description: 'Users who adopt Feature X show 34% higher monthly engagement and 28% better retention',
+        confidence: 0.93,
+      },
+      {
+        id: 'product-rec-1',
+        type: 'recommendation' as const,
+        title: 'Improve Onboarding Flow',
+        description: 'Redesign onboarding to highlight Feature X and reduce 47% drop-off at step 3',
+        confidence: 0.87,
+      },
+    ],
+  },
+  marketTrends: {
+    phases: [
+      { name: 'Query Processing', insights: ['Market trend analysis requested', 'Competitive landscape scope'] },
+      { name: 'Data Source Discovery', insights: ['Connected to external market APIs', 'Integrated social sentiment feeds'] },
+      { name: 'Strategy Planning', insights: ['Time-series analysis approach', 'Sentiment correlation modeling'] },
+      { name: 'Competitive Intelligence', insights: ['Analyzed 12 competitor strategies', 'Price positioning matrix built'] },
+      { name: 'Social Sentiment Analysis', insights: ['Processed 45K social mentions', 'Brand sentiment trending positive'] },
+      { name: 'Market Signal Detection', insights: ['Emerging trend patterns identified', 'Early adoption indicators found'] },
+      { name: 'Analysis Execution', insights: ['Market share calculations complete', 'Growth opportunity matrix ready'] },
+      { name: 'Insight Synthesis', insights: ['Untapped market segment found', 'Competitive advantage identified'] },
+    ],
+    insights: [
+      {
+        id: 'market-finding-1',
+        type: 'finding' as const,
+        title: 'Untapped SMB Market Worth MYR 12M',
+        description: 'Small-medium business segment shows 67% unmet demand in our service category',
+        confidence: 0.88,
+      },
+      {
+        id: 'market-rec-1',
+        type: 'recommendation' as const,
+        title: 'Launch SMB-Focused Product Line',
+        description: 'Develop simplified product variant targeting SMB segment with 40% price reduction',
+        confidence: 0.82,
+      },
+    ],
+  },
 };
 
 // Simulate WebSocket-like updates
 export const createInvestigationStream = (query: string, onUpdate: (investigation: Investigation) => void) => {
-  const scenario = query.toLowerCase().includes('sales') ? 'salesDecline' : 'customerChurn';
+  // Smart scenario detection based on query content
+  let scenario = 'customerChurn'; // default
+  
+  const queryLower = query.toLowerCase();
+  if (queryLower.includes('sales') || queryLower.includes('drop') || queryLower.includes('decline')) {
+    scenario = 'salesDecline';
+  } else if (queryLower.includes('revenue') || queryLower.includes('forecast') || queryLower.includes('predict')) {
+    scenario = 'revenueForecast';
+  } else if (queryLower.includes('product') || queryLower.includes('feature') || queryLower.includes('analytics')) {
+    scenario = 'productAnalytics';
+  } else if (queryLower.includes('market') || queryLower.includes('trend') || queryLower.includes('competitor')) {
+    scenario = 'marketTrends';
+  } else if (queryLower.includes('satisfaction') || queryLower.includes('churn') || queryLower.includes('customer')) {
+    scenario = 'customerChurn';
+  }
   const { phases, insights } = investigationScenarios[scenario];
   
   const investigation: Investigation = {
@@ -139,7 +247,7 @@ export const createInvestigationStream = (query: string, onUpdate: (investigatio
   let currentPhase = 0;
   let isCompleted = false;
 
-  // Simulate phase progression
+  // Simulate phase progression with 1-second delays
   const phaseInterval = setInterval(() => {
     if (isCompleted || currentPhase >= investigation.phases.length) {
       investigation.status = 'completed';
@@ -172,11 +280,11 @@ export const createInvestigationStream = (query: string, onUpdate: (investigatio
           currentPhase++;
           clearInterval(progressInterval);
         }
-      }, investigation.cacheHit ? 10 : 300);
+      }, investigation.cacheHit ? 50 : 200); // Faster progress within each phase
       
       intervals.push(progressInterval);
     }
-  }, investigation.cacheHit ? 50 : 1500);
+  }, 2000); // 2 second delay between each phase
 
   intervals.push(phaseInterval);
 

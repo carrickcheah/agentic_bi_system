@@ -378,11 +378,6 @@ Here are the key findings from my investigation:`}
           {/* Input hints */}
           <div className="flex items-center justify-between mt-3 px-1">
             <div className="flex items-center space-x-4 text-xs text-text-secondary-light dark:text-text-secondary-dark">
-              <span className="flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>{t('powered_by')}</span>
-              </span>
-              
               {/* Thinking Mode Toggle */}
               <div className="flex items-center space-x-2">
                 <label className="flex items-center space-x-2 cursor-pointer">

@@ -27,7 +27,7 @@ const resources = {
       "pro_plan": "Pro Plan",
       
       // Conversation
-      "welcome_message": "Hello! I'm your autonomous business intelligence analyst. Ask me anything about your business data - from simple metrics to complex investigations.",
+      "welcome_message": "Hi! How can i help you today?",
       "send": "Send",
       "investigating": "Investigating",
       "powered_by": "Powered by Claude Sonnet 4.0",
@@ -80,7 +80,7 @@ const resources = {
       "pro_plan": "Pelan Pro",
       
       // Conversation
-      "welcome_message": "Halo! Saya penganalisis kecerdasan perniagaan autonomi anda. Tanya saya apa-apa tentang data perniagaan anda - dari metrik mudah hingga penyiasatan kompleks.",
+      "welcome_message": "Hai! Apa yang boleh saya bantu anda hari ini?",
       "send": "Hantar",
       "investigating": "Menyiasat",
       "powered_by": "Dikuasakan oleh Claude Sonnet 4.0",
@@ -133,7 +133,7 @@ const resources = {
       "pro_plan": "专业版",
       
       // Conversation
-      "welcome_message": "您好！我是您的自主商业智能分析师。请随时询问关于您的业务数据的任何问题 - 从简单的指标到复杂的调查。",
+      "welcome_message": "您好！今天我可以为您做些什么？",
       "send": "发送",
       "investigating": "调查中",
       "powered_by": "由 Claude Sonnet 4.0 提供支持",
