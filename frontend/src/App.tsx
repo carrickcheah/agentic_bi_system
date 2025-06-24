@@ -19,8 +19,10 @@ function App() {
   };
 
   const handleInvestigationUpdate = (investigation: Investigation) => {
+    console.log('🔧 DEBUG: App received investigation update:', investigation);
     setCurrentInvestigation(investigation);
     if (investigation.status === 'completed' || investigation.status === 'failed') {
+      console.log('🔧 DEBUG: Setting isInvestigating to false');
       setIsInvestigating(false);
     }
   };
