@@ -3,6 +3,7 @@ import { ConversationPanel } from './components/conversation/ConversationPanel';
 import { ResultsPanel } from './components/results/ResultsPanel';
 import { Sidebar } from './components/layout/Sidebar';
 import { Investigation } from './services/mockApi';
+import './i18n';
 
 function App() {
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
@@ -31,14 +32,15 @@ function App() {
     }
   };
 
+  const [resetTrigger, setResetTrigger] = useState(0);
+
   const handleNewAnalysis = () => {
     // Reset the conversation state
     setCurrentInvestigation(null);
     setIsInvestigating(false);
-    console.log('🔧 DEBUG: Starting new analysis - cleared conversation state');
     
-    // Trigger conversation panel reset
-    window.dispatchEvent(new Event('resetConversation'));
+    // Trigger conversation panel reset by incrementing counter
+    setResetTrigger(prev => prev + 1);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -142,6 +144,7 @@ function App() {
               onNewQuery={handleNewQuery}
               onInvestigationUpdate={handleInvestigationUpdate}
               isInvestigating={isInvestigating}
+              resetTrigger={resetTrigger}
             />
           </div>
 

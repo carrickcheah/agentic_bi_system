@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Loader2, Brain, Zap, Sparkles, MessageCircle, ArrowUp } from 'lucide-react';
 import { Investigation, createInvestigationStream, mockApi } from '../../services/mockApi';
 import { InvestigationProgress } from './InvestigationProgress';
@@ -19,20 +20,21 @@ interface ConversationPanelProps {
   onNewQuery: (query: string) => void;
   onInvestigationUpdate: (investigation: Investigation) => void;
   isInvestigating: boolean;
-  onReset?: () => void;
+  resetTrigger?: number;
 }
 
 export function ConversationPanel({
   onNewQuery,
   onInvestigationUpdate,
   isInvestigating,
-  onReset,
+  resetTrigger,
 }: ConversationPanelProps) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'assistant',
-      content: 'Hello! I\'m your autonomous business intelligence analyst. Ask me anything about your business data - from simple metrics to complex investigations.',
+      content: '',
       timestamp: new Date(),
     },
   ]);
@@ -51,28 +53,30 @@ export function ConversationPanel({
     scrollToBottom();
   }, [messages]);
 
+  // Update welcome message when language changes
   useEffect(() => {
-    if (onReset) {
-      // Reset messages to initial state when onReset is triggered
-      const resetMessages = () => {
-        setMessages([
-          {
-            id: '1',
-            type: 'assistant',
-            content: 'Hello! I\'m your autonomous business intelligence analyst. Ask me anything about your business data - from simple metrics to complex investigations.',
-            timestamp: new Date(),
-          },
-        ]);
-        setCurrentInvestigation(null);
-        setShowStreamingSQL(false);
-        setStreamingCompleted(false);
-      };
-      
-      // Listen for reset calls
-      window.addEventListener('resetConversation', resetMessages);
-      return () => window.removeEventListener('resetConversation', resetMessages);
+    setMessages(prev => prev.map(msg => 
+      msg.id === '1' ? { ...msg, content: t('welcome_message') } : msg
+    ));
+  }, [t]);
+
+  // Reset conversation when resetTrigger changes
+  useEffect(() => {
+    if (resetTrigger && resetTrigger > 0) {
+      console.log('🔧 DEBUG: ConversationPanel resetting due to resetTrigger change');
+      setMessages([
+        {
+          id: '1',
+          type: 'assistant',
+          content: t('welcome_message'),
+          timestamp: new Date(),
+        },
+      ]);
+      setCurrentInvestigation(null);
+      setShowStreamingSQL(false);
+      setStreamingCompleted(false);
     }
-  }, [onReset]);
+  }, [resetTrigger]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,10 +147,10 @@ export function ConversationPanel({
   };
 
   const suggestedQueries = [
-    "Why did Q4 sales drop?",
-    "What were yesterday's sales?",
-    "Customer satisfaction trends",
-    "Revenue forecast next quarter",
+    t('q4_sales_drop'),
+    t('yesterday_sales'),
+    t('satisfaction_trends'),
+    t('revenue_forecast'),
   ];
 
   const handleStreamingComplete = () => {
@@ -214,7 +218,7 @@ export function ConversationPanel({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full conversation-panel">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
@@ -352,7 +356,7 @@ Here are the key findings from my investigation:`}
           <div className="flex items-center space-x-2 mb-4">
             <MessageCircle className="w-4 h-4 text-primary-500" />
             <p className="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">
-              Try these powerful queries:
+              {t('try_queries')}
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -387,7 +391,7 @@ Here are the key findings from my investigation:`}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask me anything about your business intelligence..."
+                  placeholder={t('ask_placeholder')}
                   disabled={isInvestigating}
                   className="w-full bg-transparent border-none outline-none text-text-primary-light dark:text-text-primary-dark
                             placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark
@@ -405,12 +409,12 @@ Here are the key findings from my investigation:`}
                   {isInvestigating ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Investigating</span>
+                      <span>{t('investigating')}</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Send</span>
+                      <span>{t('send')}</span>
                     </>
                   )}
                 </div>
@@ -423,7 +427,7 @@ Here are the key findings from my investigation:`}
             <div className="flex items-center space-x-4 text-xs text-text-secondary-light dark:text-text-secondary-dark">
               <span className="flex items-center space-x-1">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span>Powered by Claude Sonnet 4.0</span>
+                <span>{t('powered_by')}</span>
               </span>
               
               {/* Thinking Mode Toggle */}
@@ -445,14 +449,14 @@ Here are the key findings from my investigation:`}
                     }`}></div>
                   </div>
                   <span className="text-xs">
-                    Thinking mode
+                    {t('thinking_mode')}
                   </span>
                 </label>
               </div>
             </div>
             <div className="text-xs text-text-secondary-light dark:text-text-secondary-dark">
               <kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">Enter</kbd>
-              <span className="ml-1">to send</span>
+              <span className="ml-1">{t('enter_to_send')}</span>
             </div>
           </div>
         </form>
