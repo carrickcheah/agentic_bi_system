@@ -43,8 +43,8 @@ const generateSalesData = () => {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return months.map((month, i) => ({
     month,
-    sales: Math.floor(Math.random() * 50000) + 100000,
-    target: 120000,
+    sales: Math.floor(Math.random() * 9000000) + 1000000, // 1M to 10M
+    target: 8500000, // 8.5M target
     growth: (Math.random() * 0.3 - 0.1), // -10% to +20%
   }));
 };
@@ -53,7 +53,7 @@ const generateCustomerData = () => {
   return Array.from({ length: 10 }, (_, i) => ({
     id: `CUST-${1000 + i}`,
     name: `Customer ${i + 1}`,
-    revenue: Math.floor(Math.random() * 500000) + 50000,
+    revenue: Math.floor(Math.random() * 8000000) + 1000000, // 1M to 9M per customer
     satisfaction: Math.floor(Math.random() * 30) + 70,
     churnRisk: Math.random() < 0.3 ? 'high' : Math.random() < 0.6 ? 'medium' : 'low',
   }));
@@ -73,7 +73,7 @@ const investigationScenarios = {
       {
         type: 'finding' as const,
         title: 'Q4 Sales Declined 15%',
-        description: 'Sales dropped from $450K to $382K compared to Q3, primarily in Northeast region',
+        description: 'Sales dropped from MYR 4.5M to MYR 3.8M compared to Q3, primarily in Northeast region',
         confidence: 0.92,
       },
       {
@@ -134,37 +134,56 @@ export const createInvestigationStream = (query: string, onUpdate: (investigatio
 
   onUpdate(investigation);
 
-  // Simulate phase progression
+  // Store intervals for cleanup
+  const intervals: NodeJS.Timeout[] = [];
   let currentPhase = 0;
-  const interval = setInterval(() => {
-    if (currentPhase >= investigation.phases.length) {
+  let isCompleted = false;
+
+  // Simulate phase progression
+  const phaseInterval = setInterval(() => {
+    if (isCompleted || currentPhase >= investigation.phases.length) {
       investigation.status = 'completed';
       investigation.completedAt = new Date();
       investigation.executionTime = investigation.cacheHit ? 52 : 8432;
       investigation.insights = insights;
-      onUpdate(investigation);
-      clearInterval(interval);
+      onUpdate({ ...investigation });
+      isCompleted = true;
+      intervals.forEach(clearInterval);
       return;
     }
 
     // Update current phase
-    investigation.phases[currentPhase].status = 'in_progress';
-    let progress = 0;
-    
-    const progressInterval = setInterval(() => {
-      progress += 20;
-      investigation.phases[currentPhase].progress = Math.min(progress, 100);
-      onUpdate({ ...investigation });
+    if (investigation.phases[currentPhase]) {
+      investigation.phases[currentPhase].status = 'in_progress';
+      let progress = 0;
       
-      if (progress >= 100) {
-        investigation.phases[currentPhase].status = 'completed';
-        currentPhase++;
-        clearInterval(progressInterval);
-      }
-    }, investigation.cacheHit ? 10 : 300);
+      const progressInterval = setInterval(() => {
+        if (isCompleted || !investigation.phases[currentPhase]) {
+          clearInterval(progressInterval);
+          return;
+        }
+        
+        progress += 20;
+        investigation.phases[currentPhase].progress = Math.min(progress, 100);
+        onUpdate({ ...investigation });
+        
+        if (progress >= 100) {
+          investigation.phases[currentPhase].status = 'completed';
+          currentPhase++;
+          clearInterval(progressInterval);
+        }
+      }, investigation.cacheHit ? 10 : 300);
+      
+      intervals.push(progressInterval);
+    }
   }, investigation.cacheHit ? 50 : 1500);
 
-  return () => clearInterval(interval);
+  intervals.push(phaseInterval);
+
+  return () => {
+    isCompleted = true;
+    intervals.forEach(clearInterval);
+  };
 };
 
 // Mock API endpoints
@@ -220,10 +239,10 @@ export const mockApi = {
         insights: [{
           id: '1',
           type: 'finding',
-          title: 'Yesterday\'s Sales: $47,832',
+          title: 'Yesterday\'s Sales: MYR 4,783,200',
           description: 'Sales exceeded target by 8% with strong performance in West region',
           confidence: 0.98,
-          data: { amount: 47832, target: 44000, variance: 0.08 },
+          data: { amount: 4783200, target: 4400000, variance: 0.08, currency: 'MYR' },
         }],
         createdAt: new Date(Date.now() - 7200000),
         completedAt: new Date(Date.now() - 7199950),

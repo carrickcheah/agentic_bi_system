@@ -44,6 +44,7 @@ export function ConversationPanel({
   const [showStreamingSQL, setShowStreamingSQL] = useState(false);
   const [streamingCompleted, setStreamingCompleted] = useState(false);
   const [thinkingMode, setThinkingMode] = useState(false);
+  const cleanupRef = useRef<(() => void) | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -64,6 +65,13 @@ export function ConversationPanel({
   useEffect(() => {
     if (resetTrigger && resetTrigger > 0) {
       console.log('🔧 DEBUG: ConversationPanel resetting due to resetTrigger change');
+      
+      // Clean up any ongoing investigation
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = null;
+      }
+      
       setMessages([
         {
           id: '1',
@@ -76,14 +84,23 @@ export function ConversationPanel({
       setShowStreamingSQL(false);
       setStreamingCompleted(false);
     }
-  }, [resetTrigger]);
+  }, [resetTrigger, t]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isInvestigating) return;
 
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'user',
       content: input,
       timestamp: new Date(),
@@ -99,7 +116,7 @@ export function ConversationPanel({
     if (cacheResult.hit) {
       // Cache hit - instant response
       const cacheMessage: Message = {
-        id: Date.now().toString(),
+        id: `cache-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: 'system',
         content: '� Cache hit! Retrieved from organizational memory (47ms)',
         timestamp: new Date(),
@@ -109,15 +126,20 @@ export function ConversationPanel({
 
     // Start investigation
     const assistantMessage: Message = {
-      id: Date.now().toString(),
+      id: `assistant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: 'assistant',
       content: 'Starting investigation...',
       timestamp: new Date(),
     };
     setMessages(prev => [...prev, assistantMessage]);
 
+    // Clean up any previous investigation
+    if (cleanupRef.current) {
+      cleanupRef.current();
+    }
+
     // Create investigation stream
-    const cleanup = createInvestigationStream(input, (investigation) => {
+    cleanupRef.current = createInvestigationStream(input, (investigation) => {
       setCurrentInvestigation(investigation);
       onInvestigationUpdate(investigation);
       
@@ -125,25 +147,17 @@ export function ConversationPanel({
       setMessages(prev => 
         prev.map(msg => 
           msg.id === assistantMessage.id 
-            ? { ...msg, investigation } 
+            ? { 
+                ...msg, 
+                investigation,
+                content: investigation.status === 'completed' 
+                  ? `Investigation complete! I found ${investigation.insights.length} key insights. The analysis took ${investigation.executionTime}ms${investigation.cacheHit ? ' (enhanced by cache)' : ''}.`
+                  : 'Starting investigation...'
+              } 
             : msg
         )
       );
-
-      // Add completion message
-      if (investigation.status === 'completed') {
-        const completionMessage: Message = {
-          id: Date.now().toString(),
-          type: 'assistant',
-          content: `Investigation complete! I found ${investigation.insights.length} key insights. The analysis took ${investigation.executionTime}ms${investigation.cacheHit ? ' (enhanced by cache)' : ''}.`,
-          timestamp: new Date(),
-        };
-        setMessages(prev => [...prev, completionMessage]);
-      }
     });
-
-    // Cleanup function will be called when component unmounts
-    return cleanup;
   };
 
   const suggestedQueries = [
@@ -156,61 +170,6 @@ export function ConversationPanel({
   const handleStreamingComplete = () => {
     setStreamingCompleted(true);
     setShowStreamingSQL(true);
-    
-    // Create investigation result for right panel
-    const investigation: Investigation = {
-      id: Date.now().toString(),
-      query: input,
-      status: 'completed',
-      complexity: 'analytical',
-      phases: [
-        {
-          id: '1',
-          name: 'Query Analysis',
-          status: 'completed',
-          progress: 100,
-          insights: ['Identified key metrics and dimensions']
-        },
-        {
-          id: '2', 
-          name: 'Data Processing',
-          status: 'completed',
-          progress: 100,
-          insights: ['Processed 247,891 records', 'Found significant trends']
-        }
-      ],
-      insights: [
-        {
-          id: '1',
-          type: 'finding',
-          title: 'Sales Performance Trend',
-          description: 'Q4 sales increased by 23% compared to previous quarter, driven by strong performance in enterprise segment.',
-          confidence: 0.94,
-          data: {
-            metric: 'sales_growth',
-            value: 0.23,
-            period: 'Q4'
-          }
-        },
-        {
-          id: '2',
-          type: 'recommendation', 
-          title: 'Focus on Enterprise Segment',
-          description: 'Consider increasing investment in enterprise sales team based on strong Q4 performance.',
-          confidence: 0.87
-        }
-      ],
-      createdAt: new Date(),
-      completedAt: new Date(),
-      cacheHit: false,
-      executionTime: 1250
-    };
-    
-    console.log('🔧 DEBUG: Streaming completed, updating investigation:', investigation);
-    
-    // Trigger the investigation update to show results in right panel
-    onInvestigationUpdate(investigation);
-    setCurrentInvestigation(investigation);
   };
 
   const handleSQLComplete = () => {
@@ -251,12 +210,6 @@ export function ConversationPanel({
                   <span className="text-xs opacity-70">
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
-                  {message.type === 'assistant' && (
-                    <div className="flex items-center space-x-1">
-                      <Sparkles className="w-3 h-3 opacity-60" />
-                      <span className="text-xs opacity-70">AI Generated</span>
-                    </div>
-                  )}
                 </div>
               </div>
 

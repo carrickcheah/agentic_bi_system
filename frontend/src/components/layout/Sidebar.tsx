@@ -157,18 +157,15 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
         </div>
       )}
 
-      {/* Spacer to push user profile to bottom */}
-      <div className="flex-1"></div>
-
-      {/* Recent Chats */}
+      {/* Recent Chats - moved directly under navigation */}
       {!collapsed && (
-        <div className="overflow-hidden">
-          <div className="px-3 py-2">
+        <div className="overflow-hidden mt-4">
+          <div className="px-3 py-1">
             <h3 className="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-wider">
               {t('recents')}
             </h3>
           </div>
-          <div className="px-2 space-y-1 overflow-y-auto max-h-[calc(100vh-300px)]">
+          <div className="px-2 space-y-0.5 overflow-y-auto max-h-[calc(100vh-300px)]">
             {recentChats.map((chat, index) => (
               <button
                 key={index}
@@ -186,6 +183,9 @@ export function Sidebar({ collapsed, onToggle, width, onNewAnalysis }: SidebarPr
           </div>
         </div>
       )}
+
+      {/* Spacer to push user profile to bottom */}
+      <div className="flex-1"></div>
 
       {/* User Profile */}
       <div ref={menuRef} className="relative p-3 border-t border-gray-200 dark:border-gray-700">
