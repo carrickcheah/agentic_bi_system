@@ -18,7 +18,7 @@ Features:
 - Cross-user learning acceleration
 """
 
-from .cache_manager import MultiTierCacheManager
+from .cache_manager import CacheManager
 from .anthropic_cache import AnthropicCacheClient
 from .postgresql_cache import PostgreSQLCacheClient
 from .semantic_cache import SemanticCacheClient
@@ -26,7 +26,7 @@ from .cache_warming import CacheWarmingEngine
 from .ttl_manager import TTLManager
 
 __all__ = [
-    "MultiTierCacheManager",
+    "CacheManager",
     "AnthropicCacheClient",
     "PostgreSQLCacheClient", 
     "SemanticCacheClient",

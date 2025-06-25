@@ -187,42 +187,42 @@ class PostgreSQLCacheClient:
         business_domain: str,
         insights: Dict[str, Any],
         access_level: str,
-        ttl_seconds: int
+        ttl_seconds: int = None
     ):
         """Store insights in user's personal cache."""
         try:
             if not self.postgres_client:
                 return
             
+            # Get intelligent TTL for personal cache
+            if not ttl_seconds:
+                ttl_seconds = self.ttl_manager.get_dynamic_ttl(
+                    business_domain=business_domain,
+                    data_type="personal_insights",
+                    user_role=access_level,
+                    priority=CachePriority.STANDARD
+                )
+            
             expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
             
             # Insert or update personal cache entry
             query = """
             INSERT INTO personal_cache 
-            (user_id, semantic_hash, business_domain, insights, access_level, 
-             cached_at, expires_at, similarity_score, metadata)
-            VALUES (%s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+            (user_id, semantic_hash, business_domain, insights, access_level, expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (user_id, semantic_hash, business_domain)
             DO UPDATE SET
                 insights = EXCLUDED.insights,
                 access_level = EXCLUDED.access_level,
-                cached_at = NOW(),
                 expires_at = EXCLUDED.expires_at,
-                metadata = EXCLUDED.metadata
+                accessed_at = NOW()
             """
-            
-            metadata = {
-                "cache_type": "personal",
-                "ttl_seconds": ttl_seconds,
-                "business_domain": business_domain
-            }
             
             await self.postgres_client.execute_query(
                 query,
                 params=[
                     user_id, semantic_hash, business_domain,
-                    json.dumps(insights), access_level, expires_at,
-                    1.0, json.dumps(metadata)
+                    json.dumps(insights), access_level, expires_at
                 ]
             )
             
@@ -239,12 +239,24 @@ class PostgreSQLCacheClient:
         insights: Dict[str, Any],
         required_permissions: List[str],
         original_analyst: str,
-        ttl_seconds: int
+        ttl_seconds: int = None
     ):
         """Store insights in organizational cache."""
         try:
             if not self.postgres_client:
                 return
+            
+            # Get intelligent TTL for organizational cache with permission-based adjustments
+            if not ttl_seconds:
+                ttl_seconds = self.ttl_manager.get_dynamic_ttl(
+                    business_domain=business_domain,
+                    data_type="organizational_insights",
+                    priority=CachePriority.HIGH,
+                    organization_context={
+                        "data_classification": self._assess_data_classification(required_permissions),
+                        "size": "medium"  # Could be passed as parameter
+                    }
+                )
             
             expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
             
@@ -252,31 +264,23 @@ class PostgreSQLCacheClient:
             query = """
             INSERT INTO organizational_cache 
             (organization_id, semantic_hash, business_domain, insights, required_permissions,
-             original_analyst, cached_at, expires_at, similarity_score, metadata)
-            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, %s)
+             original_analyst, expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (organization_id, semantic_hash, business_domain)
             DO UPDATE SET
                 insights = EXCLUDED.insights,
                 required_permissions = EXCLUDED.required_permissions,
                 original_analyst = EXCLUDED.original_analyst,
-                cached_at = NOW(),
                 expires_at = EXCLUDED.expires_at,
-                metadata = EXCLUDED.metadata
+                last_accessed = NOW()
             """
-            
-            metadata = {
-                "cache_type": "organizational",
-                "ttl_seconds": ttl_seconds,
-                "business_domain": business_domain,
-                "shared_knowledge": True
-            }
             
             await self.postgres_client.execute_query(
                 query,
                 params=[
                     organization_id, semantic_hash, business_domain,
                     json.dumps(insights), json.dumps(required_permissions),
-                    original_analyst, expires_at, 1.0, json.dumps(metadata)
+                    original_analyst, expires_at
                 ]
             )
             
@@ -388,6 +392,17 @@ class PostgreSQLCacheClient:
         except Exception as e:
             logger.warning(f"Failed to search similar organizational insights: {e}")
             return None
+    
+    def _assess_data_classification(self, required_permissions: List[str]) -> str:
+        """Assess data classification level based on required permissions."""
+        if any(perm in ["restricted", "confidential", "admin"] for perm in required_permissions):
+            return "restricted"
+        elif any(perm in ["finance", "hr", "legal"] for perm in required_permissions):
+            return "confidential"
+        elif any(perm in ["internal", "employee"] for perm in required_permissions):
+            return "internal"
+        else:
+            return "public"
     
     async def invalidate_user_cache(self, user_id: str, business_domain: Optional[str] = None):
         """Invalidate user's personal cache entries."""
