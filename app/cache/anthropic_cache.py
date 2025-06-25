@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
 from ..utils.logging import logger
+from .ttl_manager import TTLManager, CachePriority
 
 
 class AnthropicCacheClient:
@@ -30,7 +31,7 @@ class AnthropicCacheClient:
     
     def __init__(self):
         self.cache_prefix = "agentic_bi"
-        self.default_ttl = 86400  # 24 hours
+        self.ttl_manager = TTLManager()
         self.similarity_threshold = 0.85
         
     async def initialize(self):
@@ -117,7 +118,19 @@ class AnthropicCacheClient:
                 semantic_hash, business_domain, organization_id
             )
             
-            ttl = ttl_seconds or self.default_ttl
+            # Get intelligent TTL based on business context
+            if not ttl_seconds:
+                ttl_seconds = self.ttl_manager.get_ttl_for_question(
+                    semantic_intent={
+                        "business_domain": business_domain,
+                        "business_intent": conversation_context.get("business_intent", {}),
+                        "urgency": conversation_context.get("urgency", "standard")
+                    },
+                    user_context=conversation_context.get("user_context"),
+                    organization_context=conversation_context.get("organization_context")
+                )
+            
+            ttl = ttl_seconds
             
             cache_data = {
                 "cache_key": cache_key,

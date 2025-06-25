@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 
 from ..utils.logging import logger
 from ..mcp.postgres_client import PostgreSQLClient
+from .ttl_manager import TTLManager, DataVolatility, CachePriority
 
 
 class PostgreSQLCacheClient:
@@ -33,7 +34,7 @@ class PostgreSQLCacheClient:
     
     def __init__(self):
         self.postgres_client: Optional[PostgreSQLClient] = None
-        self.default_ttl = 3600  # 1 hour
+        self.ttl_manager = TTLManager()
         self.similarity_threshold = 0.8
         
     async def initialize(self):

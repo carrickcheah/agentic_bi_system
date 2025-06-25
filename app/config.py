@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(
         description="Anthropic API key for Claude Sonnet 4"
     )
-    anthropic_model: str = "claude-3-5-sonnet-20241022"
+    anthropic_model: str = "claude-sonnet-4-20250514"
     
     # Anthropic Prompt Caching (beta feature)
     anthropic_enable_caching: bool = True
