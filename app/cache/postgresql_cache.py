@@ -77,9 +77,9 @@ class PostgreSQLCacheClient:
             query = """
             SELECT insights, similarity_score, cached_at, access_level, metadata
             FROM personal_cache
-            WHERE user_id = %s 
-            AND semantic_hash = %s 
-            AND business_domain = %s
+            WHERE user_id = $1 
+            AND semantic_hash = $2 
+            AND business_domain = $3
             AND expires_at > NOW()
             ORDER BY cached_at DESC
             LIMIT 1
@@ -146,9 +146,9 @@ class PostgreSQLCacheClient:
             SELECT insights, similarity_score, cached_at, required_permissions, 
                    original_analyst, metadata
             FROM organizational_cache
-            WHERE organization_id = %s 
-            AND semantic_hash = %s 
-            AND business_domain = %s
+            WHERE organization_id = $1 
+            AND semantic_hash = $2 
+            AND business_domain = $3
             AND expires_at > NOW()
             AND ({permission_filter})
             ORDER BY cached_at DESC
@@ -300,13 +300,13 @@ class PostgreSQLCacheClient:
             # Use approximate string matching for semantic similarity
             # In a production system, this would use vector similarity
             query = """
-            SELECT insights, similarity(semantic_hash, %s) as similarity_score,
+            SELECT insights, similarity(semantic_hash, $1) as similarity_score,
                    cached_at, access_level, metadata
             FROM personal_cache
-            WHERE user_id = %s 
-            AND business_domain = %s
+            WHERE user_id = $2 
+            AND business_domain = $3
             AND expires_at > NOW()
-            AND similarity(semantic_hash, %s) > %s
+            AND similarity(semantic_hash, $4) > $5
             ORDER BY similarity_score DESC
             LIMIT 1
             """
@@ -355,13 +355,13 @@ class PostgreSQLCacheClient:
                     permission_filter += f" OR ({' OR '.join(permission_conditions)})"
             
             query = f"""
-            SELECT insights, similarity(semantic_hash, %s) as similarity_score,
+            SELECT insights, similarity(semantic_hash, $1) as similarity_score,
                    cached_at, required_permissions, original_analyst, metadata
             FROM organizational_cache
-            WHERE organization_id = %s 
-            AND business_domain = %s
+            WHERE organization_id = $2 
+            AND business_domain = $3
             AND expires_at > NOW()
-            AND similarity(semantic_hash, %s) > %s
+            AND similarity(semantic_hash, $4) > $5
             AND ({permission_filter})
             ORDER BY similarity_score DESC
             LIMIT 1
@@ -411,10 +411,10 @@ class PostgreSQLCacheClient:
                 return
             
             if business_domain:
-                query = "DELETE FROM personal_cache WHERE user_id = %s AND business_domain = %s"
+                query = "DELETE FROM personal_cache WHERE user_id = $1 AND business_domain = $2"
                 params = [user_id, business_domain]
             else:
-                query = "DELETE FROM personal_cache WHERE user_id = %s"
+                query = "DELETE FROM personal_cache WHERE user_id = $1"
                 params = [user_id]
             
             await self.postgres_client.execute_query(query, params=params)
@@ -434,10 +434,10 @@ class PostgreSQLCacheClient:
                 return
             
             if business_domain:
-                query = "DELETE FROM organizational_cache WHERE organization_id = %s AND business_domain = %s"
+                query = "DELETE FROM organizational_cache WHERE organization_id = $1 AND business_domain = $2"
                 params = [organization_id, business_domain]
             else:
-                query = "DELETE FROM organizational_cache WHERE organization_id = %s"
+                query = "DELETE FROM organizational_cache WHERE organization_id = $1"
                 params = [organization_id]
             
             await self.postgres_client.execute_query(query, params=params)

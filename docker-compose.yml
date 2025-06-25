@@ -7,12 +7,12 @@ services:
       context: .
       dockerfile: deploy/docker/Dockerfile.backend
     ports:
-      - "8000:8000"
+      - "8008:8008"
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
       - API_HOST=0.0.0.0
-      - API_PORT=8000
+      - API_PORT=8008
     volumes:
       - ./app:/app
       - ./mcp.json:/app/mcp.json
@@ -32,7 +32,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8008
     volumes:
       - ./frontend:/app
       - /app/node_modules

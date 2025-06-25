@@ -1,7 +1,7 @@
 """
 Semantic Cache Client - Pattern-Based Intelligence Cache
 
-Manages Qdrant vector database for semantic similarity matching and pattern recognition.
+Manages PostgreSQL database for semantic similarity matching and pattern recognition.
 
 Features:
 - Semantic similarity matching for business questions
@@ -18,29 +18,29 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
 from ..utils.logging import logger
-from ..mcp.qdrant_client import QdrantClient
+from ..mcp.postgres_client import PostgreSQLClient
 from .ttl_manager import TTLManager
 
 
 class SemanticCacheClient:
     """
-    Client for Qdrant-based semantic caching and pattern recognition.
+    Client for PostgreSQL-based semantic caching and pattern recognition.
     
     Stores business intelligence patterns and provides semantic similarity
     matching for instant responses to similar questions.
     """
     
     def __init__(self):
-        self.qdrant_client: Optional[QdrantClient] = None
+        self.postgres_client: Optional[PostgreSQLClient] = None
         self.ttl_manager = TTLManager()
-        self.collection_name = "business_intelligence_patterns"
+        self.table_name = "semantic_cache"
         self.similarity_threshold = 0.75
         self.max_results = 10
         
     async def initialize(self):
-        """Initialize Qdrant semantic cache client."""
+        """Initialize PostgreSQL semantic cache client."""
         try:
-            # Initialize Qdrant client connection
+            # Initialize PostgreSQL client connection
             # This will be injected from the MCP client manager
             logger.info("Semantic cache client initialized")
             
@@ -48,10 +48,10 @@ class SemanticCacheClient:
             logger.error(f"Failed to initialize semantic cache: {e}")
             raise
     
-    def set_qdrant_client(self, client: QdrantClient):
-        """Set the Qdrant client instance."""
-        self.qdrant_client = client
-        logger.info("Qdrant client set for semantic cache")
+    def set_postgres_client(self, client: PostgreSQLClient):
+        """Set the PostgreSQL client instance."""
+        self.postgres_client = client
+        logger.info("PostgreSQL client set for semantic cache")
     
     async def find_similar_insights(
         self,
@@ -61,7 +61,7 @@ class SemanticCacheClient:
         max_results: int = 5
     ) -> Optional[Dict[str, Any]]:
         """
-        Find semantically similar insights using vector search.
+        Find semantically similar insights using PostgreSQL database functions.
         
         Args:
             semantic_intent: Processed business question intent
@@ -73,57 +73,48 @@ class SemanticCacheClient:
             Similar insights if found, None otherwise
         """
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return None
             
-            # Create search vector from semantic intent
-            search_vector = await self._create_search_vector(semantic_intent)
-            if not search_vector:
-                return None
+            # Use the PostgreSQL function we created
+            query = """
+            SELECT * FROM find_similar_semantic_patterns(
+                $1, $2, $3, $4, $5, $6
+            )
+            """
             
-            # Prepare search filters
-            search_filters = {
-                "must": [
-                    {"key": "organization_id", "match": {"value": organization_id}},
-                    {"key": "active", "match": {"value": True}}
+            business_domain = semantic_intent.get("business_domain")
+            
+            result = await self.postgres_client.execute_query(
+                query,
+                params=[
+                    organization_id,
+                    json.dumps(semantic_intent),
+                    business_domain,
+                    json.dumps(user_permissions),
+                    self.similarity_threshold,
+                    max_results
                 ]
-            }
-            
-            # Add permission filters
-            if user_permissions:
-                search_filters["should"] = [
-                    {"key": "required_permissions", "match": {"any": user_permissions}},
-                    {"key": "public", "match": {"value": True}}
-                ]
-            
-            # Perform vector search
-            search_results = await self.qdrant_client.search_vectors(
-                collection_name=self.collection_name,
-                query_vector=search_vector,
-                filter=search_filters,
-                limit=max_results,
-                score_threshold=self.similarity_threshold
             )
             
-            if not search_results:
+            if not result.rows:
                 return None
             
-            # Process and rank results
-            best_match = search_results[0]
+            # Get the best match (first result, already sorted by similarity)
+            best_match = result.rows[0]
             
-            # Check if similarity score is high enough
-            if best_match.get("score", 0) < self.similarity_threshold:
-                return None
+            # Update usage count for the matched pattern
+            await self.update_pattern_usage(best_match["pattern_id"])
             
             # Return the best matching insights
             return {
-                "insights": best_match.get("payload", {}).get("insights"),
-                "business_domain": best_match.get("payload", {}).get("business_domain"),
-                "similarity_score": best_match.get("score"),
-                "pattern_id": best_match.get("id"),
-                "original_question": best_match.get("payload", {}).get("original_question"),
-                "cached_at": best_match.get("payload", {}).get("cached_at"),
-                "usage_count": best_match.get("payload", {}).get("usage_count", 0),
+                "insights": best_match["insights"],
+                "business_domain": best_match["business_domain"],
+                "similarity_score": best_match["similarity_score"],
+                "pattern_id": best_match["pattern_id"],
+                "semantic_hash": best_match["semantic_hash"],
+                "usage_count": best_match["usage_count"],
+                "last_used": best_match["last_used"],
                 "cache_tier": "semantic"
             }
             
@@ -152,46 +143,52 @@ class SemanticCacheClient:
             original_question: Original natural language question
         """
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return
             
-            # Create embedding vector from semantic intent
-            pattern_vector = await self._create_pattern_vector(semantic_intent, insights)
-            if not pattern_vector:
-                return
-            
-            # Generate pattern ID
+            # Generate pattern ID and semantic hash
             pattern_id = self._generate_pattern_id(semantic_intent, business_domain, organization_id)
+            semantic_hash = self._generate_semantic_hash(semantic_intent)
             
-            # Prepare pattern payload
-            pattern_payload = {
-                "pattern_id": pattern_id,
-                "semantic_intent": semantic_intent,
-                "business_domain": business_domain,
-                "organization_id": organization_id,
-                "insights": insights,
-                "required_permissions": user_permissions,
-                "original_question": original_question or "",
-                "cached_at": datetime.utcnow().isoformat(),
-                "usage_count": 0,
-                "active": True,
-                "public": len(user_permissions) == 0 or "public" in user_permissions,
-                "metadata": {
-                    "question_type": semantic_intent.get("business_intent", {}).get("question_type"),
-                    "time_period": semantic_intent.get("business_intent", {}).get("time_period"),
-                    "analysis_type": semantic_intent.get("analysis_type"),
-                    "complexity_score": semantic_intent.get("complexity_score", 0)
-                }
+            # Extract metadata from semantic intent
+            business_intent = semantic_intent.get("business_intent", {})
+            question_type = business_intent.get("question_type", "descriptive")
+            analysis_type = semantic_intent.get("analysis_type", "general")
+            
+            # Determine if pattern is public
+            public_pattern = len(user_permissions) == 0 or "public" in user_permissions
+            
+            # Store pattern in PostgreSQL
+            query = """
+            INSERT INTO semantic_cache 
+            (pattern_id, semantic_hash, organization_id, business_domain, 
+             semantic_intent, insights, original_question, question_type, 
+             analysis_type, required_permissions, public_pattern, metadata)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (pattern_id)
+            DO UPDATE SET
+                semantic_intent = EXCLUDED.semantic_intent,
+                insights = EXCLUDED.insights,
+                last_used = NOW(),
+                metadata = EXCLUDED.metadata
+            """
+            
+            metadata = {
+                "question_type": question_type,
+                "time_period": business_intent.get("time_period"),
+                "analysis_type": analysis_type,
+                "complexity_score": semantic_intent.get("complexity_score", 0),
+                "stored_at": datetime.utcnow().isoformat()
             }
             
-            # Store pattern in Qdrant
-            await self.qdrant_client.upsert_vectors(
-                collection_name=self.collection_name,
-                points=[{
-                    "id": pattern_id,
-                    "vector": pattern_vector,
-                    "payload": pattern_payload
-                }]
+            await self.postgres_client.execute_query(
+                query,
+                params=[
+                    pattern_id, semantic_hash, organization_id, business_domain,
+                    json.dumps(semantic_intent), json.dumps(insights),
+                    original_question or "", question_type, analysis_type,
+                    json.dumps(user_permissions), public_pattern, json.dumps(metadata)
+                ]
             )
             
             logger.debug(f"Stored semantic pattern: {pattern_id} for {business_domain}")
@@ -202,32 +199,17 @@ class SemanticCacheClient:
     async def update_pattern_usage(self, pattern_id: str):
         """Update usage count for a semantic pattern."""
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return
             
-            # Get current pattern
-            pattern_data = await self.qdrant_client.get_vector(
-                collection_name=self.collection_name,
-                point_id=pattern_id
-            )
+            # Update usage count and last_used - the trigger will handle incrementing
+            query = """
+            UPDATE semantic_cache 
+            SET last_used = NOW()
+            WHERE pattern_id = $1
+            """
             
-            if not pattern_data:
-                return
-            
-            # Increment usage count
-            payload = pattern_data.get("payload", {})
-            payload["usage_count"] = payload.get("usage_count", 0) + 1
-            payload["last_used"] = datetime.utcnow().isoformat()
-            
-            # Update pattern
-            await self.qdrant_client.upsert_vectors(
-                collection_name=self.collection_name,
-                points=[{
-                    "id": pattern_id,
-                    "vector": pattern_data["vector"],
-                    "payload": payload
-                }]
-            )
+            await self.postgres_client.execute_query(query, params=[pattern_id])
             
         except Exception as e:
             logger.warning(f"Failed to update pattern usage: {e}")
@@ -250,51 +232,33 @@ class SemanticCacheClient:
             List of popular patterns
         """
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return []
             
-            # Prepare filters
-            filters = {
-                "must": [
-                    {"key": "organization_id", "match": {"value": organization_id}},
-                    {"key": "active", "match": {"value": True}}
-                ]
-            }
+            # Use the PostgreSQL function we created
+            query = """
+            SELECT * FROM get_popular_semantic_patterns($1, $2, $3)
+            """
             
-            if business_domain:
-                filters["must"].append(
-                    {"key": "business_domain", "match": {"value": business_domain}}
-                )
-            
-            # Get patterns sorted by usage count
-            patterns = await self.qdrant_client.scroll_vectors(
-                collection_name=self.collection_name,
-                filter=filters,
-                limit=limit,
-                with_payload=True,
-                with_vectors=False
+            result = await self.postgres_client.execute_query(
+                query,
+                params=[organization_id, business_domain, limit]
             )
             
-            if not patterns:
+            if not result.rows:
                 return []
-            
-            # Sort by usage count and return
-            sorted_patterns = sorted(
-                patterns,
-                key=lambda x: x.get("payload", {}).get("usage_count", 0),
-                reverse=True
-            )
             
             return [
                 {
-                    "pattern_id": pattern.get("id"),
-                    "business_domain": pattern.get("payload", {}).get("business_domain"),
-                    "question_type": pattern.get("payload", {}).get("metadata", {}).get("question_type"),
-                    "usage_count": pattern.get("payload", {}).get("usage_count", 0),
-                    "last_used": pattern.get("payload", {}).get("last_used"),
-                    "original_question": pattern.get("payload", {}).get("original_question")
+                    "pattern_id": row["pattern_id"],
+                    "business_domain": row["business_domain"],
+                    "question_type": row["question_type"],
+                    "usage_count": row["usage_count"],
+                    "last_used": row["last_used"],
+                    "original_question": row["original_question"],
+                    "insights_summary": row["insights_summary"]
                 }
-                for pattern in sorted_patterns[:limit]
+                for row in result.rows
             ]
             
         except Exception as e:
@@ -316,7 +280,7 @@ class SemanticCacheClient:
             pattern_ids: Optional specific pattern IDs to invalidate
         """
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return
             
             if pattern_ids:
@@ -326,121 +290,32 @@ class SemanticCacheClient:
                 logger.info(f"Invalidated {len(pattern_ids)} specific patterns")
             else:
                 # Invalidate by organization/domain
-                filters = {
-                    "must": [
-                        {"key": "organization_id", "match": {"value": organization_id}}
-                    ]
-                }
-                
                 if business_domain:
-                    filters["must"].append(
-                        {"key": "business_domain", "match": {"value": business_domain}}
-                    )
+                    query = """
+                    UPDATE semantic_cache 
+                    SET active = false, deactivated_at = NOW()
+                    WHERE organization_id = $1 AND business_domain = $2
+                    """
+                    params = [organization_id, business_domain]
+                else:
+                    query = """
+                    UPDATE semantic_cache 
+                    SET active = false, deactivated_at = NOW()
+                    WHERE organization_id = $1
+                    """
+                    params = [organization_id]
                 
-                # Get patterns to invalidate
-                patterns = await self.qdrant_client.scroll_vectors(
-                    collection_name=self.collection_name,
-                    filter=filters,
-                    with_payload=False,
-                    with_vectors=False
-                )
-                
-                # Deactivate patterns
-                for pattern in patterns:
-                    await self._deactivate_pattern(pattern.get("id"))
-                
-                logger.info(f"Invalidated {len(patterns)} patterns for {organization_id}")
+                result = await self.postgres_client.execute_query(query, params=params)
+                logger.info(f"Invalidated {result.row_count} patterns for {organization_id}")
             
         except Exception as e:
             logger.error(f"Failed to invalidate patterns: {e}")
     
-    async def _create_search_vector(self, semantic_intent: Dict[str, Any]) -> Optional[List[float]]:
-        """Create search vector from semantic intent."""
-        try:
-            if not self.qdrant_client:
-                return None
-            
-            # Create text representation of semantic intent
-            search_text = self._semantic_intent_to_text(semantic_intent)
-            
-            # Generate embedding using Qdrant's embedding service
-            embedding = await self.qdrant_client.create_embedding(search_text)
-            return embedding
-            
-        except Exception as e:
-            logger.warning(f"Failed to create search vector: {e}")
-            return None
-    
-    async def _create_pattern_vector(
-        self, 
-        semantic_intent: Dict[str, Any], 
-        insights: Dict[str, Any]
-    ) -> Optional[List[float]]:
-        """Create pattern vector from semantic intent and insights."""
-        try:
-            if not self.qdrant_client:
-                return None
-            
-            # Combine semantic intent and insights for comprehensive embedding
-            pattern_text = self._create_pattern_text(semantic_intent, insights)
-            
-            # Generate embedding
-            embedding = await self.qdrant_client.create_embedding(pattern_text)
-            return embedding
-            
-        except Exception as e:
-            logger.warning(f"Failed to create pattern vector: {e}")
-            return None
-    
-    def _semantic_intent_to_text(self, semantic_intent: Dict[str, Any]) -> str:
-        """Convert semantic intent to text for embedding."""
-        components = []
-        
-        # Business domain
-        if "business_domain" in semantic_intent:
-            components.append(f"Domain: {semantic_intent['business_domain']}")
-        
-        # Business intent details
-        business_intent = semantic_intent.get("business_intent", {})
-        if "question_type" in business_intent:
-            components.append(f"Question type: {business_intent['question_type']}")
-        if "time_period" in business_intent:
-            components.append(f"Time period: {business_intent['time_period']}")
-        if "metrics" in business_intent:
-            components.append(f"Metrics: {', '.join(business_intent['metrics'])}")
-        
-        # Analysis type
-        if "analysis_type" in semantic_intent:
-            components.append(f"Analysis: {semantic_intent['analysis_type']}")
-        
-        return " | ".join(components)
-    
-    def _create_pattern_text(self, semantic_intent: Dict[str, Any], insights: Dict[str, Any]) -> str:
-        """Create comprehensive pattern text for embedding."""
-        components = []
-        
-        # Add semantic intent
-        components.append(self._semantic_intent_to_text(semantic_intent))
-        
-        # Add key insights
-        if "summary" in insights:
-            components.append(f"Summary: {insights['summary']}")
-        if "key_findings" in insights:
-            findings = insights["key_findings"]
-            if isinstance(findings, list):
-                components.append(f"Findings: {' '.join(findings)}")
-            elif isinstance(findings, str):
-                components.append(f"Findings: {findings}")
-        
-        # Add recommendations
-        if "recommendations" in insights:
-            recommendations = insights["recommendations"]
-            if isinstance(recommendations, list):
-                components.append(f"Recommendations: {' '.join(recommendations)}")
-            elif isinstance(recommendations, str):
-                components.append(f"Recommendations: {recommendations}")
-        
-        return " | ".join(components)
+    def _generate_semantic_hash(self, semantic_intent: Dict[str, Any]) -> str:
+        """Generate semantic hash for the intent."""
+        # Create a consistent hash from the semantic intent
+        intent_str = json.dumps(semantic_intent, sort_keys=True)
+        return hashlib.sha256(intent_str.encode()).hexdigest()[:16]
     
     def _generate_pattern_id(self, semantic_intent: Dict[str, Any], business_domain: str, organization_id: str) -> str:
         """Generate unique pattern ID."""
@@ -459,41 +334,66 @@ class SemanticCacheClient:
     async def _deactivate_pattern(self, pattern_id: str):
         """Deactivate a semantic pattern."""
         try:
-            if not self.qdrant_client:
+            if not self.postgres_client:
                 return
             
-            # Get current pattern
-            pattern_data = await self.qdrant_client.get_vector(
-                collection_name=self.collection_name,
-                point_id=pattern_id
-            )
+            query = """
+            UPDATE semantic_cache 
+            SET active = false, deactivated_at = NOW()
+            WHERE pattern_id = $1
+            """
             
-            if not pattern_data:
-                return
-            
-            # Deactivate pattern
-            payload = pattern_data.get("payload", {})
-            payload["active"] = False
-            payload["deactivated_at"] = datetime.utcnow().isoformat()
-            
-            # Update pattern
-            await self.qdrant_client.upsert_vectors(
-                collection_name=self.collection_name,
-                points=[{
-                    "id": pattern_id,
-                    "vector": pattern_data["vector"],
-                    "payload": payload
-                }]
-            )
+            await self.postgres_client.execute_query(query, params=[pattern_id])
             
         except Exception as e:
             logger.warning(f"Failed to deactivate pattern {pattern_id}: {e}")
     
-    def get_semantic_statistics(self) -> Dict[str, Any]:
+    async def get_semantic_statistics(self, organization_id: Optional[str] = None) -> Dict[str, Any]:
         """Get semantic cache statistics."""
-        return {
-            "collection_name": self.collection_name,
-            "similarity_threshold": self.similarity_threshold,
-            "max_results": self.max_results,
-            "status": "active" if self.qdrant_client else "inactive"
-        }
+        try:
+            if not self.postgres_client:
+                return {
+                    "table_name": self.table_name,
+                    "similarity_threshold": self.similarity_threshold,
+                    "max_results": self.max_results,
+                    "status": "inactive"
+                }
+            
+            # Use the PostgreSQL function for statistics
+            query = """
+            SELECT * FROM get_semantic_cache_stats($1)
+            """
+            
+            result = await self.postgres_client.execute_query(query, params=[organization_id])
+            
+            if result.rows:
+                stats = result.rows[0]
+                return {
+                    "table_name": self.table_name,
+                    "similarity_threshold": self.similarity_threshold,
+                    "max_results": self.max_results,
+                    "status": "active",
+                    "total_patterns": stats["total_patterns"],
+                    "active_patterns": stats["active_patterns"],
+                    "total_usage": stats["total_usage"],
+                    "avg_usage_per_pattern": float(stats["avg_usage_per_pattern"]),
+                    "top_business_domain": stats["top_business_domain"],
+                    "most_popular_pattern": stats["most_popular_pattern"],
+                    "cache_efficiency": float(stats["cache_efficiency"])
+                }
+            else:
+                return {
+                    "table_name": self.table_name,
+                    "similarity_threshold": self.similarity_threshold,
+                    "max_results": self.max_results,
+                    "status": "active",
+                    "total_patterns": 0
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to get semantic statistics: {e}")
+            return {
+                "table_name": self.table_name,
+                "error": str(e),
+                "status": "error"
+            }

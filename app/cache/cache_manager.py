@@ -38,7 +38,7 @@ class CacheManager:
     Multi-tier cache orchestrator for intelligent cache management.
     
     Coordinates cache operations across multiple tiers to optimize for:
-    - Response time (50ms ’ 100ms ’ 15s+)
+    - Response time (50ms ï¿½ 100ms ï¿½ 15s+)
     - Cost efficiency (90% savings on hits)
     - Data freshness (TTL-based invalidation)
     - Permission awareness (role-based access)
@@ -239,15 +239,15 @@ class CacheManager:
             semantic_intent, user_context, organization_context
         )
         
-        # High volatility data ’ PostgreSQL only
+        # High volatility data ï¿½ PostgreSQL only
         if ttl_seconds <= self.postgresql_threshold:
             return CacheStrategy.POSTGRESQL_ONLY
         
-        # Long-term stable data ’ Anthropic priority
+        # Long-term stable data ï¿½ Anthropic priority
         if ttl_seconds >= self.anthropic_threshold:
             return CacheStrategy.ANTHROPIC_ONLY
         
-        # Medium volatility ’ Hybrid approach
+        # Medium volatility ï¿½ Hybrid approach
         if ttl_seconds >= self.hybrid_threshold:
             return CacheStrategy.HYBRID
         
@@ -427,7 +427,8 @@ class CacheManager:
                     business_domain=business_domain,
                     organization_id=organization_id,
                     insights=insights,
-                    user_permissions=user_permissions
+                    user_permissions=user_permissions,
+                    original_question=conversation_context.get("original_question") if conversation_context else None
                 )
             )
         
