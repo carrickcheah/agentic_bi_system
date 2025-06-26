@@ -9,7 +9,6 @@ Services:
 - Memory Service: PostgreSQL for organizational memory and session management  
 - Vector Service: Qdrant for semantic search and pattern matching
 - Analytics Service: Advanced analytics and computation
-- External Service: Supabase for additional operations
 """
 
 import asyncio
@@ -26,7 +25,6 @@ class ServiceType(Enum):
     MEMORY = "memory"
     VECTOR = "vector"
     ANALYTICS = "analytics"
-    EXTERNAL = "external"
 
 
 class ServiceOrchestrator:
@@ -43,7 +41,6 @@ class ServiceOrchestrator:
         self.memory_service = None
         self.vector_service = None
         self.analytics_service = None
-        self.external_service = None
         
         self.service_health = {}
         self.service_performance = {}
@@ -51,7 +48,7 @@ class ServiceOrchestrator:
     async def initialize(self):
         """Initialize service orchestrator."""
         try:
-            logger.info("=à Initializing Service Orchestrator")
+            logger.info("=ï¿½ Initializing Service Orchestrator")
             
             # TODO: Initialize services when available
             # self.business_data_service = BusinessDataService()
@@ -80,7 +77,7 @@ class ServiceOrchestrator:
             Service coordination plan with execution sequence
         """
         try:
-            logger.info("<¯ Creating service orchestration plan")
+            logger.info("<ï¿½ Creating service orchestration plan")
             
             # Analyze required services
             required_services = self._analyze_required_services(
@@ -138,7 +135,7 @@ class ServiceOrchestrator:
     ) -> Dict[str, Any]:
         """Execute service coordination plan."""
         try:
-            logger.info("¡ Executing service orchestration plan")
+            logger.info("ï¿½ Executing service orchestration plan")
             
             execution_results = {}
             parallel_groups = service_plan.get("parallel_groups", [])
@@ -238,15 +235,6 @@ class ServiceOrchestrator:
                 "operations": ["statistical_analysis", "trend_analysis", "predictive_modeling"]
             })
         
-        # External service for additional data
-        if semantic_intent.get("business_intent", {}).get("requires_comparison", False):
-            required_services.append({
-                "service_type": ServiceType.EXTERNAL.value,
-                "service_name": "external",
-                "priority": "low",
-                "operations": ["external_data_retrieval", "benchmark_comparisons"]
-            })
-        
         return required_services
     
     def _plan_execution_sequence(
@@ -322,8 +310,7 @@ class ServiceOrchestrator:
             ServiceType.BUSINESS_DATA.value: {"duration": 3, "queries": 2},
             ServiceType.MEMORY.value: {"duration": 1, "queries": 1},
             ServiceType.VECTOR.value: {"duration": 2, "queries": 1},
-            ServiceType.ANALYTICS.value: {"duration": 5, "queries": 3},
-            ServiceType.EXTERNAL.value: {"duration": 4, "queries": 2}
+            ServiceType.ANALYTICS.value: {"duration": 5, "queries": 3}
         }
         
         complexity_multiplier = {
@@ -341,7 +328,7 @@ class ServiceOrchestrator:
                 "estimated_duration_seconds": base["duration"] * complexity_multiplier,
                 "estimated_queries": int(base["queries"] * complexity_multiplier),
                 "resource_intensity": "high" if service.get("priority") == "high" else "medium",
-                "cache_beneficial": service_type != ServiceType.EXTERNAL.value
+                "cache_beneficial": True
             }
         
         return performance_estimates
@@ -470,8 +457,7 @@ class ServiceOrchestrator:
                 "business_data": "developing",
                 "memory": "developing", 
                 "vector": "developing",
-                "analytics": "developing",
-                "external": "developing"
+                "analytics": "developing"
             }
         }
     

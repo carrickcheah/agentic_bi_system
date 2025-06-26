@@ -22,7 +22,6 @@ except ImportError:
     logger = logging.getLogger(__name__)
 from .mariadb_client import MariaDBClient
 from .postgres_client import PostgreSQLClient
-from .supabase_client import SupabaseClient
 from .qdrant_client import QdrantClient
 
 
@@ -39,7 +38,6 @@ class MCPClientManager:
         # Database client wrappers
         self.mariadb: Optional[MariaDBClient] = None
         self.postgres: Optional[PostgreSQLClient] = None
-        self.supabase: Optional[SupabaseClient] = None
         self.qdrant: Optional[QdrantClient] = None
     
     async def initialize(self):
@@ -76,7 +74,6 @@ class MCPClientManager:
             
             # Map of environment variable names to settings values
             env_mapping = {
-                "SUPABASE_ACCESS_TOKEN": settings.supabase_access_token,
                 "MARIADB_HOST": settings.mariadb_host,
                 "MARIADB_PORT": str(settings.mariadb_port),
                 "MARIADB_USER": settings.mariadb_user,
@@ -150,9 +147,6 @@ class MCPClientManager:
         if "postgres" in self.sessions:
             self.postgres = PostgreSQLClient(self.sessions["postgres"])
         
-        if "supabase" in self.sessions:
-            self.supabase = SupabaseClient(self.sessions["supabase"])
-        
         if "qdrant" in self.sessions:
             self.qdrant = QdrantClient(self.sessions["qdrant"])
     
@@ -178,8 +172,7 @@ class MCPClientManager:
         client_map = {
             "qdrant": self.qdrant,
             "postgres": self.postgres,
-            "mariadb": self.mariadb,
-            "supabase": self.supabase
+            "mariadb": self.mariadb
         }
         
         return client_map.get(client_name)
