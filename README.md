@@ -208,7 +208,6 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | Database 4 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
-| Dual MCP Role | FastAPI | MCP Client (to databases) + MCP Server (to frontend) |
 | Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
 | UI Framework | React + TypeScript | Claude.ai-style autonomous investigation interface |
 
@@ -370,15 +369,6 @@ The interface follows Claude.ai's elegant two-panel design:
 - Export to CSV/Excel/PDF
 - Dark/light mode
 
-# 📁 Agentic SQL - Alphabetically Sorted Structure
-
-## 🎯 **Status Legend**
-- ✅ **KEEP** - Excellent, use as-is
-- 🔧 **ENHANCE** - Good foundation, needs completion  
-- 🆕 **CREATE** - New file needed
-- 📝 **MIGRATE** - Move/rename existing file
-
----
 
 ## 📂 **Project Root Files (Alphabetical)**
 
@@ -402,184 +392,7 @@ agentic_sql/
 ```
 app/
 ├── __init__.py                           ✅ KEEP
-├── config.py                             ✅ KEEP (Perfect!)
-├── main.py                               🆕 CREATE - FastAPI entry point
-│
-├── analytics/                            # 📈 ADVANCED ANALYTICS ENGINE
-│   ├── __init__.py                       🆕 CREATE
-│   ├── anomaly_detector.py               🆕 CREATE - Anomaly detection
-│   ├── correlation_engine.py             🆕 CREATE - Cross-metric correlations
-│   ├── forecaster.py                     🆕 CREATE - Predictive analytics
-│   ├── risk_assessor.py                  🆕 CREATE - Risk assessment
-│   ├── scenario_modeler.py               🆕 CREATE - What-if modeling
-│   ├── statistical_analyzer.py           🆕 CREATE - Statistical analysis
-│   └── trend_analyzer.py                 🆕 CREATE - Trend analysis
-│
-├── api/                                  # 🌐 FASTAPI WEB LAYER
-│   ├── __init__.py                       ✅ KEEP
-│   ├── app_factory.py                    ✅ KEEP (Excellent MCP integration)
-│   ├── dependencies.py                   🆕 CREATE - FastAPI dependencies
-│   ├── middleware/
-│   │   ├── __init__.py                   🆕 CREATE
-│   │   ├── caching_middleware.py         🆕 CREATE - Request-level caching
-│   │   ├── error_handler.py              🆕 CREATE - Graceful error handling
-│   │   ├── monitoring_middleware.py      🆕 CREATE - Request monitoring
-│   │   └── security_middleware.py        🆕 CREATE - Security & auth
-│   ├── routes/
-│   │   ├── __init__.py                   🆕 CREATE
-│   │   ├── admin.py                      🆕 CREATE - Administrative endpoints
-│   │   ├── analytics.py                  🆕 CREATE - Advanced analytics
-│   │   ├── cache.py                      🆕 CREATE - Cache management
-│   │   ├── collaboration.py              🆕 CREATE - Team collaboration
-│   │   ├── database.py                   ✅ KEEP (Good foundation)
-│   │   ├── intelligence.py               🆕 CREATE - BI endpoints
-│   │   ├── investigations.py             📝 MIGRATE from database.py + expand
-│   │   ├── monitoring.py                 🆕 CREATE - Health & metrics
-│   │   └── sessions.py                   🔧 ENHANCE (partial implementation)
-│   └── websocket/
-│       ├── __init__.py                   🆕 CREATE
-│       ├── collaboration_ws.py           🆕 CREATE - Team collaboration
-│       ├── investigation_ws.py           🆕 CREATE - Real-time investigation
-│       └── monitoring_ws.py              🆕 CREATE - System monitoring
-│
-├── cache/                                # ⚡ MULTI-TIER CACHE CASCADE
-│   ├── __init__.py                       🆕 CREATE
-│   ├── anthropic_cache.py                🆕 CREATE - Tier 1a: 50ms target
-│   ├── cache_manager.py                  🆕 CREATE - Cache cascade orchestrator
-│   ├── cache_warming.py                  🆕 CREATE - Predictive warming
-│   ├── postgresql_cache.py               🆕 CREATE - Tier 1b: 100ms target
-│   ├── semantic_cache.py                 🆕 CREATE - Intent-based caching
-│   └── ttl_manager.py                    🆕 CREATE - Dynamic TTL management
-│
-├── collaboration/                        # 🤝 TEAM COLLABORATION ENGINE
-│   ├── __init__.py                       🆕 CREATE
-│   ├── expertise_router.py               🆕 CREATE - Stakeholder inclusion
-│   ├── feedback_processor.py             🆕 CREATE - Expert validation
-│   ├── knowledge_synthesizer.py          🆕 CREATE - Cross-functional insights
-│   ├── morning_cache_warmer.py           🆕 CREATE - Cache warming strategy
-│   ├── real_time_sharing.py              🆕 CREATE - Investigation sharing
-│   └── team_patterns.py                  🆕 CREATE - Departmental patterns
-│
-├── core/                                 # 🧠 CORE AUTONOMOUS INTELLIGENCE
-│   ├── __init__.py                       🆕 CREATE
-│   ├── business_analyst.py               🆕 CREATE - Main orchestrator
-│   ├── execution_orchestrator.py         🆕 CREATE - Phase 4: Execution
-│   ├── insight_synthesizer.py            🆕 CREATE - Phase 5: Insights
-│   ├── investigation_engine.py           🆕 CREATE - Multi-phase investigations
-│   ├── memory.py                         🔧 ENHANCE (exists, needs completion)
-│   ├── organizational_memory.py          🆕 CREATE - Learning system
-│   ├── query_processor.py                🆕 CREATE - Phase 1: Query processing
-│   └── strategy_planner.py               🆕 CREATE - Phase 2: BI planning
-│
-├── database/                             # 📊 DATABASE LAYER
-│   ├── __init__.py                       ✅ KEEP
-│   ├── business_schema.py                🆕 CREATE - Business-aware schema
-│   ├── data_validator.py                 🆕 CREATE - Data quality validation
-│   ├── models.py                         ✅ KEEP (Good foundation)
-│   ├── performance_optimizer.py          🆕 CREATE - Query optimization
-│   ├── query_generator.py                🆕 CREATE - Business-intelligent queries
-│   └── security_enforcer.py              🆕 CREATE - Access control
-│
-├── guardrails/                           # 🛡️ SAFETY & QUALITY
-│   ├── __init__.py                       🆕 CREATE
-│   ├── business_validator.py             🆕 CREATE - Business logic validation
-│   ├── compliance_checker.py             🆕 CREATE - Regulatory compliance
-│   ├── quality_enforcer.py               🆕 CREATE - Quality enforcement
-│   ├── rate_limiter.py                   🆕 CREATE - Intelligent rate limiting
-│   ├── result_validator.py               🆕 CREATE - Result sanity checking
-│   └── sql_validator.py                  🆕 CREATE - SQL safety validation
-│
-├── intelligence/                         # 🎓 BUSINESS INTELLIGENCE LAYER
-│   ├── __init__.py                       🆕 CREATE
-│   ├── business_context.py               🆕 CREATE - Organizational context
-│   ├── complexity_analyzer.py            🆕 CREATE - Query complexity assessment
-│   ├── domain_expert.py                  🆕 CREATE - Business domain classification
-│   ├── hypothesis_generator.py           🆕 CREATE - Business hypothesis testing
-│   ├── methodology_selector.py           🆕 CREATE - Investigation methodology
-│   └── pattern_recognizer.py             🆕 CREATE - Cross-domain correlations
-│
-├── investigation/                        # 🔍 INVESTIGATION WORKFLOW
-│   ├── __init__.py                       🆕 CREATE
-│   ├── adaptive_planner.py               🆕 CREATE - Dynamic adaptation
-│   ├── collaboration_manager.py          🆕 CREATE - Multi-user collaboration
-│   ├── investigation_state.py            🆕 CREATE - State management
-│   ├── parallel_processor.py             🆕 CREATE - Multi-step parallel
-│   ├── progress_tracker.py               🆕 CREATE - Real-time progress
-│   ├── step_executor.py                  🆕 CREATE - Step execution
-│   └── validation_engine.py              🆕 CREATE - Cross-domain validation
-│
-├── learning/                             # 🧠 ORGANIZATIONAL LEARNING
-│   ├── __init__.py                       🆕 CREATE
-│   ├── adaptation_engine.py              🆕 CREATE - System adaptation
-│   ├── expertise_network.py              🆕 CREATE - Expert collaboration
-│   ├── knowledge_builder.py              🆕 CREATE - Institutional memory
-│   ├── methodology_optimizer.py          🆕 CREATE - Method refinement
-│   ├── pattern_learner.py                🆕 CREATE - Cross-investigation patterns
-│   └── success_tracker.py                🆕 CREATE - Outcome assessment
-│
-├── mcp/                                  # ✅ MCP CLIENT INFRASTRUCTURE
-│   ├── __init__.py                       ✅ KEEP
-│   ├── client_manager.py                 ✅ KEEP (Excellent foundation)
-│   ├── health_monitor.py                 🆕 CREATE - Connection health monitoring
-│   ├── mariadb_client.py                 🔧 ENHANCE (40% complete → Full business data)
-│   ├── postgres_client.py                🔧 ENHANCE (40% complete → Full memory ops)
-│   ├── qdrant_client.py                  🔧 ENHANCE (15% complete → Vector search)
-│   └── supabase_client.py                🔧 ENHANCE (20% complete → Operations)
-│
-├── model/                                # ✅ AI MODEL INTEGRATION
-│   ├── __init__.py                       ✅ KEEP
-│   ├── anthropic_model.py                ✅ KEEP (Perfect caching implementation)
-│   ├── context_manager.py                🆕 CREATE - Conversation context
-│   ├── deepseek_model.py                 🔧 ENHANCE (exists, verify completeness)
-│   ├── model_manager.py                  ✅ KEEP (Excellent fallback system)
-│   ├── openai_model.py                   🔧 ENHANCE (exists, verify completeness)
-│   └── prompt_optimizer.py               🆕 CREATE - Advanced prompt engineering
-│
-├── monitoring/                           # 📊 ENTERPRISE MONITORING
-│   ├── __init__.py                       🆕 CREATE
-│   ├── alert_manager.py                  🆕 CREATE - Proactive alerting
-│   ├── dashboard_generator.py            🆕 CREATE - Executive dashboards
-│   ├── health_checker.py                 🆕 CREATE - Component health
-│   ├── investigation_metrics.py          🆕 CREATE - Investigation success
-│   ├── performance_monitor.py            🆕 CREATE - System performance
-│   └── resource_optimizer.py             🆕 CREATE - Resource allocation
-│
-├── prompt_engineering/                   # ✅ ADVANCED PROMPTING
-│   ├── __init__.py                       🆕 CREATE
-│   ├── business_prompts.py               🆕 CREATE - BI-specific prompts
-│   ├── chain_of_thought.py               🆕 CREATE - CoT for complex analysis
-│   ├── context_composer.py               🆕 CREATE - Context-aware composition
-│   ├── few_shot_examples.py              🆕 CREATE - Dynamic examples
-│   ├── investigation_prompts.py          🆕 CREATE - Investigation workflows
-│   ├── prompt_optimizer.py               🆕 CREATE - A/B testing & optimization
-│   └── system_prompts.py                 ✅ KEEP (Excellent XML implementation)
-│
-├── security/                             # 🛡️ ZERO-TRUST SECURITY
-│   ├── __init__.py                       🆕 CREATE
-│   ├── access_controller.py              🆕 CREATE - RBAC
-│   ├── audit_logger.py                   🆕 CREATE - Audit trails
-│   ├── data_masker.py                    🆕 CREATE - Dynamic masking
-│   ├── lineage_tracker.py                🆕 CREATE - Data lineage
-│   ├── permission_enforcer.py            🆕 CREATE - Query permissions
-│   └── privacy_protector.py              🆕 CREATE - GDPR/CCPA compliance
-│
-├── services/                             # 🛠️ SERVICE ORCHESTRATION
-│   ├── __init__.py                       🆕 CREATE
-│   ├── analytics_service.py              🆕 CREATE - Advanced analytics
-│   ├── business_data_service.py          📝 MIGRATE from app/mcp/mariadb_client.py
-│   ├── external_service.py               📝 MIGRATE from app/mcp/supabase_client.py
-│   ├── memory_service.py                 📝 MIGRATE from app/mcp/postgres_client.py
-│   ├── service_orchestrator.py           🆕 CREATE - Service coordination
-│   └── vector_service.py                 📝 MIGRATE from app/mcp/qdrant_client.py
-│
-└── utils/                                # 🔧 SHARED UTILITIES
-    ├── __init__.py                       ✅ KEEP
-    ├── exceptions.py                     🆕 CREATE - Custom exception hierarchy
-    ├── formatters.py                     🆕 CREATE - Data formatting
-    ├── helpers.py                        🆕 CREATE - Common utilities
-    ├── logging.py                        🔧 ENHANCE (exists, verify completeness)
-    ├── monitoring.py                     🔧 ENHANCE (exists, verify completeness)
-    └── validators.py                     🆕 CREATE - Common validation
+├──
 ```
 
 ---
@@ -619,98 +432,13 @@ deploy/
 ## 📂 **docs/ Directory (Alphabetical)**
 
 ```
-docs/
-├── API_REFERENCE.md                      🆕 CREATE
-├── ARCHITECTURE.md                       🆕 CREATE
-├── BUSINESS_INTELLIGENCE.md              🆕 CREATE
-├── CACHING_STRATEGY.md                   🆕 CREATE
-├── COLLABORATION.md                      🆕 CREATE
-├── DEPLOYMENT.md                         🆕 CREATE
-├── INVESTIGATION_WORKFLOW.md             🆕 CREATE
-├── README.md                             🆕 CREATE
-├── SECURITY.md                           🆕 CREATE
-└── USER_GUIDE.md                         🆕 CREATE
-```
 
 ---
 
 ## 📂 **frontend/ Directory (Alphabetical)**
 
 ```
-frontend/
-├── package.json                          📝 MIGRATE from ui/web_app/package.json
-├── README.md                             📝 MIGRATE from ui/web_app/README.md
-├── tailwind.config.js                    📝 MIGRATE from ui/web_app/tailwind.config.js
-├── vite.config.ts                        📝 MIGRATE from ui/web_app/vite.config.ts
-├── public/
-│   ├── assets/                           📝 MIGRATE from ui/web_app/public/
-│   └── index.html                        📝 MIGRATE from ui/web_app/public/
-└── src/
-    ├── App.tsx                           📝 MIGRATE from ui/web_app/src/App.tsx
-    ├── main.tsx                          📝 MIGRATE from ui/web_app/src/main.tsx
-    ├── components/
-    │   ├── collaboration/
-    │   │   ├── ExpertiseNetwork.tsx       🆕 CREATE
-    │   │   ├── FeedbackSystem.tsx         🆕 CREATE
-    │   │   ├── KnowledgeSharing.tsx       🆕 CREATE
-    │   │   └── TeamWorkspace.tsx          🆕 CREATE
-    │   ├── conversation/
-    │   │   ├── BusinessQueryInput.tsx     🆕 CREATE
-    │   │   ├── ConversationPanel.tsx      🆕 CREATE
-    │   │   ├── InsightCard.tsx            🆕 CREATE
-    │   │   ├── InvestigationFlow.tsx      🆕 CREATE
-    │   │   ├── ProgressIndicator.tsx      🆕 CREATE
-    │   │   └── RecommendationList.tsx     🆕 CREATE
-    │   ├── intelligence/
-    │   │   ├── DomainExplorer.tsx         🆕 CREATE
-    │   │   ├── HypothesisTracker.tsx      🆕 CREATE
-    │   │   ├── ScenarioModeler.tsx        🆕 CREATE
-    │   │   └── TrendAnalyzer.tsx          🆕 CREATE
-    │   ├── layout/
-    │   │   ├── Header.tsx                 🆕 CREATE
-    │   │   ├── Sidebar.tsx                🆕 CREATE
-    │   │   └── TwoPanelLayout.tsx         🆕 CREATE - Claude.ai-style
-    │   ├── monitoring/
-    │   │   ├── CacheStatus.tsx            🆕 CREATE
-    │   │   ├── PerformanceMetrics.tsx     🆕 CREATE
-    │   │   └── SystemDashboard.tsx        🆕 CREATE
-    │   └── results/
-    │       ├── DataVisualization.tsx      🆕 CREATE
-    │       ├── ExportTools.tsx            🆕 CREATE
-    │       ├── MetricsOverview.tsx        🆕 CREATE
-    │       ├── PatternAnalysis.tsx        🆕 CREATE
-    │       ├── ResultsPanel.tsx           🆕 CREATE
-    │       └── SQLQueryDisplay.tsx        🆕 CREATE
-    ├── hooks/
-    │   ├── useAnalytics.ts                🆕 CREATE
-    │   ├── useBusinessContext.ts          🆕 CREATE
-    │   ├── useCache.ts                    🆕 CREATE
-    │   ├── useCollaboration.ts            🆕 CREATE
-    │   ├── useInvestigation.ts            🆕 CREATE
-    │   └── useWebSocket.ts                🆕 CREATE
-    ├── services/
-    │   ├── analytics.ts                   🆕 CREATE
-    │   ├── api.ts                         🆕 CREATE
-    │   ├── collaboration.ts               🆕 CREATE
-    │   ├── export.ts                      🆕 CREATE
-    │   └── websocket.ts                   🆕 CREATE
-    ├── stores/
-    │   ├── businessContextStore.ts        🆕 CREATE
-    │   ├── cacheStore.ts                  🆕 CREATE
-    │   ├── collaborationStore.ts          🆕 CREATE
-    │   ├── investigationStore.ts          🆕 CREATE
-    │   └── userPreferencesStore.ts        🆕 CREATE
-    ├── types/
-    │   ├── analytics.ts                   🆕 CREATE
-    │   ├── api.ts                         🆕 CREATE
-    │   ├── business.ts                    🆕 CREATE
-    │   ├── collaboration.ts               🆕 CREATE
-    │   └── investigation.ts               🆕 CREATE
-    └── utils/
-        ├── constants.ts                   🆕 CREATE
-        ├── export.ts                      🆕 CREATE
-        ├── formatting.ts                  🆕 CREATE
-        └── validation.ts                  🆕 CREATE
+
 ```
 
 ---
