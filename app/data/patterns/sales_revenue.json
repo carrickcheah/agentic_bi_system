@@ -1,0 +1,302 @@
+[
+  {
+    "information": "Monthly revenue performance vs target analysis",
+    "metadata": {
+      "pattern": "revenue_data_collection → target_comparison → variance_analysis → trend_identification → corrective_actions",
+      "user_roles": ["sales_manager", "revenue_analyst", "vp_sales"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "simple",
+      "success_rate": 0.70,
+      "confidence_indicators": ["revenue", "monthly", "target", "performance", "variance"],
+      "expected_deliverables": ["revenue_dashboard", "variance_report", "action_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales funnel conversion rate optimization study",
+    "metadata": {
+      "pattern": "funnel_analysis → stage_conversion_tracking → bottleneck_identification → optimization_opportunities → conversion_improvement",
+      "user_roles": ["sales_manager", "sales_analyst", "sales_ops"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["sales", "funnel", "conversion", "optimization", "bottleneck"],
+      "expected_deliverables": ["funnel_analysis", "conversion_metrics", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer acquisition cost and lifetime value analysis",
+    "metadata": {
+      "pattern": "acquisition_cost_calculation → lifetime_value_modeling → cac_ltv_ratio_analysis → profitability_assessment → strategy_optimization",
+      "user_roles": ["sales_analyst", "revenue_operations", "cfo"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.55,
+      "confidence_indicators": ["customer", "acquisition", "cost", "lifetime", "value"],
+      "expected_deliverables": ["cac_ltv_analysis", "profitability_model", "strategy_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales representative performance ranking and coaching needs",
+    "metadata": {
+      "pattern": "rep_performance_tracking → quota_attainment_analysis → skill_gap_identification → coaching_plan_development → performance_improvement",
+      "user_roles": ["sales_manager", "sales_director", "hr_manager"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["sales", "representative", "performance", "ranking", "coaching"],
+      "expected_deliverables": ["performance_ranking", "coaching_plan", "improvement_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Territory and market segment sales performance comparison",
+    "metadata": {
+      "pattern": "territory_segmentation → performance_benchmarking → market_potential_analysis → resource_allocation_optimization → growth_strategy",
+      "user_roles": ["sales_director", "regional_manager", "vp_sales"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["territory", "market", "segment", "performance", "comparison"],
+      "expected_deliverables": ["territory_analysis", "market_assessment", "resource_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Deal pipeline health and forecasting accuracy analysis",
+    "metadata": {
+      "pattern": "pipeline_assessment → stage_probability_analysis → forecast_accuracy_tracking → risk_identification → pipeline_optimization",
+      "user_roles": ["sales_manager", "sales_analyst", "revenue_operations"],
+      "business_domain": "sales",
+      "timeframe": "weekly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["deal", "pipeline", "health", "forecasting", "accuracy"],
+      "expected_deliverables": ["pipeline_report", "forecast_model", "risk_assessment"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Pricing strategy effectiveness and competitive positioning",
+    "metadata": {
+      "pattern": "pricing_analysis → competitive_benchmarking → elasticity_modeling → profitability_impact → pricing_optimization",
+      "user_roles": ["pricing_analyst", "sales_director", "product_manager"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.50,
+      "confidence_indicators": ["pricing", "strategy", "effectiveness", "competitive", "positioning"],
+      "expected_deliverables": ["pricing_analysis", "competitive_report", "pricing_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales cycle length and velocity improvement opportunities",
+    "metadata": {
+      "pattern": "cycle_time_analysis → velocity_tracking → bottleneck_identification → process_optimization → acceleration_strategies",
+      "user_roles": ["sales_ops", "sales_manager", "process_analyst"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["sales", "cycle", "length", "velocity", "improvement"],
+      "expected_deliverables": ["cycle_analysis", "velocity_metrics", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Win-loss analysis and competitive intelligence",
+    "metadata": {
+      "pattern": "win_loss_tracking → competitor_analysis → decision_criteria_identification → success_factor_analysis → strategy_refinement",
+      "user_roles": ["sales_analyst", "competitive_intelligence", "sales_manager"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.55,
+      "confidence_indicators": ["win", "loss", "analysis", "competitive", "intelligence"],
+      "expected_deliverables": ["win_loss_report", "competitive_analysis", "strategy_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Commission and incentive plan effectiveness evaluation",
+    "metadata": {
+      "pattern": "compensation_analysis → performance_correlation → motivation_assessment → plan_optimization → behavioral_impact",
+      "user_roles": ["sales_ops", "hr_manager", "compensation_analyst"],
+      "business_domain": "sales",
+      "timeframe": "annually",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["commission", "incentive", "plan", "effectiveness", "evaluation"],
+      "expected_deliverables": ["compensation_analysis", "effectiveness_report", "plan_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer churn prediction and retention strategy",
+    "metadata": {
+      "pattern": "churn_risk_modeling → retention_factor_analysis → intervention_strategy → success_measurement → retention_optimization",
+      "user_roles": ["customer_success", "sales_analyst", "account_manager"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "complex",
+      "success_rate": 0.55,
+      "confidence_indicators": ["customer", "churn", "prediction", "retention", "strategy"],
+      "expected_deliverables": ["churn_model", "retention_plan", "intervention_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Cross-sell and upsell opportunity identification",
+    "metadata": {
+      "pattern": "account_analysis → opportunity_scoring → product_fit_assessment → timing_optimization → revenue_expansion",
+      "user_roles": ["account_manager", "sales_analyst", "customer_success"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["cross", "sell", "upsell", "opportunity", "identification"],
+      "expected_deliverables": ["opportunity_analysis", "expansion_plan", "revenue_forecast"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales team productivity and activity analysis",
+    "metadata": {
+      "pattern": "activity_tracking → productivity_measurement → efficiency_analysis → best_practice_identification → performance_optimization",
+      "user_roles": ["sales_manager", "sales_ops", "productivity_analyst"],
+      "business_domain": "sales",
+      "timeframe": "weekly",
+      "complexity": "simple",
+      "success_rate": 0.70,
+      "confidence_indicators": ["sales", "team", "productivity", "activity", "analysis"],
+      "expected_deliverables": ["productivity_report", "activity_analysis", "optimization_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Seasonal sales trend and forecasting model",
+    "metadata": {
+      "pattern": "seasonal_pattern_analysis → trend_identification → forecasting_model_development → variance_analysis → planning_optimization",
+      "user_roles": ["sales_analyst", "demand_planner", "sales_director"],
+      "business_domain": "sales",
+      "timeframe": "annually",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["seasonal", "sales", "trend", "forecasting", "model"],
+      "expected_deliverables": ["trend_analysis", "forecast_model", "planning_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Lead quality and conversion optimization",
+    "metadata": {
+      "pattern": "lead_scoring → quality_assessment → conversion_tracking → optimization_identification → lead_improvement",
+      "user_roles": ["marketing_ops", "sales_development", "lead_analyst"],
+      "business_domain": "sales",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["lead", "quality", "conversion", "optimization", "scoring"],
+      "expected_deliverables": ["lead_analysis", "conversion_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales channel performance and optimization",
+    "metadata": {
+      "pattern": "channel_analysis → performance_benchmarking → effectiveness_measurement → optimization_opportunities → channel_strategy",
+      "user_roles": ["channel_manager", "sales_director", "partnership_manager"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["sales", "channel", "performance", "optimization", "effectiveness"],
+      "expected_deliverables": ["channel_analysis", "performance_report", "optimization_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer segment profitability and focus strategy",
+    "metadata": {
+      "pattern": "segment_profitability_analysis → customer_value_assessment → resource_allocation → focus_strategy → revenue_optimization",
+      "user_roles": ["customer_analyst", "sales_director", "strategy_manager"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.55,
+      "confidence_indicators": ["customer", "segment", "profitability", "focus", "strategy"],
+      "expected_deliverables": ["profitability_analysis", "segment_strategy", "resource_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales training effectiveness and skill development ROI",
+    "metadata": {
+      "pattern": "training_impact_analysis → skill_improvement_measurement → performance_correlation → roi_calculation → training_optimization",
+      "user_roles": ["sales_enablement", "training_manager", "sales_manager"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["sales", "training", "effectiveness", "skill", "development"],
+      "expected_deliverables": ["training_analysis", "roi_report", "development_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Market penetration and share growth analysis",
+    "metadata": {
+      "pattern": "market_analysis → penetration_measurement → competitive_positioning → growth_opportunity_identification → expansion_strategy",
+      "user_roles": ["market_analyst", "business_development", "sales_director"],
+      "business_domain": "sales",
+      "timeframe": "annually",
+      "complexity": "complex",
+      "success_rate": 0.50,
+      "confidence_indicators": ["market", "penetration", "share", "growth", "analysis"],
+      "expected_deliverables": ["market_analysis", "penetration_report", "growth_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Sales technology stack effectiveness and adoption",
+    "metadata": {
+      "pattern": "tool_adoption_analysis → usage_effectiveness → productivity_impact → roi_assessment → technology_optimization",
+      "user_roles": ["sales_ops", "it_manager", "sales_enablement"],
+      "business_domain": "sales",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["sales", "technology", "stack", "effectiveness", "adoption"],
+      "expected_deliverables": ["adoption_analysis", "effectiveness_report", "technology_roadmap"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]

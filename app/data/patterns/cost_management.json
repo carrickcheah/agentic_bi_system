@@ -1,0 +1,302 @@
+[
+  {
+    "information": "Manufacturing cost variance analysis",
+    "metadata": {
+      "pattern": "actual_vs_standard_comparison → variance_categorization → root_cause_analysis → corrective_action_planning → cost_control_improvement",
+      "user_roles": ["cost_accountant", "finance_manager", "plant_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["manufacturing", "cost", "variance", "analysis", "standard"],
+      "expected_deliverables": ["variance_report", "cost_analysis", "corrective_actions"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Direct labor efficiency investigation",
+    "metadata": {
+      "pattern": "labor_efficiency_measurement → performance_analysis → variance_investigation → improvement_identification → efficiency_enhancement",
+      "user_roles": ["production_manager", "hr_manager", "industrial_engineer"],
+      "business_domain": "cost_management",
+      "timeframe": "weekly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["direct", "labor", "efficiency", "investigation", "productivity"],
+      "expected_deliverables": ["efficiency_analysis", "performance_report", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Material cost optimization study",
+    "metadata": {
+      "pattern": "material_cost_analysis → usage_efficiency_assessment → supplier_cost_comparison → optimization_opportunities → cost_reduction_implementation",
+      "user_roles": ["procurement_manager", "cost_analyst", "materials_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["material", "cost", "optimization", "study", "reduction"],
+      "expected_deliverables": ["cost_analysis", "optimization_plan", "savings_projection"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Manufacturing overhead allocation analysis",
+    "metadata": {
+      "pattern": "overhead_cost_categorization → allocation_methodology_review → cost_driver_analysis → allocation_optimization → accuracy_improvement",
+      "user_roles": ["cost_accountant", "finance_manager", "operations_controller"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["manufacturing", "overhead", "allocation", "analysis", "cost_driver"],
+      "expected_deliverables": ["allocation_analysis", "methodology_review", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Product profitability by SKU investigation",
+    "metadata": {
+      "pattern": "sku_cost_calculation → revenue_analysis → profitability_assessment → product_ranking → portfolio_optimization",
+      "user_roles": ["product_manager", "cost_analyst", "finance_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["product", "profitability", "sku", "investigation", "portfolio"],
+      "expected_deliverables": ["profitability_analysis", "product_ranking", "portfolio_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Standard vs actual cost variance analysis",
+    "metadata": {
+      "pattern": "standard_cost_review → actual_cost_calculation → variance_analysis → cause_identification → standard_adjustment",
+      "user_roles": ["cost_accountant", "finance_manager", "operations_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["standard", "actual", "cost", "variance", "analysis"],
+      "expected_deliverables": ["variance_report", "cost_analysis", "standard_updates"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Cost of goods sold (COGS) breakdown analysis",
+    "metadata": {
+      "pattern": "cogs_component_analysis → cost_driver_identification → trend_analysis → benchmark_comparison → optimization_recommendations",
+      "user_roles": ["cost_accountant", "finance_manager", "operations_director"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["cogs", "cost_of_goods_sold", "breakdown", "analysis", "components"],
+      "expected_deliverables": ["cogs_analysis", "cost_breakdown", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Plant-level cost center performance review",
+    "metadata": {
+      "pattern": "cost_center_analysis → performance_metrics_calculation → benchmark_comparison → efficiency_assessment → improvement_planning",
+      "user_roles": ["plant_manager", "cost_center_manager", "finance_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["plant", "cost_center", "performance", "review", "efficiency"],
+      "expected_deliverables": ["performance_review", "cost_analysis", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Energy cost optimization investigation",
+    "metadata": {
+      "pattern": "energy_consumption_analysis → cost_pattern_identification → efficiency_opportunities → conservation_strategies → cost_reduction_validation",
+      "user_roles": ["facilities_manager", "sustainability_manager", "cost_analyst"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["energy", "cost", "optimization", "investigation", "consumption"],
+      "expected_deliverables": ["energy_analysis", "conservation_plan", "cost_savings"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Maintenance cost reduction analysis",
+    "metadata": {
+      "pattern": "maintenance_cost_breakdown → cost_driver_analysis → efficiency_assessment → optimization_opportunities → cost_reduction_strategy",
+      "user_roles": ["maintenance_manager", "cost_analyst", "operations_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["maintenance", "cost", "reduction", "analysis", "optimization"],
+      "expected_deliverables": ["cost_analysis", "reduction_opportunities", "optimization_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Waste reduction cost impact study",
+    "metadata": {
+      "pattern": "waste_cost_quantification → reduction_opportunity_identification → implementation_planning → cost_benefit_analysis → impact_validation",
+      "user_roles": ["sustainability_manager", "cost_analyst", "operations_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["waste", "reduction", "cost", "impact", "study"],
+      "expected_deliverables": ["waste_analysis", "reduction_plan", "cost_impact_study"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Labor cost variance root cause analysis",
+    "metadata": {
+      "pattern": "labor_cost_variance_identification → cause_analysis → efficiency_assessment → corrective_action_development → variance_reduction",
+      "user_roles": ["hr_manager", "cost_accountant", "production_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["labor", "cost", "variance", "root_cause", "analysis"],
+      "expected_deliverables": ["variance_analysis", "root_cause_report", "corrective_actions"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Product mix profitability analysis",
+    "metadata": {
+      "pattern": "product_mix_assessment → profitability_calculation → margin_analysis → optimization_modeling → mix_strategy_development",
+      "user_roles": ["product_manager", "finance_manager", "sales_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["product", "mix", "profitability", "analysis", "margin"],
+      "expected_deliverables": ["mix_analysis", "profitability_report", "optimization_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Manufacturing budget variance investigation",
+    "metadata": {
+      "pattern": "budget_vs_actual_comparison → variance_analysis → cause_identification → impact_assessment → budget_revision",
+      "user_roles": ["finance_manager", "plant_manager", "budget_analyst"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["manufacturing", "budget", "variance", "investigation", "actual"],
+      "expected_deliverables": ["variance_report", "budget_analysis", "revision_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Cost per unit trend analysis",
+    "metadata": {
+      "pattern": "unit_cost_tracking → trend_analysis → driver_identification → forecast_modeling → cost_management_strategy",
+      "user_roles": ["cost_analyst", "finance_manager", "operations_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "simple",
+      "success_rate": 0.65,
+      "confidence_indicators": ["cost", "per_unit", "trend", "analysis", "tracking"],
+      "expected_deliverables": ["trend_analysis", "cost_forecast", "management_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Value engineering impact assessment",
+    "metadata": {
+      "pattern": "value_engineering_project_review → cost_savings_quantification → quality_impact_assessment → implementation_validation → roi_calculation",
+      "user_roles": ["value_engineer", "product_engineer", "cost_analyst"],
+      "business_domain": "cost_management",
+      "timeframe": "project_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["value", "engineering", "impact", "assessment", "savings"],
+      "expected_deliverables": ["impact_assessment", "savings_analysis", "roi_report"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Cost reduction initiative tracking",
+    "metadata": {
+      "pattern": "initiative_portfolio_review → progress_tracking → savings_validation → performance_assessment → optimization_planning",
+      "user_roles": ["cost_reduction_manager", "finance_manager", "operations_director"],
+      "business_domain": "cost_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["cost", "reduction", "initiative", "tracking", "savings"],
+      "expected_deliverables": ["tracking_dashboard", "progress_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Activity-based costing analysis",
+    "metadata": {
+      "pattern": "activity_identification → cost_driver_mapping → abc_model_development → cost_allocation → profitability_analysis",
+      "user_roles": ["cost_accountant", "process_analyst", "finance_manager"],
+      "business_domain": "cost_management",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["activity", "based", "costing", "analysis", "abc"],
+      "expected_deliverables": ["abc_model", "cost_allocation", "profitability_analysis"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Capital expenditure ROI analysis",
+    "metadata": {
+      "pattern": "capex_project_evaluation → roi_calculation → payback_analysis → risk_assessment → investment_recommendation",
+      "user_roles": ["finance_manager", "plant_manager", "investment_analyst"],
+      "business_domain": "cost_management",
+      "timeframe": "project_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["capital", "expenditure", "roi", "analysis", "investment"],
+      "expected_deliverables": ["roi_analysis", "investment_evaluation", "recommendation_report"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Manufacturing cost benchmarking study",
+    "metadata": {
+      "pattern": "benchmark_data_collection → cost_comparison → gap_analysis → best_practice_identification → improvement_roadmap",
+      "user_roles": ["cost_analyst", "operations_director", "benchmarking_specialist"],
+      "business_domain": "cost_management",
+      "timeframe": "annually",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["manufacturing", "cost", "benchmarking", "study", "comparison"],
+      "expected_deliverables": ["benchmark_report", "gap_analysis", "improvement_roadmap"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]

@@ -1,0 +1,227 @@
+[
+  {
+    "information": "Equipment downtime root cause analysis",
+    "metadata": {
+      "pattern": "downtime_data_collection → failure_mode_analysis → root_cause_investigation → corrective_action_development → prevention_strategy",
+      "user_roles": ["maintenance_manager", "reliability_engineer", "production_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "incident_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["equipment", "downtime", "root_cause", "analysis", "failure"],
+      "expected_deliverables": ["rca_report", "corrective_actions", "prevention_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Preventive maintenance effectiveness study",
+    "metadata": {
+      "pattern": "pm_program_review → effectiveness_measurement → cost_benefit_analysis → optimization_opportunities → program_enhancement",
+      "user_roles": ["maintenance_manager", "reliability_engineer", "maintenance_planner"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["preventive", "maintenance", "effectiveness", "study", "optimization"],
+      "expected_deliverables": ["effectiveness_analysis", "optimization_plan", "program_improvements"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Asset utilization optimization investigation",
+    "metadata": {
+      "pattern": "utilization_measurement → capacity_analysis → optimization_opportunities → implementation_planning → utilization_improvement",
+      "user_roles": ["asset_manager", "operations_manager", "plant_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["asset", "utilization", "optimization", "investigation", "capacity"],
+      "expected_deliverables": ["utilization_analysis", "optimization_plan", "improvement_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Equipment reliability improvement analysis",
+    "metadata": {
+      "pattern": "reliability_assessment → failure_pattern_analysis → improvement_opportunities → implementation_strategy → reliability_validation",
+      "user_roles": ["reliability_engineer", "maintenance_manager", "asset_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["equipment", "reliability", "improvement", "analysis", "failure"],
+      "expected_deliverables": ["reliability_analysis", "improvement_plan", "implementation_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Maintenance cost vs reliability optimization",
+    "metadata": {
+      "pattern": "cost_reliability_trade_off_analysis → optimization_modeling → strategy_development → implementation_planning → performance_validation",
+      "user_roles": ["maintenance_manager", "reliability_engineer", "cost_analyst"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["maintenance", "cost", "reliability", "optimization", "trade_off"],
+      "expected_deliverables": ["optimization_analysis", "strategy_plan", "cost_benefit_study"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Equipment lifecycle management analysis",
+    "metadata": {
+      "pattern": "lifecycle_stage_assessment → performance_degradation_analysis → replacement_planning → lifecycle_optimization → asset_strategy",
+      "user_roles": ["asset_manager", "maintenance_manager", "finance_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "annually",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["equipment", "lifecycle", "management", "analysis", "replacement"],
+      "expected_deliverables": ["lifecycle_analysis", "replacement_plan", "asset_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Energy consumption optimization study",
+    "metadata": {
+      "pattern": "energy_usage_analysis → efficiency_assessment → optimization_opportunities → implementation_planning → savings_validation",
+      "user_roles": ["energy_manager", "facilities_manager", "sustainability_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["energy", "consumption", "optimization", "study", "efficiency"],
+      "expected_deliverables": ["energy_analysis", "optimization_plan", "savings_projection"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Predictive maintenance ROI investigation",
+    "metadata": {
+      "pattern": "pdm_program_assessment → cost_benefit_analysis → roi_calculation → implementation_strategy → value_validation",
+      "user_roles": ["maintenance_manager", "reliability_engineer", "finance_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "project_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["predictive", "maintenance", "roi", "investigation", "cost_benefit"],
+      "expected_deliverables": ["roi_analysis", "business_case", "implementation_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Equipment performance benchmarking",
+    "metadata": {
+      "pattern": "performance_data_collection → benchmark_comparison → gap_analysis → improvement_opportunities → performance_enhancement",
+      "user_roles": ["reliability_engineer", "performance_analyst", "operations_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["equipment", "performance", "benchmarking", "comparison", "improvement"],
+      "expected_deliverables": ["benchmark_report", "performance_gaps", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Asset replacement decision analysis",
+    "metadata": {
+      "pattern": "asset_condition_assessment → replacement_cost_analysis → lifecycle_comparison → decision_modeling → replacement_strategy",
+      "user_roles": ["asset_manager", "finance_manager", "maintenance_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "project_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["asset", "replacement", "decision", "analysis", "lifecycle"],
+      "expected_deliverables": ["replacement_analysis", "decision_matrix", "strategy_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Maintenance scheduling optimization study",
+    "metadata": {
+      "pattern": "scheduling_analysis → resource_optimization → constraint_management → schedule_optimization → efficiency_improvement",
+      "user_roles": ["maintenance_planner", "maintenance_manager", "operations_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["maintenance", "scheduling", "optimization", "study", "resource"],
+      "expected_deliverables": ["scheduling_analysis", "optimization_plan", "efficiency_improvements"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Equipment failure pattern analysis",
+    "metadata": {
+      "pattern": "failure_data_analysis → pattern_identification → trend_analysis → predictive_modeling → failure_prevention",
+      "user_roles": ["reliability_engineer", "data_analyst", "maintenance_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["equipment", "failure", "pattern", "analysis", "prediction"],
+      "expected_deliverables": ["failure_analysis", "pattern_report", "prevention_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Total productive maintenance (TPM) effectiveness",
+    "metadata": {
+      "pattern": "tpm_program_assessment → effectiveness_measurement → pillar_analysis → improvement_opportunities → program_optimization",
+      "user_roles": ["tpm_coordinator", "maintenance_manager", "operations_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["tpm", "total", "productive", "maintenance", "effectiveness"],
+      "expected_deliverables": ["tpm_assessment", "effectiveness_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Equipment modernization impact assessment",
+    "metadata": {
+      "pattern": "modernization_needs_assessment → technology_evaluation → impact_analysis → roi_calculation → modernization_strategy",
+      "user_roles": ["engineering_manager", "asset_manager", "technology_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "project_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["equipment", "modernization", "impact", "assessment", "technology"],
+      "expected_deliverables": ["modernization_plan", "impact_analysis", "investment_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Facility utilization optimization analysis",
+    "metadata": {
+      "pattern": "facility_usage_analysis → space_optimization → layout_efficiency → utilization_improvement → space_strategy",
+      "user_roles": ["facilities_manager", "operations_manager", "plant_manager"],
+      "business_domain": "asset_management",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["facility", "utilization", "optimization", "analysis", "space"],
+      "expected_deliverables": ["utilization_analysis", "optimization_plan", "space_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]

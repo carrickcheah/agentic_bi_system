@@ -1,0 +1,227 @@
+[
+  {
+    "information": "Marketing campaign performance and ROI analysis",
+    "metadata": {
+      "pattern": "campaign_tracking → performance_measurement → roi_calculation → effectiveness_assessment → optimization_recommendations",
+      "user_roles": ["marketing_manager", "campaign_analyst", "marketing_director"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["marketing", "campaign", "performance", "roi", "analysis"],
+      "expected_deliverables": ["campaign_report", "roi_analysis", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Lead generation effectiveness and conversion funnel optimization",
+    "metadata": {
+      "pattern": "lead_tracking → conversion_analysis → funnel_optimization → channel_effectiveness → lead_quality_improvement",
+      "user_roles": ["lead_generation", "marketing_ops", "growth_manager"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["lead", "generation", "effectiveness", "conversion", "funnel"],
+      "expected_deliverables": ["lead_analysis", "funnel_report", "optimization_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer acquisition cost by marketing channel analysis",
+    "metadata": {
+      "pattern": "channel_cost_tracking → acquisition_measurement → cac_calculation → channel_comparison → budget_optimization",
+      "user_roles": ["marketing_analyst", "performance_marketer", "marketing_director"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["customer", "acquisition", "cost", "channel", "analysis"],
+      "expected_deliverables": ["cac_analysis", "channel_comparison", "budget_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Brand awareness and sentiment tracking analysis",
+    "metadata": {
+      "pattern": "awareness_measurement → sentiment_analysis → brand_health_assessment → competitive_benchmarking → brand_strategy",
+      "user_roles": ["brand_manager", "market_researcher", "marketing_director"],
+      "business_domain": "marketing",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.55,
+      "confidence_indicators": ["brand", "awareness", "sentiment", "tracking", "analysis"],
+      "expected_deliverables": ["brand_report", "sentiment_analysis", "brand_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Marketing attribution and multi-touch journey analysis",
+    "metadata": {
+      "pattern": "touchpoint_tracking → attribution_modeling → journey_analysis → credit_allocation → channel_optimization",
+      "user_roles": ["marketing_analyst", "attribution_specialist", "marketing_ops"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "complex",
+      "success_rate": 0.50,
+      "confidence_indicators": ["marketing", "attribution", "multi", "touch", "journey"],
+      "expected_deliverables": ["attribution_analysis", "journey_map", "channel_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Email marketing engagement and deliverability optimization",
+    "metadata": {
+      "pattern": "email_performance_tracking → engagement_analysis → deliverability_assessment → segmentation_optimization → campaign_improvement",
+      "user_roles": ["email_marketer", "marketing_automation", "campaign_manager"],
+      "business_domain": "marketing",
+      "timeframe": "weekly",
+      "complexity": "simple",
+      "success_rate": 0.70,
+      "confidence_indicators": ["email", "marketing", "engagement", "deliverability", "optimization"],
+      "expected_deliverables": ["email_report", "engagement_analysis", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Content marketing performance and engagement analysis",
+    "metadata": {
+      "pattern": "content_tracking → engagement_measurement → performance_analysis → audience_insights → content_optimization",
+      "user_roles": ["content_marketer", "content_analyst", "marketing_manager"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["content", "marketing", "performance", "engagement", "analysis"],
+      "expected_deliverables": ["content_report", "engagement_metrics", "content_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Social media marketing effectiveness and audience growth",
+    "metadata": {
+      "pattern": "social_media_tracking → audience_analysis → engagement_measurement → growth_analysis → social_strategy",
+      "user_roles": ["social_media_manager", "community_manager", "digital_marketer"],
+      "business_domain": "marketing",
+      "timeframe": "weekly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["social", "media", "marketing", "effectiveness", "audience"],
+      "expected_deliverables": ["social_report", "audience_analysis", "growth_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Paid advertising performance and bid optimization",
+    "metadata": {
+      "pattern": "ad_performance_tracking → bid_analysis → optimization_opportunities → budget_allocation → campaign_refinement",
+      "user_roles": ["paid_media_manager", "ppc_specialist", "performance_marketer"],
+      "business_domain": "marketing",
+      "timeframe": "weekly",
+      "complexity": "moderate",
+      "success_rate": 0.65,
+      "confidence_indicators": ["paid", "advertising", "performance", "bid", "optimization"],
+      "expected_deliverables": ["ad_performance_report", "bid_analysis", "optimization_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer segmentation and targeting effectiveness",
+    "metadata": {
+      "pattern": "segmentation_analysis → targeting_evaluation → performance_comparison → segment_optimization → targeting_refinement",
+      "user_roles": ["marketing_analyst", "customer_analyst", "marketing_manager"],
+      "business_domain": "marketing",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["customer", "segmentation", "targeting", "effectiveness", "optimization"],
+      "expected_deliverables": ["segmentation_analysis", "targeting_report", "optimization_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Marketing automation workflow performance and optimization",
+    "metadata": {
+      "pattern": "workflow_analysis → performance_tracking → conversion_measurement → bottleneck_identification → automation_optimization",
+      "user_roles": ["marketing_automation", "marketing_ops", "campaign_manager"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["marketing", "automation", "workflow", "performance", "optimization"],
+      "expected_deliverables": ["workflow_analysis", "performance_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Event marketing ROI and attendee engagement analysis",
+    "metadata": {
+      "pattern": "event_tracking → attendee_analysis → engagement_measurement → roi_calculation → event_optimization",
+      "user_roles": ["event_marketer", "field_marketing", "marketing_manager"],
+      "business_domain": "marketing",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["event", "marketing", "roi", "attendee", "engagement"],
+      "expected_deliverables": ["event_report", "engagement_analysis", "roi_assessment"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Influencer marketing campaign effectiveness and partnership ROI",
+    "metadata": {
+      "pattern": "influencer_tracking → campaign_measurement → engagement_analysis → roi_calculation → partnership_optimization",
+      "user_roles": ["influencer_manager", "partnership_marketing", "brand_manager"],
+      "business_domain": "marketing",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["influencer", "marketing", "campaign", "effectiveness", "partnership"],
+      "expected_deliverables": ["influencer_report", "campaign_analysis", "partnership_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Marketing qualified leads (MQL) to sales qualified leads (SQL) conversion",
+    "metadata": {
+      "pattern": "lead_qualification_tracking → conversion_analysis → handoff_optimization → collaboration_improvement → pipeline_enhancement",
+      "user_roles": ["marketing_ops", "sales_development", "lead_analyst"],
+      "business_domain": "marketing",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.60,
+      "confidence_indicators": ["mql", "sql", "conversion", "qualified", "leads"],
+      "expected_deliverables": ["conversion_analysis", "handoff_report", "process_optimization"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Competitive marketing intelligence and positioning analysis",
+    "metadata": {
+      "pattern": "competitive_monitoring → marketing_analysis → positioning_assessment → strategy_comparison → competitive_advantage",
+      "user_roles": ["competitive_analyst", "marketing_manager", "brand_manager"],
+      "business_domain": "marketing",
+      "timeframe": "quarterly",
+      "complexity": "complex",
+      "success_rate": 0.50,
+      "confidence_indicators": ["competitive", "marketing", "intelligence", "positioning", "analysis"],
+      "expected_deliverables": ["competitive_report", "positioning_analysis", "strategy_recommendations"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]

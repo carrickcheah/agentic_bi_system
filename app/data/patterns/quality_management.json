@@ -1,0 +1,377 @@
+[
+  {
+    "information": "Defect rate analysis by product line",
+    "metadata": {
+      "pattern": "defect_data_collection → product_line_segmentation → rate_calculation → trend_analysis → improvement_recommendations",
+      "user_roles": ["quality_manager", "production_manager", "plant_manager"],
+      "business_domain": "quality",
+      "timeframe": "weekly",
+      "complexity": "simple",
+      "success_rate": 0.65,
+      "confidence_indicators": ["defect", "rate", "product", "line", "quality"],
+      "expected_deliverables": ["defect_rate_dashboard", "trend_analysis", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "First-pass yield improvement investigation",
+    "metadata": {
+      "pattern": "yield_measurement → failure_analysis → process_capability_assessment → improvement_implementation → yield_validation",
+      "user_roles": ["quality_manager", "process_engineer", "production_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["first_pass", "yield", "improvement", "quality", "process"],
+      "expected_deliverables": ["yield_analysis", "improvement_plan", "process_enhancements"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer complaint root cause analysis",
+    "metadata": {
+      "pattern": "complaint_analysis → problem_definition → root_cause_investigation → corrective_action_development → implementation_validation",
+      "user_roles": ["quality_manager", "customer_service_manager", "process_engineer"],
+      "business_domain": "quality",
+      "timeframe": "incident_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["customer", "complaint", "root_cause", "analysis", "investigation"],
+      "expected_deliverables": ["rca_report", "corrective_actions", "prevention_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Supplier quality performance evaluation",
+    "metadata": {
+      "pattern": "supplier_data_collection → quality_metrics_analysis → performance_scoring → benchmark_comparison → improvement_recommendations",
+      "user_roles": ["quality_manager", "procurement_manager", "supplier_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["supplier", "quality", "performance", "evaluation", "scorecard"],
+      "expected_deliverables": ["supplier_scorecard", "performance_ranking", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality control checkpoint effectiveness study",
+    "metadata": {
+      "pattern": "checkpoint_analysis → detection_rate_measurement → escape_analysis → effectiveness_assessment → optimization_recommendations",
+      "user_roles": ["quality_manager", "quality_engineer", "production_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality_control", "checkpoint", "effectiveness", "detection", "optimization"],
+      "expected_deliverables": ["checkpoint_analysis", "effectiveness_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Scrap and rework cost reduction analysis",
+    "metadata": {
+      "pattern": "scrap_cost_analysis → rework_cost_calculation → root_cause_identification → reduction_opportunities → implementation_planning",
+      "user_roles": ["quality_manager", "cost_accountant", "production_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["scrap", "rework", "cost", "reduction", "waste"],
+      "expected_deliverables": ["cost_analysis", "reduction_plan", "savings_projection"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Six Sigma project impact assessment",
+    "metadata": {
+      "pattern": "project_scope_definition → baseline_measurement → improvement_implementation → results_validation → impact_quantification",
+      "user_roles": ["six_sigma_black_belt", "quality_manager", "process_engineer"],
+      "business_domain": "quality",
+      "timeframe": "project_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["six_sigma", "project", "impact", "assessment", "improvement"],
+      "expected_deliverables": ["impact_assessment", "benefits_realization", "lessons_learned"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality audit findings investigation",
+    "metadata": {
+      "pattern": "audit_findings_review → non_conformance_analysis → corrective_action_planning → implementation_tracking → effectiveness_validation",
+      "user_roles": ["quality_manager", "compliance_manager", "process_engineer"],
+      "business_domain": "quality",
+      "timeframe": "incident_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "audit", "findings", "investigation", "compliance"],
+      "expected_deliverables": ["audit_response", "corrective_actions", "compliance_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Product recall risk assessment",
+    "metadata": {
+      "pattern": "risk_identification → impact_assessment → probability_analysis → mitigation_planning → prevention_strategies",
+      "user_roles": ["quality_manager", "risk_manager", "regulatory_affairs"],
+      "business_domain": "quality",
+      "timeframe": "incident_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["product", "recall", "risk", "assessment", "mitigation"],
+      "expected_deliverables": ["risk_assessment", "mitigation_plan", "prevention_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Statistical process control (SPC) violation analysis",
+    "metadata": {
+      "pattern": "spc_data_review → control_limit_analysis → special_cause_investigation → process_adjustment → control_restoration",
+      "user_roles": ["quality_engineer", "process_engineer", "production_manager"],
+      "business_domain": "quality",
+      "timeframe": "incident_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["spc", "statistical", "control", "violation", "process"],
+      "expected_deliverables": ["spc_analysis", "control_plan", "process_adjustment"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality cost optimization study",
+    "metadata": {
+      "pattern": "quality_cost_categorization → cost_analysis → optimization_opportunities → implementation_planning → cost_reduction_validation",
+      "user_roles": ["quality_manager", "cost_accountant", "finance_manager"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "cost", "optimization", "reduction", "improvement"],
+      "expected_deliverables": ["cost_analysis", "optimization_plan", "savings_projection"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer satisfaction correlation with quality metrics",
+    "metadata": {
+      "pattern": "satisfaction_data_collection → quality_metrics_correlation → relationship_analysis → improvement_prioritization → action_planning",
+      "user_roles": ["quality_manager", "customer_service_manager", "marketing_manager"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["customer", "satisfaction", "correlation", "quality", "metrics"],
+      "expected_deliverables": ["correlation_analysis", "satisfaction_drivers", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality training effectiveness evaluation",
+    "metadata": {
+      "pattern": "training_program_review → effectiveness_measurement → skill_assessment → performance_correlation → improvement_recommendations",
+      "user_roles": ["quality_manager", "training_coordinator", "hr_manager"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "training", "effectiveness", "evaluation", "skills"],
+      "expected_deliverables": ["training_assessment", "effectiveness_report", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality system certification compliance tracking",
+    "metadata": {
+      "pattern": "compliance_requirements_review → gap_analysis → corrective_action_planning → implementation_tracking → certification_maintenance",
+      "user_roles": ["quality_manager", "compliance_manager", "regulatory_affairs"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "system", "certification", "compliance", "tracking"],
+      "expected_deliverables": ["compliance_report", "gap_analysis", "action_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Product testing failure analysis",
+    "metadata": {
+      "pattern": "failure_data_collection → test_protocol_review → failure_mode_analysis → root_cause_investigation → corrective_actions",
+      "user_roles": ["quality_engineer", "test_engineer", "product_engineer"],
+      "business_domain": "quality",
+      "timeframe": "incident_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["product", "testing", "failure", "analysis", "investigation"],
+      "expected_deliverables": ["failure_analysis", "root_cause_report", "corrective_actions"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality improvement initiative ROI analysis",
+    "metadata": {
+      "pattern": "initiative_cost_analysis → benefit_quantification → roi_calculation → payback_assessment → investment_justification",
+      "user_roles": ["quality_manager", "finance_manager", "plant_manager"],
+      "business_domain": "quality",
+      "timeframe": "project_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "improvement", "initiative", "roi", "analysis"],
+      "expected_deliverables": ["roi_analysis", "business_case", "investment_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Incoming inspection effectiveness study",
+    "metadata": {
+      "pattern": "inspection_data_analysis → detection_rate_measurement → supplier_performance_correlation → process_optimization → effectiveness_improvement",
+      "user_roles": ["quality_manager", "inspection_supervisor", "procurement_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["incoming", "inspection", "effectiveness", "detection", "supplier"],
+      "expected_deliverables": ["inspection_analysis", "effectiveness_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Final inspection performance analysis",
+    "metadata": {
+      "pattern": "final_inspection_data_review → performance_metrics_analysis → escape_rate_calculation → improvement_opportunities → process_enhancement",
+      "user_roles": ["quality_manager", "inspection_supervisor", "production_manager"],
+      "business_domain": "quality",
+      "timeframe": "weekly",
+      "complexity": "simple",
+      "success_rate": 0.65,
+      "confidence_indicators": ["final", "inspection", "performance", "analysis", "quality"],
+      "expected_deliverables": ["inspection_dashboard", "performance_report", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality vendor scorecard investigation",
+    "metadata": {
+      "pattern": "vendor_performance_data_collection → scorecard_metrics_analysis → performance_ranking → improvement_planning → vendor_development",
+      "user_roles": ["quality_manager", "procurement_manager", "supplier_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "vendor", "scorecard", "investigation", "performance"],
+      "expected_deliverables": ["vendor_scorecard", "performance_analysis", "development_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Process capability study analysis",
+    "metadata": {
+      "pattern": "data_collection → statistical_analysis → capability_indices_calculation → process_performance_assessment → improvement_recommendations",
+      "user_roles": ["quality_engineer", "process_engineer", "six_sigma_black_belt"],
+      "business_domain": "quality",
+      "timeframe": "project_based",
+      "complexity": "complex",
+      "success_rate": 0.45,
+      "confidence_indicators": ["process", "capability", "study", "analysis", "statistical"],
+      "expected_deliverables": ["capability_study", "control_charts", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality management system performance review",
+    "metadata": {
+      "pattern": "qms_effectiveness_assessment → performance_metrics_analysis → gap_identification → improvement_planning → system_optimization",
+      "user_roles": ["quality_manager", "compliance_manager", "operations_director"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "management", "system", "performance", "review"],
+      "expected_deliverables": ["qms_assessment", "performance_review", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Customer quality requirements compliance analysis",
+    "metadata": {
+      "pattern": "requirements_review → compliance_assessment → gap_analysis → corrective_action_planning → compliance_validation",
+      "user_roles": ["quality_manager", "customer_service_manager", "compliance_manager"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["customer", "quality", "requirements", "compliance", "analysis"],
+      "expected_deliverables": ["compliance_report", "gap_analysis", "action_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality documentation accuracy investigation",
+    "metadata": {
+      "pattern": "documentation_review → accuracy_assessment → discrepancy_identification → correction_planning → validation_process",
+      "user_roles": ["quality_manager", "documentation_specialist", "compliance_manager"],
+      "business_domain": "quality",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "documentation", "accuracy", "investigation", "compliance"],
+      "expected_deliverables": ["documentation_audit", "accuracy_report", "correction_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Quality metrics dashboard optimization",
+    "metadata": {
+      "pattern": "current_metrics_review → stakeholder_needs_assessment → dashboard_redesign → implementation_planning → effectiveness_validation",
+      "user_roles": ["quality_manager", "data_analyst", "operations_manager"],
+      "business_domain": "quality",
+      "timeframe": "project_based",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["quality", "metrics", "dashboard", "optimization", "reporting"],
+      "expected_deliverables": ["dashboard_design", "metrics_optimization", "implementation_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Continuous improvement project tracking",
+    "metadata": {
+      "pattern": "project_portfolio_review → progress_tracking → milestone_assessment → resource_allocation → outcome_evaluation",
+      "user_roles": ["continuous_improvement_manager", "quality_manager", "project_manager"],
+      "business_domain": "quality",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["continuous", "improvement", "project", "tracking", "progress"],
+      "expected_deliverables": ["project_dashboard", "progress_report", "resource_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]

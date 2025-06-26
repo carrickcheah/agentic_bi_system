@@ -1,15 +1,17 @@
 """
-Query Processor - Phase 1 of Five-Phase Workflow
+Enhanced Query Processor - Phase 1 of Five-Phase Workflow
 
 Transforms natural language business questions into structured business intent
-with semantic understanding and business context preservation.
+with semantic understanding, business context preservation, and pattern intelligence.
 
 Key Features:
 - Business intent extraction from natural language
-- Semantic hashing for cache lookup
-- Business domain classification
-- User context integration
+- Pattern-aware semantic processing with 150+ manufacturing patterns
+- Enhanced semantic hashing for cache optimization
+- Business domain classification with pattern correlation
+- User context integration with role-specific pattern matching
 - Permission-aware processing
+- Investigation methodology pre-selection from pattern library
 """
 
 import hashlib
@@ -18,26 +20,51 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 
 from ..utils.logging import logger
+from ..intelligence.pattern_library import PatternLibrary, PatternMatch
+from ..mcp.qdrant_client import QdrantClient
+from ..mcp.postgres_client import PostgresClient
 
 
 class QueryProcessor:
     """
-    Phase 1: Query Processing
+    Enhanced Phase 1: Query Processing with Pattern Intelligence
     
     Converts natural language business questions into structured semantic intent
-    that preserves business context and enables intelligent cache lookup.
+    that preserves business context, enables intelligent cache lookup, and leverages
+    150+ manufacturing business intelligence patterns for enhanced processing.
     """
     
-    def __init__(self):
+    def __init__(
+        self, 
+        qdrant_client: Optional[QdrantClient] = None,
+        postgres_client: Optional[PostgresClient] = None
+    ):
+        # Enhanced business domains aligned with manufacturing and business patterns
         self.business_domains = {
-            "sales": ["revenue", "sales", "income", "earnings", "profit"],
-            "customer": ["customer", "client", "user", "satisfaction", "retention"],
-            "product": ["product", "service", "feature", "usage", "adoption"],
-            "marketing": ["marketing", "campaign", "conversion", "acquisition", "leads"],
-            "operations": ["operations", "efficiency", "cost", "process", "workflow"],
-            "finance": ["finance", "budget", "expense", "investment", "cash"],
-            "hr": ["employee", "staff", "team", "performance", "hiring"]
+            # Manufacturing domains
+            "production": ["production", "manufacturing", "output", "throughput", "efficiency", "oee", "yield"],
+            "quality": ["quality", "defect", "inspection", "control", "compliance", "audit", "improvement"],
+            "supply_chain": ["supplier", "inventory", "procurement", "logistics", "delivery", "lead_time", "stockout"],
+            "cost_management": ["cost", "expense", "budget", "savings", "variance", "profitability", "roi"],
+            "asset_management": ["equipment", "maintenance", "downtime", "reliability", "utilization", "lifecycle"],
+            "safety": ["safety", "incident", "compliance", "risk", "hazard", "training", "culture"],
+            "customer": ["customer", "demand", "satisfaction", "delivery", "service", "requirements"],
+            "planning": ["planning", "scheduling", "capacity", "forecast", "demand", "resource", "allocation"],
+            "hr": ["workforce", "productivity", "training", "skills", "retention", "performance"],
+            # Business domains
+            "sales": ["revenue", "sales", "income", "earnings", "profit", "funnel", "pipeline", "quota", "territory"],
+            "product": ["product", "service", "feature", "usage", "adoption", "roadmap", "lifecycle", "onboarding"],
+            "marketing": ["marketing", "campaign", "conversion", "acquisition", "leads", "attribution", "brand", "engagement"],
+            "operations": ["operations", "efficiency", "cost", "process", "workflow", "automation", "optimization", "sla"],
+            "finance": ["finance", "budget", "expense", "investment", "cash", "liquidity", "roas", "financial", "ratio"]
         }
+        
+        # Initialize pattern library for enhanced processing
+        self.pattern_library = None
+        if qdrant_client and postgres_client:
+            self.pattern_library = PatternLibrary(qdrant_client, postgres_client)
+        
+        self.pattern_library_initialized = False
         
     async def process_business_question(
         self,
@@ -46,7 +73,7 @@ class QueryProcessor:
         organization_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Process natural language business question into structured intent.
+        Process natural language business question into structured intent with pattern intelligence.
         
         Args:
             business_question: Natural language business question
@@ -54,10 +81,16 @@ class QueryProcessor:
             organization_context: Organizational context and business rules
             
         Returns:
-            Structured semantic intent with business context
+            Structured semantic intent with business context and pattern intelligence
         """
         try:
             logger.info(f"= Processing business question: {business_question[:100]}...")
+            
+            # Initialize pattern library if available and not already initialized
+            if self.pattern_library and not self.pattern_library_initialized:
+                await self.pattern_library.initialize()
+                self.pattern_library_initialized = True
+                logger.info("✅ Pattern library initialized for enhanced processing")
             
             # Extract business intent
             business_intent = self._extract_business_intent(business_question)
@@ -65,21 +98,70 @@ class QueryProcessor:
             # Classify business domain
             business_domain = self._classify_business_domain(business_question)
             
-            # Generate semantic hash for cache lookup
-            semantic_hash = self._generate_semantic_hash(
-                business_question, business_domain, user_context.get("role", "")
+            # Find matching patterns for enhanced processing
+            pattern_matches = []
+            suggested_methodologies = []
+            pattern_confidence_boost = 0.0
+            
+            if self.pattern_library:
+                try:
+                    pattern_matches = await self.pattern_library.find_matching_patterns(
+                        business_question, user_context, top_k=3
+                    )
+                    
+                    if pattern_matches:
+                        # Extract suggested investigation methodologies from top patterns
+                        for match in pattern_matches[:2]:  # Top 2 matches
+                            methodology = match.pattern_data["metadata"]["pattern"]
+                            suggested_methodologies.append({
+                                "methodology": methodology,
+                                "confidence": match.total_score,
+                                "success_rate": match.pattern_data["metadata"]["success_rate"],
+                                "complexity": match.pattern_data["metadata"]["complexity"]
+                            })
+                        
+                        # Boost confidence based on pattern matches
+                        top_match_score = pattern_matches[0].total_score
+                        pattern_confidence_boost = min(0.3, top_match_score * 0.2)  # Max 30% boost
+                        
+                        logger.info(f"🎯 Found {len(pattern_matches)} pattern matches (boost: +{pattern_confidence_boost:.3f})")
+                
+                except Exception as e:
+                    logger.warning(f"Pattern matching failed, continuing without patterns: {e}")
+            
+            # Generate enhanced semantic hash with pattern context
+            semantic_hash = self._generate_enhanced_semantic_hash(
+                business_question, business_domain, user_context.get("role", ""), pattern_matches
             )
             
             # Determine complexity indicators
             complexity_indicators = self._analyze_complexity_indicators(business_question)
             
-            # Create structured intent
+            # Calculate enhanced confidence score with pattern boost
+            base_confidence = self._calculate_confidence_score(business_question)
+            enhanced_confidence = min(1.0, base_confidence + pattern_confidence_boost)
+            
+            # Create structured intent with pattern intelligence
             semantic_intent = {
                 "original_question": business_question,
                 "business_intent": business_intent,
                 "business_domain": business_domain,
                 "semantic_hash": semantic_hash,
                 "complexity_indicators": complexity_indicators,
+                "pattern_intelligence": {
+                    "matching_patterns": [
+                        {
+                            "pattern_id": match.pattern_id,
+                            "information": match.pattern_data["information"],
+                            "confidence": match.total_score,
+                            "success_rate": match.pattern_data["metadata"]["success_rate"],
+                            "expected_deliverables": match.pattern_data["metadata"]["expected_deliverables"]
+                        } for match in pattern_matches[:3]
+                    ],
+                    "suggested_methodologies": suggested_methodologies,
+                    "pattern_confidence_boost": pattern_confidence_boost,
+                    "methodology_recommendations": [m["methodology"] for m in suggested_methodologies[:2]]
+                },
                 "user_context": {
                     "user_id": user_context.get("user_id"),
                     "role": user_context.get("role"),
@@ -94,8 +176,10 @@ class QueryProcessor:
                 },
                 "processing_metadata": {
                     "processed_at": datetime.utcnow().isoformat(),
-                    "processor_version": "1.0",
-                    "confidence_score": self._calculate_confidence_score(business_question)
+                    "processor_version": "2.0",  # Updated version for pattern integration
+                    "confidence_score": enhanced_confidence,
+                    "base_confidence": base_confidence,
+                    "pattern_enhanced": len(pattern_matches) > 0
                 }
             }
             
@@ -192,6 +276,39 @@ class QueryProcessor:
         }
         
         # Generate hash
+        semantic_string = json.dumps(semantic_components, sort_keys=True)
+        return hashlib.sha256(semantic_string.encode()).hexdigest()
+    
+    def _generate_enhanced_semantic_hash(
+        self, 
+        business_question: str, 
+        business_domain: str, 
+        user_role: str,
+        pattern_matches: List[Any]
+    ) -> str:
+        """Generate enhanced semantic hash including pattern context for improved cache matching."""
+        # Normalize the question for semantic consistency
+        normalized_question = self._normalize_question(business_question)
+        
+        # Extract pattern signatures for hash enhancement
+        pattern_signatures = []
+        if pattern_matches:
+            for match in pattern_matches[:2]:  # Top 2 patterns
+                pattern_signatures.append({
+                    "pattern_id": match.pattern_id,
+                    "success_rate": match.pattern_data["metadata"]["success_rate"],
+                    "complexity": match.pattern_data["metadata"]["complexity"]
+                })
+        
+        # Create enhanced semantic components
+        semantic_components = {
+            "normalized_question": normalized_question,
+            "business_domain": business_domain,
+            "user_role": user_role,
+            "pattern_signatures": pattern_signatures
+        }
+        
+        # Generate enhanced hash
         semantic_string = json.dumps(semantic_components, sort_keys=True)
         return hashlib.sha256(semantic_string.encode()).hexdigest()
     

@@ -1,4 +1,5 @@
-# AUTONOMOUS INTELLIGENCE CORE
+"""
+AUTONOMOUS INTELLIGENCE CORE
 
 This module contains the core business intelligence engine that implements
 the three revolutionary principles:

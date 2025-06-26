@@ -1,0 +1,77 @@
+[
+  {
+    "information": "Manufacturing workforce productivity analysis",
+    "metadata": {
+      "pattern": "productivity_measurement → performance_analysis → efficiency_assessment → improvement_opportunities → productivity_enhancement",
+      "user_roles": ["hr_manager", "production_manager", "operations_manager"],
+      "business_domain": "hr",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["manufacturing", "workforce", "productivity", "analysis", "performance"],
+      "expected_deliverables": ["productivity_report", "performance_analysis", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Employee training effectiveness investigation",
+    "metadata": {
+      "pattern": "training_program_evaluation → effectiveness_measurement → skill_development_assessment → roi_calculation → training_optimization",
+      "user_roles": ["training_manager", "hr_manager", "operations_manager"],
+      "business_domain": "hr",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["employee", "training", "effectiveness", "investigation", "skills"],
+      "expected_deliverables": ["training_assessment", "effectiveness_report", "optimization_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Workforce scheduling optimization study",
+    "metadata": {
+      "pattern": "scheduling_analysis → workload_balancing → efficiency_optimization → resource_allocation → schedule_improvement",
+      "user_roles": ["workforce_planner", "hr_manager", "production_manager"],
+      "business_domain": "hr",
+      "timeframe": "monthly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["workforce", "scheduling", "optimization", "study", "workload"],
+      "expected_deliverables": ["scheduling_analysis", "optimization_plan", "resource_strategy"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Manufacturing skill gap analysis",
+    "metadata": {
+      "pattern": "skill_assessment → gap_identification → training_needs_analysis → development_planning → skill_enhancement",
+      "user_roles": ["hr_manager", "training_manager", "operations_manager"],
+      "business_domain": "hr",
+      "timeframe": "annually",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["manufacturing", "skill", "gap", "analysis", "training"],
+      "expected_deliverables": ["skill_assessment", "gap_analysis", "development_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  },
+  {
+    "information": "Employee retention improvement investigation",
+    "metadata": {
+      "pattern": "retention_analysis → turnover_cause_investigation → satisfaction_assessment → retention_strategy_development → retention_improvement",
+      "user_roles": ["hr_manager", "employee_relations", "plant_manager"],
+      "business_domain": "hr",
+      "timeframe": "quarterly",
+      "complexity": "moderate",
+      "success_rate": 0.55,
+      "confidence_indicators": ["employee", "retention", "improvement", "investigation", "turnover"],
+      "expected_deliverables": ["retention_analysis", "retention_strategy", "improvement_plan"],
+      "data_source": "bootstrap_estimate",
+      "sample_size": 0
+    }
+  }
+]
