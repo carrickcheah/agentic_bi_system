@@ -2,7 +2,7 @@
 name = "agentic-sql-app"
 version = "0.1.0"
 description = "Autonomous SQL investigation agent backend with FastAPI + MCP integration"
-readme = "README.app.md"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "uvicorn[standard]>=0.32.0",
@@ -10,7 +10,6 @@ dependencies = [
     # AI and ML
     "anthropic>=0.54.0",
     "openai>=1.55.0",
-    "fastapi-mcp>=0.1.0",
     # Configuration and Environment
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",

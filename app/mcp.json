@@ -39,7 +39,7 @@
       "env": {
         "QDRANT_URL": "${QDRANT_URL}",
         "QDRANT_API_KEY": "${QDRANT_API_KEY}",
-        "COLLECTION_NAME": "sql_knowledge",
+        "COLLECTION_NAME": "valiant_vector",
         "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
       }
     }
