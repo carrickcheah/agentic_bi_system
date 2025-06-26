@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     qdrant_url: str = Field(description="Qdrant cloud URL for MCP")
     qdrant_api_key: str = Field(description="Qdrant API key for MCP")
     qdrant_collection_name: str = "sql_knowledge"
+    collection_name: str = Field(default="valiant_vector", description="Qdrant collection name for patterns")
+    embedding_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Embedding model for vectors")
     
     # AI Models
     anthropic_api_key: str = Field(

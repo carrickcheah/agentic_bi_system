@@ -73,9 +73,23 @@ class MCPClientManager:
             
             # Substitute environment variables
             config_str = json.dumps(config)
-            for key, value in settings.__dict__.items():
-                if isinstance(value, str):
-                    config_str = config_str.replace(f"${{{key.upper()}}}", value)
+            
+            # Map of environment variable names to settings values
+            env_mapping = {
+                "SUPABASE_ACCESS_TOKEN": settings.supabase_access_token,
+                "MARIADB_HOST": settings.mariadb_host,
+                "MARIADB_PORT": str(settings.mariadb_port),
+                "MARIADB_USER": settings.mariadb_user,
+                "MARIADB_PASSWORD": settings.mariadb_password,
+                "MARIADB_DATABASE": settings.mariadb_database,
+                "POSTGRES_URL": settings.postgres_url,
+                "QDRANT_URL": settings.qdrant_url,
+                "QDRANT_API_KEY": settings.qdrant_api_key,
+            }
+            
+            # Replace environment variable placeholders
+            for env_var, value in env_mapping.items():
+                config_str = config_str.replace(f"${{{env_var}}}", str(value))
             
             return json.loads(config_str)
             
@@ -154,6 +168,21 @@ class MCPClientManager:
         except Exception as e:
             logger.error(f"Error in MCP client session '{client_name}': {e}")
             raise
+    
+    def get_client(self, client_name: str):
+        """Get a database client by name."""
+        if not self._initialized:
+            logger.warning(f"MCPClientManager not initialized, cannot get client '{client_name}'")
+            return None
+        
+        client_map = {
+            "qdrant": self.qdrant,
+            "postgres": self.postgres,
+            "mariadb": self.mariadb,
+            "supabase": self.supabase
+        }
+        
+        return client_map.get(client_name)
     
     def is_healthy(self) -> bool:
         """Check if MCP clients are healthy."""

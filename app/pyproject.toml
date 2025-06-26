@@ -13,7 +13,6 @@ dependencies = [
     # Configuration and Environment
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",
-    "python-dotenv>=1.0.1",
     # Async and Utilities
     "aiofiles>=24.1.0",
     "httpx>=0.28.0",
@@ -32,6 +31,8 @@ dependencies = [
     "fastapi>=0.115.13",
     "mcp[cli]>=1.9.4",
     "fastapi-mcp>=0.3.4",
+    "qdrant-client>=1.14.3",
+    "sentence-transformers>=4.1.0",
 ]
 
 [project.optional-dependencies]

@@ -20,6 +20,15 @@ class QdrantClient:
     def __init__(self, session: ClientSession):
         self.session = session
     
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Call an MCP tool directly."""
+        try:
+            result = await self.session.call_tool(tool_name, arguments)
+            return result
+        except Exception as e:
+            logger.error(f"MCP tool call failed: {tool_name} - {e}")
+            raise
+    
     async def store_text(
         self,
         text: str,

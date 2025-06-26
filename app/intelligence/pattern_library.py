@@ -22,8 +22,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from ..utils.logging import logger
-from ..fastmcp.qdrant_client import QdrantClient
-from ..fastmcp.postgres_client import PostgresClient
+from ..fastmcp.client_manager import MCPClientManager
 
 
 class DataSource(Enum):
@@ -76,6 +75,42 @@ class InvestigationOutcome:
     timestamp: datetime
 
 
+class ComplexityLevel(Enum):
+    """Investigation complexity levels."""
+    SIMPLE = "simple"
+    MODERATE = "moderate"
+    COMPLEX = "complex"
+
+
+class BusinessDomain(Enum):
+    """Business domain categories."""
+    SALES = "sales"
+    ASSET_MANAGEMENT = "asset_management"
+    SUPPLY_CHAIN = "supply_chain"
+    FINANCE = "finance"
+    HR_WORKFORCE = "hr_workforce"
+    PRODUCTION = "production"
+    QUALITY = "quality"
+    SAFETY = "safety"
+    MARKETING = "marketing"
+    OPERATIONS = "operations"
+    CUSTOMER = "customer"
+    PLANNING = "planning"
+    COST_MANAGEMENT = "cost_management"
+
+
+@dataclass
+class PatternSearchRequest:
+    """Request for pattern search and recommendations."""
+    query: str
+    business_domain: Optional[BusinessDomain] = None
+    user_roles: Optional[List[str]] = None
+    complexity_preference: Optional[ComplexityLevel] = None
+    timeframe: Optional[str] = None
+    max_results: int = 10
+    min_similarity: float = 0.3
+
+
 class PatternLibrary:
     """
     Core pattern library for business intelligence patterns.
@@ -84,9 +119,9 @@ class PatternLibrary:
     success rate tracking, and organizational learning capabilities.
     """
     
-    def __init__(self, qdrant_client: QdrantClient, postgres_client: PostgresClient):
-        self.qdrant_client = qdrant_client
-        self.postgres_client = postgres_client
+    def __init__(self, client_manager: MCPClientManager):
+        self.client_manager = client_manager
+        self.collection_name = "valiant_vector"  # Use configured collection name
         self.patterns: Dict[str, Dict[str, Any]] = {}
         self.pattern_statistics: Dict[str, PatternStatistics] = {}
         self.patterns_loaded = False
@@ -140,11 +175,8 @@ class PatternLibrary:
             # Load pattern statistics from database
             await self._load_pattern_statistics()
             
-            # Initialize Qdrant collection if needed
-            await self._initialize_qdrant_collection()
-            
-            # Index patterns in Qdrant for semantic search
-            await self._index_patterns_in_qdrant()
+            # Load patterns into Qdrant using pattern loader
+            await self._load_patterns_into_qdrant()
             
             self.patterns_loaded = True
             logger.info(f"✅ Pattern Library initialized with {len(self.patterns)} patterns")
@@ -291,6 +323,191 @@ class PatternLibrary:
             if pattern["metadata"]["business_domain"] == business_domain
         ]
     
+    async def search_patterns(self, request: PatternSearchRequest) -> List[PatternMatch]:
+        """
+        Search for investigation patterns based on semantic similarity and filters.
+        
+        Args:
+            request: Search parameters and filters
+            
+        Returns:
+            List of matched patterns with similarity scores
+        """
+        try:
+            logger.info(f"🔍 Searching patterns for query: '{request.query}'")
+            
+            if not self.patterns_loaded:
+                await self.initialize()
+            
+            # Get semantic matches from Qdrant
+            semantic_matches = await self._get_semantic_matches(request.query, request.max_results * 2)
+            
+            if not semantic_matches:
+                logger.warning("No semantic matches found")
+                return []
+            
+            # Apply business logic filters and scoring
+            filtered_matches = []
+            for pattern_data, similarity_score in semantic_matches:
+                if similarity_score >= request.min_similarity:
+                    # Apply filters
+                    if self._matches_filters(pattern_data, request):
+                        # Create PatternMatch object
+                        pattern_match = PatternMatch(
+                            pattern_id=pattern_data["pattern_id"],
+                            pattern_data=pattern_data,
+                            semantic_similarity=similarity_score,
+                            business_context_score=self._calculate_business_score(pattern_data, request),
+                            role_relevance_score=self._calculate_role_score(pattern_data, request),
+                            success_rate_weight=self._get_success_weight(pattern_data["pattern_id"]),
+                            total_score=0.0,  # Will be calculated
+                            confidence_interval=(0.45, 0.65),  # Default
+                            match_explanation=""  # Will be generated
+                        )
+                        
+                        # Calculate total score
+                        pattern_match.total_score = self._calculate_total_score(pattern_match)
+                        
+                        # Generate explanation
+                        pattern_match.match_explanation = self._generate_match_explanation(
+                            pattern_data, similarity_score, 
+                            pattern_match.business_context_score,
+                            pattern_match.role_relevance_score,
+                            pattern_match.success_rate_weight
+                        )
+                        
+                        filtered_matches.append(pattern_match)
+            
+            # Sort by total score and return top results
+            sorted_matches = sorted(filtered_matches, key=lambda x: x.total_score, reverse=True)
+            final_results = sorted_matches[:request.max_results]
+            
+            logger.info(f"📊 Returning {len(final_results)} pattern matches")
+            return final_results
+            
+        except Exception as e:
+            logger.error(f"❌ Pattern search failed: {e}")
+            return []
+    
+    async def recommend_investigation_approach(self, business_query: str, user_context: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recommend investigation approach based on business query and user context.
+        
+        Args:
+            business_query: Natural language business question
+            user_context: User role, domain preferences, etc.
+            
+        Returns:
+            Structured investigation recommendation
+        """
+        try:
+            logger.info(f"🎯 Generating investigation recommendation for: '{business_query}'")
+            
+            # Extract context parameters
+            user_roles = user_context.get("roles", [])
+            preferred_domain = user_context.get("domain")
+            complexity_pref = user_context.get("complexity")
+            
+            # Create search request
+            search_request = PatternSearchRequest(
+                query=business_query,
+                business_domain=BusinessDomain(preferred_domain) if preferred_domain else None,
+                user_roles=user_roles,
+                complexity_preference=ComplexityLevel(complexity_pref) if complexity_pref else None,
+                max_results=5,
+                min_similarity=0.4
+            )
+            
+            # Search for relevant patterns
+            matches = await self.search_patterns(search_request)
+            
+            if not matches:
+                return {
+                    "success": False,
+                    "message": "No relevant investigation patterns found",
+                    "recommendations": []
+                }
+            
+            # Generate structured recommendations
+            recommendations = []
+            for i, match in enumerate(matches[:3]):  # Top 3 recommendations
+                recommendation = {
+                    "rank": i + 1,
+                    "pattern_id": match.pattern_id,
+                    "investigation_type": match.pattern_data["information"],
+                    "methodology": match.pattern_data["metadata"].get("pattern", "Not specified"),
+                    "complexity": match.pattern_data["metadata"].get("complexity", "unknown"),
+                    "timeframe": match.pattern_data["metadata"].get("timeframe", "unknown"),
+                    "success_rate": self._get_success_weight(match.pattern_id),
+                    "expected_deliverables": match.pattern_data["metadata"].get("expected_deliverables", []),
+                    "confidence_indicators": match.pattern_data["metadata"].get("confidence_indicators", []),
+                    "similarity_score": match.semantic_similarity,
+                    "relevance_explanation": match.match_explanation
+                }
+                recommendations.append(recommendation)
+            
+            return {
+                "success": True,
+                "query": business_query,
+                "total_matches": len(matches),
+                "recommendations": recommendations,
+                "user_context": user_context
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Investigation recommendation failed: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "recommendations": []
+            }
+    
+    async def health_check(self) -> Dict[str, Any]:
+        """Check if the pattern library is healthy and operational."""
+        try:
+            health_info = {
+                "healthy": True,
+                "collection_name": self.collection_name,
+                "patterns_loaded": self.patterns_loaded,
+                "pattern_count": len(self.patterns),
+                "qdrant_available": self.client_manager.get_client("qdrant") is not None,
+                "postgres_available": self.client_manager.get_client("postgres") is not None,
+                "errors": []
+            }
+            
+            # Test basic functionality
+            if health_info["patterns_loaded"] and health_info["qdrant_available"]:
+                try:
+                    # Test basic search
+                    test_request = PatternSearchRequest(
+                        query="test search",
+                        max_results=1,
+                        min_similarity=0.0
+                    )
+                    test_matches = await self.search_patterns(test_request)
+                    health_info["search_functional"] = True
+                    health_info["test_search_results"] = len(test_matches)
+                except Exception as e:
+                    health_info["healthy"] = False
+                    health_info["search_functional"] = False
+                    health_info["errors"].append(f"Search test failed: {str(e)}")
+            else:
+                health_info["healthy"] = False
+                if not health_info["patterns_loaded"]:
+                    health_info["errors"].append("Patterns not loaded")
+                if not health_info["qdrant_available"]:
+                    health_info["errors"].append("Qdrant client not available")
+            
+            return health_info
+            
+        except Exception as e:
+            logger.error(f"❌ Pattern library health check failed: {e}")
+            return {
+                "healthy": False,
+                "error": str(e),
+                "collection_name": self.collection_name
+            }
+    
     async def _load_all_patterns(self) -> None:
         """Load all patterns from JSON files."""
         logger.info("📂 Loading patterns from JSON files...")
@@ -324,6 +541,11 @@ class PatternLibrary:
         logger.info("📊 Loading pattern statistics from database...")
         
         try:
+            postgres_client = self.client_manager.get_client("postgres")
+            if not postgres_client:
+                logger.warning("PostgreSQL client not available, using bootstrap estimates")
+                return
+            
             # Query pattern statistics from database
             query = """
             SELECT pattern_id, success_rate, confidence_lower, confidence_upper,
@@ -333,95 +555,77 @@ class PatternLibrary:
             WHERE active = true
             """
             
-            results = await self.postgres_client.execute_query(query)
+            result = await postgres_client.call_tool("execute_sql", {"sql": query})
             
-            for row in results:
-                stats = PatternStatistics(
-                    pattern_id=row["pattern_id"],
-                    success_rate=row["success_rate"],
-                    confidence_interval=(row["confidence_lower"], row["confidence_upper"]),
-                    data_source=DataSource(row["data_source"]),
-                    sample_size=row["sample_size"],
-                    successes=row["successes"],
-                    failures=row["failures"],
-                    last_updated=row["last_updated"],
-                    usage_count=row["usage_count"],
-                    average_investigation_time=row["average_investigation_time"]
-                )
-                self.pattern_statistics[row["pattern_id"]] = stats
-            
-            logger.info(f"✅ Loaded statistics for {len(self.pattern_statistics)} patterns")
+            if result.get("success", False):
+                for row in result.get("data", []):
+                    stats = PatternStatistics(
+                        pattern_id=row["pattern_id"],
+                        success_rate=row["success_rate"],
+                        confidence_interval=(row["confidence_lower"], row["confidence_upper"]),
+                        data_source=DataSource(row["data_source"]),
+                        sample_size=row["sample_size"],
+                        successes=row["successes"],
+                        failures=row["failures"],
+                        last_updated=row["last_updated"],
+                        usage_count=row["usage_count"],
+                        average_investigation_time=row["average_investigation_time"]
+                    )
+                    self.pattern_statistics[row["pattern_id"]] = stats
+                
+                logger.info(f"✅ Loaded statistics for {len(self.pattern_statistics)} patterns")
+            else:
+                logger.warning(f"Failed to load pattern statistics: {result}")
             
         except Exception as e:
             logger.warning(f"⚠️  Could not load pattern statistics: {e}")
             # Continue with bootstrap estimates
     
-    async def _initialize_qdrant_collection(self) -> None:
-        """Initialize Qdrant collection for pattern embeddings."""
-        collection_name = "business_investigation_patterns"
-        
+    async def _load_patterns_into_qdrant(self) -> None:
+        """Load patterns into Qdrant using the MCP client."""
         try:
-            # Check if collection exists
-            collections = await self.qdrant_client.list_collections()
+            logger.info("🔍 Loading patterns into Qdrant...")
             
-            if collection_name not in [c["name"] for c in collections]:
-                logger.info(f"🔧 Creating Qdrant collection: {collection_name}")
-                
-                await self.qdrant_client.create_collection(
-                    collection_name=collection_name,
-                    vector_size=384,  # sentence-transformers/all-MiniLM-L6-v2 dimension
-                    distance_metric="cosine"
-                )
-                
-                logger.info(f"✅ Created Qdrant collection: {collection_name}")
-            else:
-                logger.info(f"✅ Qdrant collection already exists: {collection_name}")
-                
-        except Exception as e:
-            logger.error(f"❌ Failed to initialize Qdrant collection: {e}")
-            raise
-    
-    async def _index_patterns_in_qdrant(self) -> None:
-        """Index all patterns in Qdrant for semantic search."""
-        collection_name = "business_investigation_patterns"
-        
-        try:
-            logger.info("🔍 Indexing patterns in Qdrant...")
-            
-            # Check if patterns are already indexed
-            collection_info = await self.qdrant_client.get_collection_info(collection_name)
-            if collection_info["points_count"] >= len(self.patterns):
-                logger.info("✅ Patterns already indexed in Qdrant")
+            qdrant_client = self.client_manager.get_client("qdrant")
+            if not qdrant_client:
+                logger.warning("Qdrant client not available, skipping pattern indexing")
                 return
             
-            # Index patterns
+            # Load patterns using the pattern loader approach
             for pattern_id, pattern in self.patterns.items():
                 try:
                     # Create text for embedding
                     embedding_text = self._create_embedding_text(pattern)
                     
-                    # Store in Qdrant
-                    await self.qdrant_client.store_embedding(
-                        collection_name=collection_name,
-                        information=embedding_text,
-                        metadata={
-                            "pattern_id": pattern_id,
-                            "business_domain": pattern["metadata"]["business_domain"],
-                            "complexity": pattern["metadata"]["complexity"],
-                            "user_roles": pattern["metadata"]["user_roles"],
-                            "timeframe": pattern["metadata"]["timeframe"]
+                    # Prepare enhanced metadata
+                    enhanced_metadata = {
+                        **pattern["metadata"],
+                        "pattern_id": pattern_id,
+                        "information": pattern["information"]
+                    }
+                    
+                    # Store in Qdrant using qdrant-store tool
+                    result = await qdrant_client.call_tool(
+                        "qdrant-store",
+                        {
+                            "information": embedding_text,
+                            "metadata": enhanced_metadata,
+                            "collection_name": self.collection_name
                         }
                     )
                     
+                    if not result.get("success", False):
+                        logger.warning(f"⚠️  Failed to store pattern {pattern_id}: {result}")
+                    
                 except Exception as e:
-                    logger.warning(f"⚠️  Failed to index pattern {pattern_id}: {e}")
+                    logger.warning(f"⚠️  Failed to process pattern {pattern_id}: {e}")
                     continue
             
-            logger.info(f"✅ Indexed {len(self.patterns)} patterns in Qdrant")
+            logger.info(f"✅ Loaded {len(self.patterns)} patterns into Qdrant")
             
         except Exception as e:
-            logger.error(f"❌ Failed to index patterns in Qdrant: {e}")
-            raise
+            logger.error(f"❌ Failed to load patterns into Qdrant: {e}")
+            # Continue without Qdrant indexing
     
     def _create_embedding_text(self, pattern: Dict[str, Any]) -> str:
         """Create comprehensive text for pattern embedding."""
@@ -446,31 +650,127 @@ class PatternLibrary:
         top_k: int
     ) -> List[Tuple[Dict[str, Any], float]]:
         """Get semantic matches from Qdrant."""
-        collection_name = "business_investigation_patterns"
-        
         try:
-            # Search for similar patterns
-            results = await self.qdrant_client.search_similar(
-                collection_name=collection_name,
-                query_text=business_question,
-                top_k=top_k,
-                score_threshold=0.1  # Very permissive for initial filtering
+            qdrant_client = self.client_manager.get_client("qdrant")
+            if not qdrant_client:
+                logger.warning("Qdrant client not available, returning empty matches")
+                return []
+            
+            # Search for similar patterns using qdrant-find
+            result = await qdrant_client.call_tool(
+                "qdrant-find",
+                {
+                    "query": business_question,
+                    "collection_name": self.collection_name,
+                    "limit": top_k
+                }
             )
+            
+            if not result.get("success", False):
+                logger.error(f"❌ Qdrant search failed: {result}")
+                return []
             
             # Convert to pattern data and similarity scores
             matches = []
-            for result in results:
-                pattern_id = result["metadata"]["pattern_id"]
-                if pattern_id in self.patterns:
-                    pattern_data = self.patterns[pattern_id]
-                    similarity_score = result["score"]
-                    matches.append((pattern_data, similarity_score))
+            for item in result.get("results", []):
+                try:
+                    metadata = item.get("metadata", {})
+                    pattern_id = metadata.get("pattern_id")
+                    if pattern_id and pattern_id in self.patterns:
+                        pattern_data = self.patterns[pattern_id]
+                        similarity_score = item.get("score", 0.0)
+                        matches.append((pattern_data, similarity_score))
+                except Exception as e:
+                    logger.warning(f"Error processing search result: {e}")
+                    continue
             
             return matches
             
         except Exception as e:
             logger.error(f"❌ Semantic search failed: {e}")
             return []
+    
+    def _matches_filters(self, pattern_data: Dict[str, Any], request: PatternSearchRequest) -> bool:
+        """Check if pattern matches the search filters."""
+        metadata = pattern_data["metadata"]
+        
+        # Business domain filter
+        if request.business_domain:
+            if metadata.get("business_domain") != request.business_domain.value:
+                return False
+        
+        # Complexity filter
+        if request.complexity_preference:
+            if metadata.get("complexity") != request.complexity_preference.value:
+                return False
+        
+        # User roles filter
+        if request.user_roles:
+            pattern_roles = set(role.lower() for role in metadata.get("user_roles", []))
+            request_roles = set(role.lower() for role in request.user_roles)
+            if not pattern_roles.intersection(request_roles):
+                return False
+        
+        # Timeframe filter
+        if request.timeframe:
+            if metadata.get("timeframe") != request.timeframe:
+                return False
+        
+        return True
+    
+    def _calculate_business_score(self, pattern_data: Dict[str, Any], request: PatternSearchRequest) -> float:
+        """Calculate business context score for a pattern."""
+        metadata = pattern_data["metadata"]
+        score = 0.5  # Base score
+        
+        # Domain match bonus
+        if request.business_domain and metadata.get("business_domain") == request.business_domain.value:
+            score += 0.3
+        
+        # Complexity appropriateness
+        if request.complexity_preference:
+            if metadata.get("complexity") == request.complexity_preference.value:
+                score += 0.2
+        
+        return min(1.0, score)
+    
+    def _calculate_role_score(self, pattern_data: Dict[str, Any], request: PatternSearchRequest) -> float:
+        """Calculate role relevance score for a pattern."""
+        if not request.user_roles:
+            return 0.7  # Neutral score
+        
+        metadata = pattern_data["metadata"]
+        pattern_roles = set(role.lower() for role in metadata.get("user_roles", []))
+        request_roles = set(role.lower() for role in request.user_roles)
+        
+        # Calculate overlap
+        overlap = pattern_roles.intersection(request_roles)
+        if overlap:
+            return min(1.0, 0.7 + len(overlap) * 0.1)
+        
+        return 0.3  # Low relevance for no role match
+    
+    def _get_success_weight(self, pattern_id: str) -> float:
+        """Get success rate weight for a pattern."""
+        stats = self.pattern_statistics.get(pattern_id)
+        if stats:
+            return stats.success_rate
+        
+        # Default based on pattern metadata
+        if pattern_id in self.patterns:
+            complexity = self.patterns[pattern_id]["metadata"].get("complexity", "moderate")
+            return {"simple": 0.65, "moderate": 0.55, "complex": 0.45}.get(complexity, 0.55)
+        
+        return 0.55  # Default moderate success rate
+    
+    def _calculate_total_score(self, pattern_match: PatternMatch) -> float:
+        """Calculate total weighted score for a pattern match."""
+        return (
+            pattern_match.semantic_similarity * self.context_weights["semantic_similarity"] +
+            pattern_match.business_context_score * self.context_weights["domain_match"] +
+            pattern_match.role_relevance_score * self.context_weights["role_match"] +
+            pattern_match.success_rate_weight * self.context_weights["success_rate"]
+        )
     
     def _apply_business_context_scoring(
         self, 
@@ -722,6 +1022,11 @@ class PatternLibrary:
     async def _persist_pattern_statistics(self, stats: PatternStatistics) -> None:
         """Persist pattern statistics to PostgreSQL database."""
         try:
+            postgres_client = self.client_manager.get_client("postgres")
+            if not postgres_client:
+                logger.warning("PostgreSQL client not available, skipping statistics persistence")
+                return
+            
             query = """
             INSERT INTO pattern_statistics (
                 pattern_id, success_rate, confidence_lower, confidence_upper,
@@ -742,19 +1047,25 @@ class PatternLibrary:
                 average_investigation_time = EXCLUDED.average_investigation_time
             """
             
-            await self.postgres_client.execute_query(query, [
-                stats.pattern_id,
-                stats.success_rate,
-                stats.confidence_interval[0],
-                stats.confidence_interval[1],
-                stats.data_source.value,
-                stats.sample_size,
-                stats.successes,
-                stats.failures,
-                stats.last_updated,
-                stats.usage_count,
-                stats.average_investigation_time
-            ])
+            result = await postgres_client.call_tool("execute_sql", {
+                "sql": query,
+                "parameters": [
+                    stats.pattern_id,
+                    stats.success_rate,
+                    stats.confidence_interval[0],
+                    stats.confidence_interval[1],
+                    stats.data_source.value,
+                    stats.sample_size,
+                    stats.successes,
+                    stats.failures,
+                    stats.last_updated.isoformat(),
+                    stats.usage_count,
+                    stats.average_investigation_time
+                ]
+            })
+            
+            if not result.get("success", False):
+                logger.warning(f"⚠️  Failed to persist pattern statistics: {result}")
             
         except Exception as e:
             logger.warning(f"⚠️  Failed to persist pattern statistics: {e}")
@@ -762,6 +1073,11 @@ class PatternLibrary:
     async def _store_investigation_outcome(self, outcome: InvestigationOutcome) -> None:
         """Store detailed investigation outcome for learning."""
         try:
+            postgres_client = self.client_manager.get_client("postgres")
+            if not postgres_client:
+                logger.warning("PostgreSQL client not available, skipping outcome storage")
+                return
+            
             query = """
             INSERT INTO investigation_outcomes (
                 pattern_id, investigation_id, user_id, completion_success,
@@ -770,17 +1086,23 @@ class PatternLibrary:
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             """
             
-            await self.postgres_client.execute_query(query, [
-                outcome.pattern_id,
-                outcome.investigation_id,
-                outcome.user_id,
-                outcome.completion_success,
-                outcome.user_satisfaction_score,
-                outcome.accuracy_validation,
-                outcome.implementation_success,
-                outcome.investigation_time_minutes,
-                outcome.timestamp
-            ])
+            result = await postgres_client.call_tool("execute_sql", {
+                "sql": query,
+                "parameters": [
+                    outcome.pattern_id,
+                    outcome.investigation_id,
+                    outcome.user_id,
+                    outcome.completion_success,
+                    outcome.user_satisfaction_score,
+                    outcome.accuracy_validation,
+                    outcome.implementation_success,
+                    outcome.investigation_time_minutes,
+                    outcome.timestamp.isoformat()
+                ]
+            })
+            
+            if not result.get("success", False):
+                logger.warning(f"⚠️  Failed to store investigation outcome: {result}")
             
         except Exception as e:
             logger.warning(f"⚠️  Failed to store investigation outcome: {e}")
