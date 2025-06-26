@@ -9,10 +9,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from .api.app_factory import create_app
+from .fastapi.app_factory import create_app
 from .config import settings
 from .utils.logging import logger
-from .mcp.client_manager import MCPClientManager
+from .fastmcp.client_manager import MCPClientManager
 
 
 @asynccontextmanager

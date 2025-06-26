@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../'))
 
 from app.cache.postgresql_cache import PostgreSQLCacheClient
 from app.cache.ttl_manager import TTLManager, DataVolatility, CachePriority
-from app.mcp.postgres_client import PostgreSQLClient
+from app.fastmcp.postgres_client import PostgreSQLClient
 from app.utils.logging import logger
 
 

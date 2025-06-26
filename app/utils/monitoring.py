@@ -8,7 +8,30 @@ import time
 from functools import wraps
 from typing import Callable, Any
 
-from fastapi import FastAPI, Request, Response
+try:
+    # Import FastAPI from the package, not the local directory
+    import sys
+    from pathlib import Path
+    
+    # Temporarily remove the app directory from sys.path to avoid conflict
+    app_dir = str(Path(__file__).parent.parent)
+    if app_dir in sys.path:
+        sys.path.remove(app_dir)
+    
+    from fastapi import FastAPI, Request, Response
+    
+    # Add the app directory back
+    if app_dir not in sys.path:
+        sys.path.insert(0, app_dir)
+        
+except ImportError:
+    # Fallback for standalone mode - create dummy classes
+    class FastAPI:
+        pass
+    class Request:
+        pass
+    class Response:
+        pass
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
 from .logging import logger

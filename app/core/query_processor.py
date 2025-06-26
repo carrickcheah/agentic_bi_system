@@ -21,8 +21,8 @@ from datetime import datetime
 
 from ..utils.logging import logger
 from ..intelligence.pattern_library import PatternLibrary, PatternMatch
-from ..mcp.qdrant_client import QdrantClient
-from ..mcp.postgres_client import PostgresClient
+from ..fastmcp.qdrant_client import QdrantClient
+from ..fastmcp.postgres_client import PostgresClient
 
 
 class QueryProcessor:

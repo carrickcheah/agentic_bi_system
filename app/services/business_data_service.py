@@ -16,7 +16,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from enum import Enum
 
-from ..mcp.mariadb_client import MariaDBClient
+from ..fastmcp.mariadb_client import MariaDBClient
 from ..database.models import QueryResult, TableSchema, ColumnInfo
 from ..utils.logging import logger
 
@@ -49,7 +49,7 @@ class BusinessDataService:
     async def initialize(self):
         """Initialize business data service with schema discovery."""
         try:
-            logger.info("=¼ Initializing Business Data Service")
+            logger.info("=ï¿½ Initializing Business Data Service")
             
             # Discover and map business schema
             await self._discover_business_schema()
@@ -83,7 +83,7 @@ class BusinessDataService:
             Business intelligence result with context and insights
         """
         try:
-            logger.info(f"=¼ Executing business query: {business_question[:100]}...")
+            logger.info(f"=ï¿½ Executing business query: {business_question[:100]}...")
             
             # Generate business-intelligent SQL
             sql_query = await self._generate_business_intelligent_sql(
@@ -171,7 +171,7 @@ class BusinessDataService:
     ) -> Dict[str, Any]:
         """Calculate business KPI with intelligent query generation."""
         try:
-            logger.info(f"=Ê Calculating KPI: {kpi_name} for {business_domain}")
+            logger.info(f"=ï¿½ Calculating KPI: {kpi_name} for {business_domain}")
             
             # Get KPI definition
             kpi_definition = self.kpi_definitions.get(business_domain, {}).get(kpi_name)

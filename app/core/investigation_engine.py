@@ -18,7 +18,7 @@ from enum import Enum
 from dataclasses import dataclass
 
 from ..utils.logging import logger
-from ..api.websocket import send_investigation_progress, send_investigation_result, send_investigation_error
+from ..fastapi.websocket import send_investigation_progress, send_investigation_result, send_investigation_error
 
 
 class StepType(Enum):

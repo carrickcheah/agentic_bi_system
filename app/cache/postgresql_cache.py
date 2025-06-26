@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
 from ..utils.logging import logger
-from ..mcp.postgres_client import PostgreSQLClient
+from ..fastmcp.postgres_client import PostgreSQLClient
 from .ttl_manager import TTLManager, DataVolatility, CachePriority
 
 

@@ -7,7 +7,11 @@ Provides Supabase operations through MCP protocol.
 from typing import Dict, Any, List, Optional
 from mcp.client.session import ClientSession
 
-from ..utils.logging import logger
+try:
+    from ..utils.logging import logger
+except ImportError:
+    import logging
+    logger = logging.getLogger(__name__)
 
 
 class SupabaseClient:

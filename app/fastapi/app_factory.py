@@ -1,8 +1,9 @@
 """
-FastAPI Application Factory with MCP Integration
+FastAPI Application Factory with Service Bridge Integration
 
 This module creates and configures the FastAPI application with:
 - All route handlers
+- Service bridge for backend communication
 - MCP tool mounting for agent communication
 - Middleware and lifecycle management
 """
@@ -17,11 +18,12 @@ from ..utils.logging import setup_logging, logger
 from ..utils.monitoring import setup_monitoring
 from .routes import investigations, database, sessions
 from .websocket import websocket_router
-from ..mcp.client_manager import MCPClientManager
+from ..server import initialize_embedded_server, cleanup_embedded_server
+from ..bridge.service_bridge import get_service_bridge
 
 
-# Global MCP client manager
-mcp_manager: MCPClientManager = None
+# Global embedded server instance
+embedded_server = None
 
 
 @asynccontextmanager
@@ -29,34 +31,37 @@ async def lifespan(app: FastAPI):
     """
     Application lifespan management.
     
-    Handles startup and shutdown of MCP clients and other services.
+    Handles startup and shutdown of embedded backend server and services.
     """
-    global mcp_manager
+    global embedded_server
     
     # Startup
-    logger.info("Starting Agentic SQL Backend...")
+    logger.info("Starting FastAPI with embedded backend server...")
     
     try:
-        # Initialize MCP client connections
-        logger.info("Initializing MCP client connections...")
-        mcp_manager = MCPClientManager()
-        await mcp_manager.initialize()
+        # Initialize embedded backend server
+        logger.info("Initializing embedded backend server...")
+        embedded_server = await initialize_embedded_server()
         
-        logger.info("✅ All MCP services initialized successfully!")
+        # Store server reference in app state
+        app.state.backend_server = embedded_server
+        app.state.service_bridge = get_service_bridge()
+        
+        logger.info("FastAPI with backend server initialized successfully!")
         
         yield
         
     except Exception as e:
-        logger.error(f"Failed to initialize MCP services: {e}")
+        logger.error(f"Failed to initialize backend server: {e}")
         raise
     finally:
         # Shutdown
-        logger.info("Shutting down Agentic SQL Backend...")
+        logger.info("Shutting down FastAPI and backend server...")
         
-        if mcp_manager:
-            await mcp_manager.close()
+        if embedded_server:
+            await cleanup_embedded_server()
             
-        logger.info("✅ All MCP services shut down gracefully")
+        logger.info("FastAPI and backend server shut down gracefully")
 
 
 def create_app() -> FastAPI:
@@ -115,11 +120,15 @@ def create_app() -> FastAPI:
     @app.get("/health")
     async def health_check():
         """Health check endpoint for monitoring."""
+        service_bridge = get_service_bridge()
+        is_healthy = await service_bridge.is_healthy()
+        
         return {
-            "status": "healthy",
+            "status": "healthy" if is_healthy else "unhealthy",
             "version": settings.app_version,
             "services": {
-                "mcp_clients": mcp_manager.is_healthy() if mcp_manager else False,
+                "backend_server": is_healthy,
+                "service_bridge": "embedded"
             }
         }
     
@@ -140,7 +149,7 @@ def create_app() -> FastAPI:
         
         mcp = FastAPIMCP(app)
         mcp.mount()
-        logger.info("✅ MCP tools mounted at /mcp endpoint")
+        logger.info("MCP tools mounted at /mcp endpoint")
         
     except ImportError:
         logger.warning("FastAPI-MCP not available, skipping MCP integration")
@@ -150,6 +159,11 @@ def create_app() -> FastAPI:
     return app
 
 
-def get_mcp_manager() -> MCPClientManager:
-    """Get the global MCP client manager instance."""
-    return mcp_manager
+def get_service_bridge_instance():
+    """Get the global service bridge instance for FastAPI routes."""
+    return get_service_bridge()
+
+
+def get_backend_server():
+    """Get the embedded backend server instance."""
+    return embedded_server

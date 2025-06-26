@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
 from ..utils.logging import logger
-from ..mcp.postgres_client import PostgreSQLClient
+from ..fastmcp.postgres_client import PostgreSQLClient
 from .ttl_manager import TTLManager
 
 

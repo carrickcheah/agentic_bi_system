@@ -22,8 +22,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 from ..utils.logging import logger
-from ..mcp.qdrant_client import QdrantClient
-from ..mcp.postgres_client import PostgresClient
+from ..fastmcp.qdrant_client import QdrantClient
+from ..fastmcp.postgres_client import PostgresClient
 
 
 class DataSource(Enum):

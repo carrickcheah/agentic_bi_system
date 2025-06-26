@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 
 from ..utils.logging import logger
-from ..mcp.postgres_client import PostgreSQLClient
+from ..fastmcp.postgres_client import PostgreSQLClient
 
 
 class MemoryManager:

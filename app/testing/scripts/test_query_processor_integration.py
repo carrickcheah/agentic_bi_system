@@ -19,8 +19,8 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from app.core.query_processor import QueryProcessor
 from app.intelligence.pattern_library import PatternLibrary
-from app.mcp.qdrant_client import QdrantClient
-from app.mcp.postgres_client import PostgresClient
+from app.fastmcp.qdrant_client import QdrantClient
+from app.fastmcp.postgres_client import PostgresClient
 from app.utils.logging import logger
 
 

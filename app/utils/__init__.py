@@ -12,7 +12,16 @@ from .exceptions import (
     MemoryError,
     MCPToolError
 )
-from .monitoring import setup_monitoring
+
+# Only import monitoring for FastAPI mode, not MCP standalone
+try:
+    from .monitoring import setup_monitoring
+    _monitoring_available = True
+except ImportError:
+    _monitoring_available = False
+    def setup_monitoring(*args, **kwargs):
+        """Dummy function when monitoring is not available."""
+        pass
 
 __all__ = [
     "logger",

@@ -10,8 +10,8 @@ from typing import List, Dict, Any, Optional
 from ..database.models import QueryResult, TableSchema, ColumnInfo, ForeignKeyInfo
 from ..utils.logging import logger, log_sql_execution
 from ..utils.monitoring import track_sql_execution
-from ..mcp.mariadb_client import MariaDBClient
-from ..mcp.postgres_client import PostgreSQLClient
+from ..fastmcp.mariadb_client import MariaDBClient
+from ..fastmcp.postgres_client import PostgreSQLClient
 
 
 class DatabaseOperations:

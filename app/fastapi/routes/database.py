@@ -10,10 +10,9 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 
-from ...database.operations import DatabaseOperations
-from ...database.models import QueryResult, TableSchema
-from ...guardrails.query_guard import QueryGuard
-from ..app_factory import get_database_manager
+from ...guardrails.sql_validator import SQLValidator
+from ...bridge.service_bridge import get_service_bridge
+from ...fastmcp.service import QueryResult as FastMCPQueryResult
 
 
 router = APIRouter()
@@ -46,21 +45,21 @@ class SchemaRequest(BaseModel):
 class SchemaResponse(BaseModel):
     """Database schema information."""
     database: str
-    tables: List[TableSchema]
+    schema: Dict[str, Any]
 
 
-async def get_database_ops() -> DatabaseOperations:
-    """Dependency to get database operations."""
-    db_manager = get_database_manager()
-    if not db_manager:
-        raise HTTPException(status_code=500, detail="Database not available")
-    return DatabaseOperations(db_manager)
+async def get_service_bridge_dep():
+    """Dependency to get service bridge instance."""
+    bridge = get_service_bridge()
+    if not await bridge.is_healthy():
+        raise HTTPException(status_code=500, detail="FastMCP backend not available")
+    return bridge
 
 
 @router.post("/execute", response_model=SQLExecuteResponse)
 async def execute_sql(
     request: SQLExecuteRequest,
-    db_ops: DatabaseOperations = Depends(get_database_ops)
+    bridge = Depends(get_service_bridge_dep)
 ):
     """
     Execute SQL query with safety checks.
@@ -70,8 +69,8 @@ async def execute_sql(
     """
     try:
         # Validate query safety
-        guard = QueryGuard()
-        validation_result = guard.validate_query(request.query)
+        validator = SQLValidator()
+        validation_result = validator.validate_query(request.query)
         
         if not validation_result.is_safe:
             raise HTTPException(
@@ -79,8 +78,8 @@ async def execute_sql(
                 detail=f"Unsafe query: {validation_result.reason}"
             )
         
-        # Execute query
-        result = await db_ops.execute_query(
+        # Execute query through service bridge
+        result = await bridge.execute_sql(
             query=request.query,
             database=request.database,
             max_rows=request.max_rows,
@@ -88,11 +87,12 @@ async def execute_sql(
         )
         
         return SQLExecuteResponse(
-            success=True,
+            success=result.success,
             data=result.data,
             columns=result.columns,
             row_count=result.row_count,
-            execution_time=result.execution_time
+            execution_time=result.execution_time,
+            error=result.error
         )
         
     except Exception as e:
@@ -106,7 +106,7 @@ async def execute_sql(
 async def get_database_schema(
     database: str = "mariadb",
     table_name: Optional[str] = None,
-    db_ops: DatabaseOperations = Depends(get_database_ops)
+    bridge = Depends(get_service_bridge_dep)
 ):
     """
     Get database schema information.
@@ -115,14 +115,14 @@ async def get_database_schema(
     Exposed as MCP tool for agent schema discovery.
     """
     try:
-        schema_info = await db_ops.get_schema(
+        schema_info = await bridge.get_database_schema(
             database=database,
             table_name=table_name
         )
         
         return SchemaResponse(
             database=database,
-            tables=schema_info
+            schema=schema_info
         )
         
     except Exception as e:
@@ -137,8 +137,8 @@ async def validate_sql(query: str):
     Checks for syntax errors and security issues.
     """
     try:
-        guard = QueryGuard()
-        validation_result = guard.validate_query(query)
+        validator = SQLValidator()
+        validation_result = validator.validate_query(query)
         
         return {
             "is_valid": validation_result.is_safe,
@@ -154,7 +154,7 @@ async def validate_sql(query: str):
 @router.get("/tables", response_model=List[str])
 async def list_tables(
     database: str = "mariadb",
-    db_ops: DatabaseOperations = Depends(get_database_ops)
+    bridge = Depends(get_service_bridge_dep)
 ):
     """
     List all tables in the database.
@@ -162,7 +162,7 @@ async def list_tables(
     Quick reference for the agent to discover available data sources.
     """
     try:
-        tables = await db_ops.list_tables(database)
+        tables = await bridge.list_tables(database)
         return tables
         
     except Exception as e:
@@ -174,7 +174,7 @@ async def get_table_sample(
     table_name: str,
     database: str = "mariadb",
     limit: int = 10,
-    db_ops: DatabaseOperations = Depends(get_database_ops)
+    bridge = Depends(get_service_bridge_dep)
 ):
     """
     Get sample data from a table.
@@ -185,18 +185,19 @@ async def get_table_sample(
         # Construct safe sample query
         query = f"SELECT * FROM {table_name} LIMIT {limit}"
         
-        result = await db_ops.execute_query(
+        result = await bridge.execute_sql(
             query=query,
             database=database,
             max_rows=limit
         )
         
         return SQLExecuteResponse(
-            success=True,
+            success=result.success,
             data=result.data,
             columns=result.columns,
             row_count=result.row_count,
-            execution_time=result.execution_time
+            execution_time=result.execution_time,
+            error=result.error
         )
         
     except Exception as e:

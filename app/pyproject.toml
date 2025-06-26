@@ -31,6 +31,7 @@ dependencies = [
     "pytest-cov>=6.0.0",
     "fastapi>=0.115.13",
     "mcp[cli]>=1.9.4",
+    "fastapi-mcp>=0.3.4",
 ]
 
 [project.optional-dependencies]

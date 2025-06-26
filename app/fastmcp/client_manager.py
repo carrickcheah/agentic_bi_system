@@ -13,8 +13,13 @@ from contextlib import asynccontextmanager
 from mcp.client.session import ClientSession
 from mcp.client.stdio import stdio_client
 
-from ..config import settings
-from ..utils.logging import logger
+try:
+    from ..config import settings
+    from ..utils.logging import logger
+except ImportError:
+    from config import settings
+    import logging
+    logger = logging.getLogger(__name__)
 from .mariadb_client import MariaDBClient
 from .postgres_client import PostgreSQLClient
 from .supabase_client import SupabaseClient
@@ -27,6 +32,7 @@ class MCPClientManager:
     def __init__(self):
         self.clients: Dict[str, Any] = {}
         self.sessions: Dict[str, ClientSession] = {}
+        self.client_contexts: Dict[str, Any] = {}
         self._initialized = False
         self.config_path = Path(settings.mcp_config_path)
         
@@ -92,12 +98,24 @@ class MCPClientManager:
             for key, value in env_vars.items():
                 if value.startswith("${") and value.endswith("}"):
                     env_var = value[2:-1]
-                    env[key] = getattr(settings, env_var.lower(), value)
+                    env[key] = str(getattr(settings, env_var.lower(), value))
                 else:
-                    env[key] = value
+                    env[key] = str(value)
             
-            # Create stdio client
-            client = await stdio_client(command, args, env=env)
+            # Create server configuration object
+            from types import SimpleNamespace
+            server_config = SimpleNamespace()
+            server_config.command = command
+            server_config.args = args
+            server_config.env = env
+            server_config.cwd = None  # Use current directory
+            server_config.encoding = "utf-8"  # Default encoding
+            server_config.encoding_error_handler = "strict"  # Default error handler
+            
+            # Create stdio client - it returns a context manager
+            client_context = stdio_client(server_config)
+            client = await client_context.__aenter__()
+            self.client_contexts[server_name] = client_context
             self.clients[server_name] = client
             
             # Create session

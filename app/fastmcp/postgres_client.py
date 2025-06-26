@@ -8,8 +8,37 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from mcp.client.session import ClientSession
 
-from ..database.models import QueryResult, TableSchema, ColumnInfo
-from ..utils.logging import logger
+try:
+    from ..database.models import QueryResult, TableSchema, ColumnInfo
+    from ..utils.logging import logger
+except ImportError:
+    # Simple standalone versions
+    from dataclasses import dataclass
+    from typing import Any
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    @dataclass
+    class QueryResult:
+        data: List[Dict[str, Any]]
+        columns: List[str]
+        row_count: int
+        execution_time: float
+        database: str
+        success: bool = True
+        error: Optional[str] = None
+    
+    @dataclass
+    class ColumnInfo:
+        name: str
+        type: str
+        nullable: bool
+        default: Any = None
+    
+    @dataclass  
+    class TableSchema:
+        table_name: str
+        columns: List[ColumnInfo]
 
 
 class PostgreSQLClient:
