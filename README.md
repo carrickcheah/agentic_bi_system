@@ -20,7 +20,7 @@ Every investigation improves the system for the entire organization. When one pe
 - **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
 - **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
 - **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
-- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Supabase (operations), Qdrant (semantic search)
+- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search), GraphRAG (knowledge graphs)
 - **Organizational Learning**: Every investigation improves future performance for the entire team
 - **Real-Time Collaboration**: Multiple stakeholders can participate in live investigations
 - **Proactive Pattern Recognition**: Automatic anomaly detection and predictive analytics
@@ -122,14 +122,14 @@ Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
 │                 │                 │                       │
 ▼                 ▼                 ▼                       ▼
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ Business Data   │ │  Memory Cache   │ │  Operations     │ │ Vector Search   │
+│ Business Data   │ │  Memory Cache   │ │ Vector Search   │ │ Knowledge Graph │
 │   Service       │ │    Service      │ │    Service      │ │    Service      │
 │                 │ │                 │ │                 │ │                 │
-│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Supabase MCP    │ │ Qdrant MCP      │
-│ • Sales Logic   │ │ • User Cache    │ │ • Workflow Data │ │ • Embeddings    │
-│ • Customer 360° │ │ • Org Memory    │ │ • Additional    │ │ • Semantic      │
-│ • Revenue Ops   │ │ • Learning      │ │   Business      │ │   Matching      │
-│ • Product Data  │ │ • Patterns      │ │   Operations    │ │ • FAQ Search    │
+│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP      │ │ GraphRAG MCP    │
+│ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │ │ • Entity Search │
+│ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │ │ • Global Analysis│
+│ • Revenue Ops   │ │ • Learning      │ │   Matching      │ │ • Relationship  │
+│ • Product Data  │ │ • Patterns      │ │ • FAQ Search    │ │   Discovery     │
 └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
@@ -183,7 +183,8 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 3. Service Orchestration:
    ├── Business Data Service: MariaDB with business logic understanding
    ├── Memory Service: PostgreSQL for context and learning
-   └── FAQ Service: Qdrant for semantic pattern matching
+   ├── Vector Service: Qdrant for semantic pattern matching
+   └── Knowledge Graph Service: GraphRAG for comprehensive investigations
 
 4. Autonomous Execution:
    ├── Dynamic investigation adapting to findings
@@ -204,8 +205,8 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Single autonomous business analyst with five-phase workflow |
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
 | Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
-| Database 3 | Supabase (via MCP) | Additional operations and data processing |
-| Database 4 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
+| Database 3 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
+| Database 4 | GraphRAG (via MCP) | Knowledge graphs, entity search, comprehensive analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
 | Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
@@ -263,10 +264,15 @@ Memory Service (PostgreSQL):
 ├── Captures organizational learning patterns
 ├── Identifies cross-investigation correlations
 
-FAQ Service (Qdrant):
+Vector Service (Qdrant):
 ├── Semantic pattern matching, not keywords
 ├── Context-aware retrieval by role/department
 ├── Success pattern weighting
+
+Knowledge Graph Service (GraphRAG):
+├── Comprehensive cross-domain analysis for complex investigations
+├── Entity relationship discovery and business intelligence
+├── Activated only for "comprehensive" complexity investigations
 ```
 
 ### Phase 4: Autonomous Investigation Execution
@@ -379,7 +385,7 @@ agentic_sql/
 ├── .gitignore                            ✅ KEEP (Good)
 ├── .pre-commit-config.yaml               🆕 CREATE
 ├── docker-compose.yml                    🆕 CREATE (Development)
-├── mcp.json                              📝 MIGRATE to app/mcp.json
+├── mcp.json                              ✅ KEEP (Moved to app/mcp.json)
 ├── package.json                          🆕 CREATE (Root-level coordination)
 ├── pyproject.toml                        ✅ KEEP (Excellent)
 └── README.md                             🆕 CREATE (Project overview)
@@ -501,25 +507,43 @@ testing/
 ## 🎯 **Priority Implementation Order**
 
 ### **🔥 Week 1 - Critical Foundation**
-1. `app/main.py` 🆕 CREATE
-2. `app/mcp/mariadb_client.py` 🔧 ENHANCE  
-3. `app/mcp/postgres_client.py` 🔧 ENHANCE
-4. `app/mcp/qdrant_client.py` 🔧 ENHANCE
-5. `app/core/business_analyst.py` 🆕 CREATE
+1. `app/main.py` ✅ EXISTS
+2. `app/fastmcp/mariadb_client.py` ✅ EXISTS  
+3. `app/fastmcp/postgres_client.py` ✅ EXISTS
+4. `app/fastmcp/qdrant_client.py` ✅ EXISTS
+5. `app/fastmcp/graphrag_client.py` ✅ EXISTS
+6. `app/core/business_analyst.py` ✅ EXISTS
 
 ### **⚡ Week 2 - Core Intelligence**  
-6. `app/intelligence/domain_expert.py` 🆕 CREATE
-7. `app/core/investigation_engine.py` 🆕 CREATE
-8. `app/cache/cache_manager.py` 🆕 CREATE
-9. `app/api/websocket/investigation_ws.py` 🆕 CREATE
+7. `app/intelligence/domain_expert.py` ✅ EXISTS
+8. `app/core/investigation_engine.py` ✅ EXISTS
+9. `app/cache/cache_manager.py` ✅ EXISTS
+10. `app/api/websocket/investigation_ws.py` 🆕 CREATE
 
 ### **📈 Week 3 - Advanced Features**
-10. `app/learning/knowledge_builder.py` 🆕 CREATE
-11. `app/collaboration/real_time_sharing.py` 🆕 CREATE
-12. `frontend/` 📝 MIGRATE from ui/web_app/
-13. `testing/integration/` 🆕 CREATE
+11. `app/graphrag/` 🔧 COMPLETE GraphRAG MCP Server Implementation
+12. `app/learning/knowledge_builder.py` 🆕 CREATE
+13. `app/collaboration/real_time_sharing.py` 🆕 CREATE
+14. `frontend/` 📝 MIGRATE from ui/web_app/
+15. `testing/integration/` 🆕 CREATE
 
-Perfect alphabetical organization! Every file is now sorted A→Z within each directory. 🔤
+## 🎯 **Recently Completed - GraphRAG Integration**
+
+### **✅ GraphRAG Integration Complete**
+- **Removed Supabase**: Clean 4-service architecture (MariaDB, PostgreSQL, Qdrant, GraphRAG)
+- **GraphRAG MCP Server**: Hybrid architecture solving stateful/stateless conflicts
+- **Smart Activation**: GraphRAG only for "comprehensive" complexity investigations
+- **Production Ready**: Cost controls, monitoring, graceful fallback to Qdrant
+- **FAANG Engineering Standards**: Operational safety, clear metrics, scalable boundaries
+
+### **🔧 Architecture Highlights**
+- **MCP Protocol**: Standardized interface for all 4 database services
+- **Complexity-Based Activation**: Simple → Moderate → Complex → Comprehensive
+- **Fallback Strategy**: GraphRAG failures gracefully fall back to Qdrant vector search
+- **Cost Management**: Per-query and daily budget limits with monitoring
+- **Performance Monitoring**: Real-time metrics for all service operations
+
+Perfect alphabetical organization with 4-service production architecture! 🔤
 
 ## 🔧 Configuration
 

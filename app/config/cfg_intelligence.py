@@ -51,3 +51,57 @@ class IntelligenceSettings(BaseSettings):
     # Investigation configuration
     max_investigation_steps: int = 20
     investigation_timeout: int = 300  # 5 minutes
+    
+    # GraphRAG configuration
+    graphrag_data_path: str = Field(
+        default="./graphrag_data",
+        description="Path to GraphRAG data directory with parquet files"
+    )
+    graphrag_server_host: str = Field(
+        default="localhost",
+        description="GraphRAG server host"
+    )
+    graphrag_server_port: int = Field(
+        default=8001,
+        description="GraphRAG server port"
+    )
+    graphrag_timeout: float = Field(
+        default=15.0,
+        description="Default timeout for GraphRAG operations in seconds"
+    )
+    graphrag_max_concurrent: int = Field(
+        default=10,
+        description="Maximum concurrent GraphRAG requests"
+    )
+    graphrag_cost_limit_per_query: float = Field(
+        default=0.05,
+        description="Maximum cost per GraphRAG query in USD"
+    )
+    graphrag_daily_budget_limit: float = Field(
+        default=100.0,
+        description="Daily budget limit for GraphRAG operations in USD"
+    )
+    graphrag_cache_size: int = Field(
+        default=10000,
+        description="LRU cache size for GraphRAG results"
+    )
+    graphrag_enable_detailed_logging: bool = Field(
+        default=True,
+        description="Enable detailed logging for GraphRAG operations"
+    )
+    graphrag_entity_search_timeout: float = Field(
+        default=5.0,
+        description="Timeout for GraphRAG entity search operations"
+    )
+    graphrag_global_search_timeout: float = Field(
+        default=15.0,
+        description="Timeout for GraphRAG global search operations"
+    )
+    graphrag_max_communities: int = Field(
+        default=3,
+        description="Maximum communities to analyze in global search"
+    )
+    graphrag_entity_search_limit: int = Field(
+        default=20,
+        description="Maximum entities to return in entity search"
+    )

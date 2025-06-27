@@ -25,6 +25,7 @@ class ServiceType(Enum):
     MEMORY = "memory"
     VECTOR = "vector"
     ANALYTICS = "analytics"
+    GRAPHRAG = "graphrag"
 
 
 class ServiceOrchestrator:
@@ -235,6 +236,23 @@ class ServiceOrchestrator:
                 "operations": ["statistical_analysis", "trend_analysis", "predictive_modeling"]
             })
         
+        # GraphRAG service for comprehensive investigations only
+        complexity = investigation_strategy.get("complexity", "simple")
+        if complexity == "comprehensive":
+            required_services.append({
+                "service_type": ServiceType.GRAPHRAG.value,
+                "service_name": "graphrag",
+                "priority": "medium",  # Not critical - can fail gracefully
+                "operations": ["entity_search", "global_analysis", "relationship_discovery"],
+                "fallback_service": "vector",  # Fall back to Qdrant if GraphRAG fails
+                "activation_criteria": {
+                    "complexity_level": "comprehensive",
+                    "estimated_duration_minutes": ">= 10",
+                    "cross_domain_analysis": True,
+                    "relationship_intelligence_required": True
+                }
+            })
+        
         return required_services
     
     def _plan_execution_sequence(
@@ -310,7 +328,8 @@ class ServiceOrchestrator:
             ServiceType.BUSINESS_DATA.value: {"duration": 3, "queries": 2},
             ServiceType.MEMORY.value: {"duration": 1, "queries": 1},
             ServiceType.VECTOR.value: {"duration": 2, "queries": 1},
-            ServiceType.ANALYTICS.value: {"duration": 5, "queries": 3}
+            ServiceType.ANALYTICS.value: {"duration": 5, "queries": 3},
+            ServiceType.GRAPHRAG.value: {"duration": 8, "queries": 2}  # Longer duration for complex graph operations
         }
         
         complexity_multiplier = {
@@ -457,7 +476,8 @@ class ServiceOrchestrator:
                 "business_data": "developing",
                 "memory": "developing", 
                 "vector": "developing",
-                "analytics": "developing"
+                "analytics": "developing",
+                "graphrag": "developing"
             }
         }
     

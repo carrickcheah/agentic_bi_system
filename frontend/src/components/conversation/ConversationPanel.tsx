@@ -177,7 +177,7 @@ export function ConversationPanel({
   };
 
   return (
-    <div className="flex flex-col h-full conversation-panel">
+    <div className="flex flex-col h-full conversation-panel bg-gray-100 dark:bg-gray-950">
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
