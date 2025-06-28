@@ -33,6 +33,7 @@ dependencies = [
     "fastapi-mcp>=0.3.4",
     "qdrant-client>=1.14.3",
     "sentence-transformers>=4.1.0",
+    "lancedb>=0.24.0",
 ]
 
 [project.optional-dependencies]
