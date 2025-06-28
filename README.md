@@ -20,7 +20,7 @@ Every investigation improves the system for the entire organization. When one pe
 - **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
 - **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
 - **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
-- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search), GraphRAG (knowledge graphs)
+- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), LanceDB (semantic search), GraphRAG (knowledge graphs)
 - **Organizational Learning**: Every investigation improves future performance for the entire team
 - **Real-Time Collaboration**: Multiple stakeholders can participate in live investigations
 - **Proactive Pattern Recognition**: Automatic anomaly detection and predictive analytics
@@ -125,7 +125,7 @@ Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
 │ Business Data   │ │  Memory Cache   │ │ Vector Search   │ │ Knowledge Graph │
 │   Service       │ │    Service      │ │    Service      │ │    Service      │
 │                 │ │                 │ │                 │ │                 │
-│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP      │ │ GraphRAG MCP    │
+│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ LanceDB MCP     │ │ GraphRAG MCP    │
 │ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │ │ • Entity Search │
 │ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │ │ • Global Analysis│
 │ • Revenue Ops   │ │ • Learning      │ │   Matching      │ │ • Relationship  │
@@ -183,7 +183,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 3. Service Orchestration:
    ├── Business Data Service: MariaDB with business logic understanding
    ├── Memory Service: PostgreSQL for context and learning
-   ├── Vector Service: Qdrant for semantic pattern matching
+   ├── Vector Service: LanceDB for semantic pattern matching
    └── Knowledge Graph Service: GraphRAG for comprehensive investigations
 
 4. Autonomous Execution:
@@ -205,7 +205,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Single autonomous business analyst with five-phase workflow |
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
 | Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
-| Database 3 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
+| Database 3 | LanceDB (via MCP) | Vector search, embeddings, semantic analysis |
 | Database 4 | GraphRAG (via MCP) | Knowledge graphs, entity search, comprehensive analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
@@ -232,68 +232,163 @@ The system employs a sophisticated cache strategy that represents organizational
 
 ### Phase 2: Business Intelligence Planning
 
-When cache misses, Claude Sonnet 4 creates sophisticated investigation strategies:
+When cache misses, Claude Sonnet 4 acts as the "planning department" with two key functions:
 
+**1. Query Complexity Analysis** - Assessing what type of investigation is needed:
 ```
-Query Complexity Analysis:
-├── Simple: Direct retrieval ("yesterday's sales")
-├── Analytical: Trend analysis ("why sales dropped")
-├── Computational: Scenario modeling ("10% price increase impact")
-└── Investigative: Root cause analysis ("customer satisfaction decline")
+Manufacturing Query Complexity Spectrum:
+├── Simple: Direct Operational Metrics
+│   Examples: "What's today's production output?", "Current inventory for Part ABC123?"
+│   → Direct SQL execution → Instant operational metrics
+├── Analytical: Performance Trending & Comparisons
+│   Examples: "How's OEE trending?", "Compare defect rates across lines"
+│   → Historical analysis → Pattern identification → Variance insights
+├── Computational: Predictive Modeling & Optimization
+│   Examples: "Optimal production schedule", "What-if: 20% demand surge impact"
+│   → Mathematical modeling → Capacity planning → Scenario analysis
+└── Investigative: Root Cause & Complex Problem Solving
+    Examples: "Why did Line 2 efficiency drop?", "What's causing quality variance?"
+    → Multi-factor analysis → Cross-system correlation → Strategic recommendations
+```
 
-Investigation Methodology:
-├── Data Discovery → Identify relevant sources
-├── Baseline Establishment → Historical patterns
-├── Correlation Analysis → Cross-domain relationships
-├── Hypothesis Testing → Evidence-based validation
-└── Strategic Synthesis → Actionable recommendations
+**2. Investigation Methodology Selection** - Manufacturing-specific approaches:
 ```
+Manufacturing Investigation Methodologies:
+├── Quality Control & Defect Analysis
+│   → Process deviation detection → Supplier correlation → Corrective actions
+│
+├── Production Efficiency & OEE Analysis
+│   → Equipment performance → Bottleneck identification → Optimization strategies
+│
+├── Supply Chain & Inventory Optimization
+│   → Lead time analysis → Demand forecasting → Safety stock calculations
+│
+├── Predictive Maintenance & Equipment Health
+│   → Sensor data patterns → Failure prediction → Maintenance scheduling
+│
+├── Cost Analysis & Waste Reduction
+│   → Cost driver identification → Waste stream analysis → ROI calculations
+│
+└── Compound Query Handling
+    Example: "Show this week's output and explain efficiency drops"
+    ├── Simple: Production metrics retrieval
+    ├── Analytical: Efficiency trend comparison
+    └── Investigative: Root cause analysis (maintenance, materials, operators)
+```
+
+**Key Innovation**: Phase 2 creates the investigation blueprint:
+- **Strategy Architect**: Designs the step-by-step investigation plan
+- **Methodology Selector**: Chooses appropriate analysis approach for the business context
+- **Resource Planner**: Determines which database services and tools will be needed
+- **Complexity Router**: Adapts investigation depth to query requirements
+
+**Phase 2 Output**: Detailed investigation plan that Phase 3 and Phase 4 will execute
+
+The system can handle far more than 4 categories - real-world implementations support 15-20+ business-specific investigation types that can be mixed and matched based on the actual query requirements.
 
 ### Phase 3: Service Orchestration
 
-Specialized services work in concert:
+**Tool Coordinator** - Assembles and prepares the database services based on Phase 2's plan:
 
 ```
-Business Data Service (MariaDB):
-├── Understands business logic (revenue recognition, customer hierarchy)
-├── Validates data quality automatically
-├── Optimizes complex multi-table queries
-
-Memory Service (PostgreSQL):
-├── Maintains investigation context and state
-├── Captures organizational learning patterns
-├── Identifies cross-investigation correlations
-
-Vector Service (Qdrant):
-├── Semantic pattern matching, not keywords
-├── Context-aware retrieval by role/department
-├── Success pattern weighting
-
-Knowledge Graph Service (GraphRAG):
-├── Comprehensive cross-domain analysis for complex investigations
-├── Entity relationship discovery and business intelligence
-├── Activated only for "comprehensive" complexity investigations
+Service Preparation Process:
+├── Service Selection
+│   → Activates required database services from Phase 2's plan
+│   → Establishes connections and service mesh coordination
+│   → Prepares tools for Phase 4 execution
+│
+├── Business Data Service (MariaDB)
+│   → Manufacturing operations data preparation
+│   → Business logic validation and quality checks
+│   → Multi-table query optimization setup
+│
+├── Memory Service (PostgreSQL) 
+│   → Investigation context and state management
+│   → Organizational learning pattern access
+│   → Cross-investigation correlation preparation
+│
+├── Vector Service (LanceDB)
+│   → Semantic pattern matching configuration
+│   → Context-aware retrieval setup by role/department
+│   → Success pattern weighting preparation
+│
+└── Knowledge Graph Service (GraphRAG)
+    → Activated only for "comprehensive" complexity investigations
+    → Entity relationship discovery preparation
+    → Cross-domain analysis tool coordination
 ```
 
-### Phase 4: Autonomous Investigation Execution
+**Phase 3 Output**: Coordinated database services ready for Phase 4 to execute the investigation plan
 
-The Claude agent conducts dynamic, adaptive investigations:
+### Phase 4: Investigation Execution
+
+**Plan Executor** - Uses the coordinated tools from Phase 3 to execute the investigation plan from Phase 2:
 
 ```
-Dynamic Investigation Flow:
-├── Initial exploration discovers enterprise customer focus
-├── Hypothesis generation (product changes, support times, pricing)
-├── Iterative deep-diving based on findings
-├── Cross-domain validation across multiple sources
-└── Real-time progress updates via WebSocket
+Investigation Execution Process:
+├── Execute Planned Methodology
+│   → Follow the strategy defined in Phase 2
+│   → Apply selected investigation approach
+│   → Use coordinated database services from Phase 3
+│
+├── Dynamic Data Analysis
+│   → Query execution across multiple data sources
+│   → Real-time pattern discovery and correlation
+│   → Adaptive analysis based on initial findings
+│
+├── Hypothesis Testing & Validation
+│   → Test business hypotheses with actual data
+│   → Cross-validate findings across different sources
+│   → Iterative refinement based on evidence
+│
+└── Results Generation
+    → Compile raw investigation findings
+    → Prepare data for strategic synthesis
+    → Real-time progress updates via WebSocket
 
-Example Investigation:
-"Customer satisfaction declining" →
-├── Discovers 340% support ticket increase
-├── Identifies navigation category spike
-├── Correlates with product update timing
-├── Validates with sentiment analysis
-└── Generates rollback recommendation with success metrics
+Example Execution:
+"Manufacturing efficiency decline investigation" →
+├── Executes: Production data analysis + quality metrics review
+├── Discovers: 23% efficiency loss correlates with maintenance schedule
+├── Validates: Cross-checks with equipment sensor data
+├── Compiles: Raw findings ready for strategic synthesis
+└── Delivers: Investigation results to Phase 5
+```
+
+### Phase 5: Strategic Insight Synthesis
+
+The final phase transforms raw investigation findings into strategic business intelligence:
+
+```
+Insight Synthesis Process:
+├── Multi-dimensional Analysis Integration
+│   → Combine findings from all investigation phases
+│   → Cross-reference patterns across data domains
+│   → Validate conclusions with business context
+│
+├── Strategic Recommendation Generation
+│   → Transform data insights into actionable strategies
+│   → Prioritize recommendations by business impact
+│   → Include implementation roadmaps and success metrics
+│
+├── Role-Specific Formatting
+│   → Executive Summary: High-level strategic insights
+│   → Manager View: Actionable recommendations with metrics
+│   → Analyst View: Detailed findings with supporting data
+│   → Technical View: Implementation details and data lineage
+│
+└── Organizational Learning Capture
+    → Store investigation patterns for future use
+    → Update semantic knowledge base
+    → Improve future investigation efficiency
+
+Example Synthesis:
+"Manufacturing efficiency analysis" →
+├── Integrates: Production data + quality metrics + maintenance logs
+├── Discovers: 23% efficiency loss from unplanned downtime
+├── Recommends: Predictive maintenance schedule
+├── Formats: Executive dashboard + implementation plan
+└── Learns: Equipment failure patterns for future predictions
 ```
 
 ## 🚀 Getting Started
@@ -302,7 +397,7 @@ Example Investigation:
 - Python 3.11+
 - PostgreSQL 15+
 - MariaDB 10.6+ (or your existing database)
-- Docker (for Qdrant)
+- Docker (optional for LanceDB)
 - Node.js 18+ (for UI)
 
 ### Installation
@@ -320,9 +415,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Start Qdrant vector database:
+3. Install LanceDB:
 ```bash
-docker run -p 6333:6333 qdrant/qdrant
+pip install lancedb
 ```
 
 4. Configure your databases:
@@ -530,16 +625,16 @@ testing/
 ## 🎯 **Recently Completed - GraphRAG Integration**
 
 ### **✅ GraphRAG Integration Complete**
-- **Removed Supabase**: Clean 4-service architecture (MariaDB, PostgreSQL, Qdrant, GraphRAG)
+- **Removed Supabase**: Clean 4-service architecture (MariaDB, PostgreSQL, LanceDB, GraphRAG)
 - **GraphRAG MCP Server**: Hybrid architecture solving stateful/stateless conflicts
 - **Smart Activation**: GraphRAG only for "comprehensive" complexity investigations
-- **Production Ready**: Cost controls, monitoring, graceful fallback to Qdrant
+- **Production Ready**: Cost controls, monitoring, graceful fallback to LanceDB
 - **FAANG Engineering Standards**: Operational safety, clear metrics, scalable boundaries
 
 ### **🔧 Architecture Highlights**
 - **MCP Protocol**: Standardized interface for all 4 database services
 - **Complexity-Based Activation**: Simple → Moderate → Complex → Comprehensive
-- **Fallback Strategy**: GraphRAG failures gracefully fall back to Qdrant vector search
+- **Fallback Strategy**: GraphRAG failures gracefully fall back to LanceDB vector search
 - **Cost Management**: Per-query and daily budget limits with monitoring
 - **Performance Monitoring**: Real-time metrics for all service operations
 
@@ -591,7 +686,7 @@ patterns:
 ### Phase 2: Intelligence Layer
 - [ ] Sonnet 4 integration
 - [ ] BGE-M3 embeddings setup
-- [ ] Qdrant knowledge base
+- [ ] LanceDB knowledge base
 - [ ] FAQ pattern matching
 
 ### Phase 3: User Interface
@@ -691,7 +786,7 @@ This project leverages cutting-edge research and insights from:
 - **Business intelligence architecture insight** - Single autonomous analyst with specialized database services
 - **Model Context Protocol (MCP)** - Standardized tool communication and database integration
 - **BGE-M3 embeddings** - MIT-licensed dense + sparse + multi-vector embeddings
-- **Qdrant vector database** - Open-source semantic search and pattern matching
+- **LanceDB vector database** - Embedded vector database for semantic search and pattern matching
 
 ### Research Foundation
 Our architecture synthesizes the best insights from Anthropic's autonomous reasoning capabilities and Cognition.ai's context preservation principles, creating a sophisticated yet reliable single-analyst system for production business intelligence workloads through natural service boundaries.

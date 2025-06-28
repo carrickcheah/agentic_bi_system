@@ -10,7 +10,7 @@ import json
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
-from ..config import settings
+from .config import settings
 from ..utils.logging import logger
 from ..prompt_engineering import SQL_AGENT_SYSTEM_PROMPT
 

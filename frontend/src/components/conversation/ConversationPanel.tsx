@@ -45,6 +45,7 @@ export function ConversationPanel({
   const [streamingCompleted, setStreamingCompleted] = useState(false);
   const [thinkingMode, setThinkingMode] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
+  const [queryQueue, setQueryQueue] = useState<string[]>([]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -95,9 +96,99 @@ export function ConversationPanel({
     };
   }, []);
 
+  // Process queue when investigation completes
+  useEffect(() => {
+    if (!isInvestigating && queryQueue.length > 0) {
+      // Process the next query in queue
+      const nextQuery = queryQueue[0];
+      setQueryQueue(prev => prev.slice(1));
+      
+      // Submit the queued query
+      const userMessage: Message = {
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'user',
+        content: nextQuery,
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, userMessage]);
+      onNewQuery(nextQuery);
+      
+      // Continue with the investigation flow
+      handleQueuedInvestigation(nextQuery);
+    }
+  }, [isInvestigating, queryQueue, onNewQuery]);
+
+  const handleQueuedInvestigation = async (query: string) => {
+    // Check cache first
+    const cacheResult = await mockApi.checkCache(query);
+    
+    if (cacheResult.hit) {
+      // Cache hit - instant response
+      const cacheMessage: Message = {
+        id: `cache-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'system',
+        content: '💾 Cache hit! Retrieved from organizational memory (47ms)',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, cacheMessage]);
+    }
+
+    // Start investigation
+    const assistantMessage: Message = {
+      id: `assistant-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: 'assistant',
+      content: 'Starting investigation...',
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+
+    // Clean up any previous investigation
+    if (cleanupRef.current) {
+      cleanupRef.current();
+    }
+
+    // Create investigation stream
+    cleanupRef.current = createInvestigationStream(query, (investigation) => {
+      setCurrentInvestigation(investigation);
+      onInvestigationUpdate(investigation);
+      
+      // Update the assistant message with the investigation
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === assistantMessage.id 
+            ? { 
+                ...msg, 
+                investigation,
+                content: investigation.status === 'completed' 
+                  ? `Investigation complete! I found ${investigation.insights.length} key insights. The analysis took ${investigation.executionTime}ms${investigation.cacheHit ? ' (enhanced by cache)' : ''}.`
+                  : msg.content
+              }
+            : msg
+        )
+      );
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isInvestigating) return;
+    if (!input.trim()) return;
+    
+    // If investigation is in progress, queue the query
+    if (isInvestigating) {
+      setQueryQueue(prev => [...prev, input]);
+      setInput('');
+      
+      // Show queued message
+      const queuedMessage: Message = {
+        id: `queued-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        type: 'system',
+        content: `🔄 Query queued. Will process after current investigation completes.`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, queuedMessage]);
+      return;
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -344,25 +435,30 @@ Here are the key findings from my investigation:`}
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e as any);
+                    }
+                  }}
                   placeholder={t('ask_placeholder')}
-                  disabled={isInvestigating}
                   className="w-full bg-transparent border-none outline-none text-text-primary-light dark:text-text-primary-dark
                             placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark
-                            text-sm resize-none disabled:opacity-50"
+                            text-sm resize-none"
                   style={{ minHeight: '20px' }}
                 />
               </div>
               <button
                 type="submit"
-                disabled={!input.trim() || isInvestigating}
+                disabled={!input.trim()}
                 className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
                 style={{ position: 'relative', zIndex: 10 }}
               >
                 <div className="flex items-center space-x-2">
                   {isInvestigating ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>{t('investigating')}</span>
+                      <Send className="w-4 h-4" />
+                      <span>Queue</span>
                     </>
                   ) : (
                     <>
@@ -374,6 +470,16 @@ Here are the key findings from my investigation:`}
               </button>
             </div>
           </div>
+
+          {/* Queue indicator */}
+          {queryQueue.length > 0 && (
+            <div className="mt-2 px-1">
+              <div className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 px-2 py-1 rounded-full inline-flex items-center space-x-1">
+                <span>🔄</span>
+                <span>{queryQueue.length} query{queryQueue.length > 1 ? 's' : ''} queued</span>
+              </div>
+            </div>
+          )}
 
           {/* Input hints */}
           <div className="flex items-center justify-between mt-3 px-1">

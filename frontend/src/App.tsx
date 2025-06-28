@@ -9,10 +9,12 @@ function App() {
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation | null>(null);
   const [isInvestigating, setIsInvestigating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(50); // percentage
+  const [leftPanelWidth, setLeftPanelWidth] = useState(75); // percentage
   const [isDragging, setIsDragging] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [sidebarWidth, setSidebarWidth] = useState(240); // px
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(230); // px
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false);
 
   useEffect(() => {
     // Simulate app loading
@@ -21,6 +23,11 @@ function App() {
 
   const handleNewQuery = (query: string) => {
     setIsInvestigating(true);
+    if (!hasUserInteracted) {
+      setHasUserInteracted(true);
+      setLeftPanelWidth(35); // Shrink left panel to 35%
+      setSidebarCollapsed(true); // Hide sidebar automatically
+    }
   };
 
   const handleInvestigationUpdate = (investigation: Investigation) => {
@@ -38,6 +45,10 @@ function App() {
     // Reset the conversation state
     setCurrentInvestigation(null);
     setIsInvestigating(false);
+    
+    // Reset panel widths to default
+    setHasUserInteracted(false);
+    setLeftPanelWidth(75);
     
     // Trigger conversation panel reset by incrementing counter
     setResetTrigger(prev => prev + 1);
@@ -137,8 +148,12 @@ function App() {
       <div className="flex-1 flex overflow-hidden">
           {/* Left Panel - Conversation */}
           <div 
-            className="flex flex-col relative"
-            style={{ width: `${leftPanelWidth}%` }}
+            className="flex flex-col relative transition-all duration-500 ease-in-out"
+            style={{ 
+              width: rightPanelCollapsed 
+                ? 'calc(100% - 48px)' 
+                : `${leftPanelWidth}%` 
+            }}
           >
             <ConversationPanel
               onNewQuery={handleNewQuery}
@@ -171,13 +186,46 @@ function App() {
 
           {/* Right Panel - Results */}
           <div 
-            className="flex flex-col"
-            style={{ width: `${100 - leftPanelWidth}%` }}
+            className="flex flex-col transition-all duration-500 ease-in-out relative"
+            style={{ 
+              width: rightPanelCollapsed 
+                ? '48px' 
+                : `${100 - leftPanelWidth}%`,
+              minWidth: rightPanelCollapsed ? '48px' : undefined
+            }}
           >
-            <ResultsPanel
-              investigation={currentInvestigation}
-              isInvestigating={isInvestigating}
-            />
+            {/* Right Panel Toggle Button */}
+            <button
+              onClick={() => setRightPanelCollapsed(!rightPanelCollapsed)}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-r-lg shadow-lg transition-all duration-200 p-1"
+              style={{
+                left: rightPanelCollapsed ? '0' : '-12px'
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className={`transform transition-transform duration-200 ${rightPanelCollapsed ? '' : 'rotate-180'}`}
+              >
+                <path
+                  d="M10 12L6 8L10 4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            
+            {!rightPanelCollapsed && (
+              <ResultsPanel
+                investigation={currentInvestigation}
+                isInvestigating={isInvestigating}
+              />
+            )}
           </div>
         </div>
     </div>

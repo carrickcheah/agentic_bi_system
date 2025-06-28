@@ -26,7 +26,7 @@ from cachetools import LRUCache
 
 try:
     from ..utils.logging import logger
-    from ..model.model_manager import ModelManager
+    from ..model.runner import ModelManager
 except ImportError:
     import logging
     logger = logging.getLogger(__name__)

@@ -9,7 +9,7 @@ Uses OpenAI SDK with DeepSeek's API endpoint.
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 
-from ..config import settings
+from .config import settings
 from ..utils.logging import logger
 from ..prompt_engineering import SQL_AGENT_SYSTEM_PROMPT
 

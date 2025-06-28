@@ -7,7 +7,7 @@ Provides async Claude API access using Pydantic settings.
 from typing import List, Dict, Any, Optional, Union
 from anthropic import AsyncAnthropic
 
-from ..config import settings
+from .config import settings
 from ..utils.logging import logger
 from ..prompt_engineering import SQL_AGENT_SYSTEM_PROMPT
 
