@@ -24,8 +24,19 @@ class ModelSettings(BaseSettings):
         description="Anthropic API key for Claude Sonnet 4"
     )
     anthropic_model: str = Field(
-        default="claude-sonnet-4-20250514",
         description="Anthropic model to use"
+    )
+    anthropic_enable_caching: bool = Field(
+        default=True,
+        description="Enable Anthropic prompt caching for cost savings"
+    )
+    cache_system_prompt: bool = Field(
+        default=True,
+        description="Cache system prompts"
+    )
+    cache_schema_info: bool = Field(
+        default=True,
+        description="Cache schema information"
     )
     
     # DeepSeek Configuration
@@ -34,8 +45,7 @@ class ModelSettings(BaseSettings):
         description="DeepSeek API key"
     )
     deepseek_model: str = Field(
-        default="deepseek-reasoner",
-        description="DeepSeek model (deepseek-chat for speed, deepseek-reasoner for depth)"
+        description="DeepSeek model (deepseek-chat for speed, deepseek-coder for coding)"
     )
     deepseek_base_url: str = Field(
         default="https://api.deepseek.com",
@@ -48,7 +58,6 @@ class ModelSettings(BaseSettings):
         description="OpenAI API key"
     )
     openai_model: str = Field(
-        default="gpt-4.1-nano",
         description="OpenAI model (gpt-4o-mini, gpt-4.1-mini, gpt-4.1)"
     )
     openai_base_url: str = Field(

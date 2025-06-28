@@ -7,7 +7,7 @@ Priority: Anthropic -> DeepSeek -> OpenAI
 
 from typing import Dict, Any, List, Optional, Union
 from .config import settings
-from ..utils.logging import logger
+from .model_logging import logger
 
 from .anthropic_model import AnthropicModel
 from .deepseek_model import DeepSeekModel  

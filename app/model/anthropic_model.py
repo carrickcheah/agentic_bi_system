@@ -8,8 +8,8 @@ from typing import List, Dict, Any, Optional, Union
 from anthropic import AsyncAnthropic
 
 from .config import settings
-from ..utils.logging import logger
-from ..prompt_engineering import SQL_AGENT_SYSTEM_PROMPT
+from .model_logging import logger
+from .prompts import SQL_AGENT_SYSTEM_PROMPT
 
 
 class AnthropicModel:
@@ -110,13 +110,22 @@ class AnthropicModel:
                 system_prompt = SQL_AGENT_SYSTEM_PROMPT if use_system_prompt else None
                 logger.debug("Using standard request (no caching)")
             
-            response = await self.client.messages.create(
-                model=self.model,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                system=system_prompt,
-                messages=messages
-            )
+            # Handle system prompt format for new Anthropic API
+            api_params = {
+                "model": self.model,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "messages": messages
+            }
+            
+            # Add system prompt if provided (new API expects list format)
+            if system_prompt:
+                if isinstance(system_prompt, str):
+                    api_params["system"] = [{"type": "text", "text": system_prompt}]
+                else:
+                    api_params["system"] = system_prompt
+            
+            response = await self.client.messages.create(**api_params)
             
             return response.content[0].text
             
@@ -220,9 +229,11 @@ class AnthropicModel:
             True if API is working, False otherwise
         """
         try:
+            # Use simple request without caching for health check
             response = await self.generate_response(
                 "Hello! Respond with 'OK' if you're working.",
-                max_tokens=10
+                max_tokens=10,
+                use_system_prompt=False  # Disable system prompt for simple health check
             )
             return "OK" in response or "ok" in response.lower()
             

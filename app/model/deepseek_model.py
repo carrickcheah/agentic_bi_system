@@ -10,8 +10,8 @@ from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 
 from .config import settings
-from ..utils.logging import logger
-from ..prompt_engineering import SQL_AGENT_SYSTEM_PROMPT
+from .model_logging import logger
+from .prompts import SQL_AGENT_SYSTEM_PROMPT
 
 
 class DeepSeekModel:
@@ -161,15 +161,20 @@ class DeepSeekModel:
             True if API is working, False otherwise
         """
         try:
+            logger.info(f"DeepSeek health check starting - model: {self.model}, base_url: {settings.deepseek_base_url}")
             response = await self.generate_response(
                 "Hello! Respond with 'OK' if you're working.",
                 max_tokens=10,
                 use_system_prompt=False
             )
-            return "OK" in response or "ok" in response.lower()
+            logger.info(f"DeepSeek health check response: {response}")
+            result = "OK" in response or "ok" in response.lower()
+            logger.info(f"DeepSeek health check result: {result}")
+            return result
             
         except Exception as e:
             logger.error(f"DeepSeek health check failed: {e}")
+            logger.error(f"DeepSeek model: {self.model}, base_url: {settings.deepseek_base_url}")
             return False
 
 
