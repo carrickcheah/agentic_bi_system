@@ -1,57 +1,90 @@
 """
-AI Model Package
+LanceDB SQL Embeddings & Business Intelligence Package
 
-This package provides a production-grade AI model management system with intelligent 
-fallback capabilities for the Agentic SQL Backend. It implements fault-tolerant 
-architecture with automatic failover between multiple AI providers.
+This package provides a production-grade SQL query embedding and similarity search 
+system with business intelligence pattern discovery for the Agentic BI Backend. 
+It implements high-performance vector storage and semantic search capabilities for 
+SQL query caching, organizational learning, and business pattern discovery.
 
 Key Components:
-- ModelManager (runner.py): Main orchestrator with fallback logic
-- AnthropicModel: Primary AI provider with caching support
-- DeepSeekModel: Fast fallback with reasoning capabilities  
-- OpenAIModel: Secondary fallback option
-- ModelSettings: Type-safe configuration management
+- SQLEmbeddingService (runner.py): Main orchestrator with async operations
+- EmbeddingGenerator: BGE-M3 model for SQL query and business pattern embeddings
+- VectorSearcher: LanceDB vector similarity search operations
+- BusinessPatternIngestion: Business intelligence pattern processing system
+- BusinessPatternSearcher: Advanced semantic search for business patterns
+- LanceDBSettings: Type-safe configuration management
 
-Usage:
-    from app.model import ModelManager
+SQL Query Usage:
+    from app.lance_db import SQLEmbeddingService
     
-    # Initialize with automatic model discovery
-    manager = ModelManager()
+    # Initialize service
+    service = SQLEmbeddingService()
+    await service.initialize()
     
-    # Generate response with intelligent routing
-    response = await manager.generate_response("Analyze sales data")
+    # Store SQL query with embedding
+    query_id = await service.store_sql_query({
+        "sql_query": "SELECT * FROM users WHERE age > 25",
+        "database": "mariadb",
+        "execution_time_ms": 45.2
+    })
+    
+    # Find similar queries for cache hits
+    similar = await service.find_similar_queries("SELECT * FROM users WHERE age > 30")
+
+Business Pattern Usage:
+    # Ingest business intelligence patterns
+    stats = await service.ingest_business_patterns()
+    
+    # Search patterns semantically
+    patterns = await service.search_business_patterns(
+        query="sales revenue analysis",
+        search_type="semantic",
+        domain_filter="sales"
+    )
+    
+    # Get role-specific recommendations
+    recommendations = await service.get_recommended_patterns(
+        user_role="sales_manager",
+        complexity_preference="moderate"
+    )
     
     # Monitor system health
-    health = await manager.health_check()
+    health = await service.health_check()
 
 Architecture:
-    Priority-based fallback system:
-    1. Anthropic Claude (primary) - Advanced reasoning with caching
-    2. DeepSeek (fallback #1) - Fast, cost-effective reasoning
-    3. OpenAI GPT (fallback #2) - Reliable general-purpose AI
+    Self-contained dual-purpose vector database system:
+    1. BGE-M3 embeddings - Semantic understanding of SQL queries and business patterns
+    2. LanceDB storage - High-performance vector database with dual tables
+    3. Similarity search - Fast cache hit detection (5-15ms) and pattern discovery
+    4. Business intelligence - 300+ patterns across 14 business domains
+    5. Zeabur deployment - Production-ready cloud storage
 
 Configuration:
     - Self-contained module configuration via settings.env
     - Type-safe pydantic settings with validation
-    - Automatic API key discovery and model initialization
+    - Automatic path detection (local/Zeabur)
     - Production-ready error handling and logging
+    - Business pattern directory management
 """
 
-from .runner import ModelManager
-from .anthropic_model import AnthropicModel
-from .deepseek_model import DeepSeekModel
-from .component_one import OpenAIModel
-from .config import ModelSettings, settings
+from .runner import SQLEmbeddingService
+from .embedding_component import EmbeddingGenerator
+from .search_component import VectorSearcher
+from .pattern_ingestion import BusinessPatternIngestion
+from .pattern_search_component import BusinessPatternSearcher
+from .config import LanceDBSettings, settings
+from .lance_logging import get_logger
 
 __all__ = [
-    "ModelManager",      # Main orchestrator - recommended entry point
-    "AnthropicModel",    # Primary AI provider
-    "DeepSeekModel",     # Fast fallback provider
-    "OpenAIModel",       # Secondary fallback provider
-    "ModelSettings",     # Configuration class
-    "settings",          # Configured settings instance
+    "SQLEmbeddingService",          # Primary entry point - recommended for both SQL and patterns
+    "EmbeddingGenerator",           # Direct access if needed
+    "VectorSearcher",               # Direct access if needed
+    "BusinessPatternIngestion",     # Pattern ingestion system
+    "BusinessPatternSearcher",      # Pattern search capabilities
+    "LanceDBSettings",              # Configuration class
+    "settings",                     # Configured settings instance
+    "get_logger",                   # Logging utility
 ]
 
-__version__ = "1.0.0"
-__author__ = "Agentic SQL Team"
-__description__ = "Production-grade AI model management with intelligent fallback"
+__version__ = "1.1.0"
+__description__ = "Self-contained LanceDB module for SQL query embeddings and business intelligence pattern discovery"
