@@ -10,9 +10,8 @@ import json
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
 
-from .config import settings
+from .config import settings, get_prompt
 from .model_logging import logger
-from .prompts import SQL_AGENT_SYSTEM_PROMPT
 
 
 class OpenAIModel:
@@ -54,7 +53,8 @@ class OpenAIModel:
             
             # Prepare system message if requested
             if use_system_prompt:
-                messages.insert(0, {"role": "system", "content": SQL_AGENT_SYSTEM_PROMPT})
+                sql_agent_prompt = get_prompt("sql_agent")
+                messages.insert(0, {"role": "system", "content": sql_agent_prompt})
             
             response: ChatCompletion = await self.client.chat.completions.create(
                 model=self.model,
@@ -201,8 +201,9 @@ class OpenAIModel:
             True if API is working, False otherwise
         """
         try:
+            health_prompt = get_prompt("health_check")
             response = await self.generate_response(
-                "Health check: respond with exactly 'OK' if you're working correctly.",
+                health_prompt,
                 max_tokens=10,
                 temperature=0.0,
                 use_system_prompt=False

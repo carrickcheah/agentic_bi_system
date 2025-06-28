@@ -9,9 +9,8 @@ Uses OpenAI SDK with DeepSeek's API endpoint.
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 
-from .config import settings
+from .config import settings, get_prompt
 from .model_logging import logger
-from .prompts import SQL_AGENT_SYSTEM_PROMPT
 
 
 class DeepSeekModel:
@@ -53,7 +52,8 @@ class DeepSeekModel:
             
             # Prepare system message if requested
             if use_system_prompt:
-                messages.insert(0, {"role": "system", "content": SQL_AGENT_SYSTEM_PROMPT})
+                sql_agent_prompt = get_prompt("sql_agent")
+                messages.insert(0, {"role": "system", "content": sql_agent_prompt})
             
             response = await self.client.chat.completions.create(
                 model=self.model,
@@ -162,8 +162,9 @@ class DeepSeekModel:
         """
         try:
             logger.info(f"DeepSeek health check starting - model: {self.model}, base_url: {settings.deepseek_base_url}")
+            health_prompt = get_prompt("health_check")
             response = await self.generate_response(
-                "Hello! Respond with 'OK' if you're working.",
+                health_prompt,
                 max_tokens=10,
                 use_system_prompt=False
             )

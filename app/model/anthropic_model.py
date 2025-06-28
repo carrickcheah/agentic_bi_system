@@ -7,9 +7,8 @@ Provides async Claude API access using Pydantic settings.
 from typing import List, Dict, Any, Optional, Union
 from anthropic import AsyncAnthropic
 
-from .config import settings
+from .config import settings, get_prompt
 from .model_logging import logger
-from .prompts import SQL_AGENT_SYSTEM_PROMPT
 
 
 class AnthropicModel:
@@ -54,9 +53,10 @@ class AnthropicModel:
         
         # Add cached system prompt if enabled
         if use_system_prompt and self.cache_system_prompt:
+            sql_agent_prompt = get_prompt("sql_agent")
             content_parts.append({
                 "type": "text",
-                "text": SQL_AGENT_SYSTEM_PROMPT,
+                "text": sql_agent_prompt,
                 "cache_control": {"type": "ephemeral"}
             })
         
@@ -107,7 +107,7 @@ class AnthropicModel:
             else:
                 # Fallback to original behavior
                 messages = [{"role": "user", "content": prompt}]
-                system_prompt = SQL_AGENT_SYSTEM_PROMPT if use_system_prompt else None
+                system_prompt = get_prompt("sql_agent") if use_system_prompt else None
                 logger.debug("Using standard request (no caching)")
             
             # Handle system prompt format for new Anthropic API
@@ -230,8 +230,9 @@ class AnthropicModel:
         """
         try:
             # Use simple request without caching for health check
+            health_prompt = get_prompt("health_check")
             response = await self.generate_response(
-                "Hello! Respond with 'OK' if you're working.",
+                health_prompt,
                 max_tokens=10,
                 use_system_prompt=False  # Disable system prompt for simple health check
             )
