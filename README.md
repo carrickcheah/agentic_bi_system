@@ -2,6 +2,8 @@
 
 > Transform your organization from reactive data reporting to proactive intelligence generation
 
+![Agentic BI Process Diagram](image.png)
+
 Agentic SQL represents a fundamental paradigm shift in organizational data interaction. Rather than building yet another SQL query tool, this system creates an **autonomous business analyst** that thinks, learns, and collaborates like a human expert while operating at machine scale and speed.
 
 ## 🌟 Revolutionary Principles
@@ -88,6 +90,27 @@ Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
 ```
 
 ## 🏗️ Autonomous Business Intelligence Architecture
+
+### **Agentic BI Process Flow**
+
+![Agentic BI Process Diagram](docs/images/agentic-bi-process-diagram.png)
+
+The diagram above illustrates the complete autonomous business intelligence workflow:
+
+1. **User → System**: Query reception via FastAPI (REST/MCP endpoints)
+2. **System → Cache**: Multi-tier cache cascade (Anthropic + PostgreSQL hybrid)
+3. **Cache → Core Agent**: Intelligence planning with business methodology selection
+4. **Core Agent → Memory**: MCP service orchestration (GraphRAG + LanceDB coordination)
+5. **Memory → Strategic Synthesis**: Role-specific formatting and organizational learning
+6. **Complete Task**: Return strategic insights to user
+
+Key process characteristics:
+- **Autonomous Intelligence**: Core Agent conducts independent business analysis
+- **Thinking Phases**: Query analysis and strategic planning with business context
+- **Service Orchestration**: MCP clients coordinate specialized database services
+- **Strategic Output**: Business recommendations, not just data results
+
+## 🏗️ System Architecture Details
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
