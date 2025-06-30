@@ -53,7 +53,7 @@ class EmbeddingGenerator:
             log_error("Model initialization", e)
             raise RuntimeError(f"Failed to initialize embedding model: {e}")
     
-    async def generate_embedding(self, text: str) -> np.ndarray:
+    def generate_embedding(self, text: str) -> np.ndarray:
         """
         Generate embedding for a single text.
         
@@ -86,7 +86,7 @@ class EmbeddingGenerator:
             log_error("Generate embedding", e)
             raise
     
-    async def generate_batch_embeddings(self, texts: List[str]) -> np.ndarray:
+    def generate_batch_embeddings(self, texts: List[str]) -> np.ndarray:
         """
         Generate embeddings for multiple texts in batch.
         

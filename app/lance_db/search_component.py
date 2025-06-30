@@ -59,7 +59,7 @@ class VectorSearcher:
             search_query = search_query.limit(limit)
             
             # Get results as pandas DataFrame
-            results_df = await search_query.to_pandas()
+            results_df = search_query.to_pandas()
             
             # Process results
             similar_queries = []
@@ -119,7 +119,7 @@ class VectorSearcher:
             # LanceDB supports SQL-like WHERE clauses
             where_clause = f"sql_query LIKE '%{pattern}%'"
             
-            results_df = await (
+            results_df = (
                 self.table.search()
                 .where(where_clause)
                 .limit(limit)

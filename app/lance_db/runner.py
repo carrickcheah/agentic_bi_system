@@ -152,7 +152,7 @@ class SQLEmbeddingService:
             
             # Generate embedding
             sql_query = query_data["sql_query"]
-            embedding = await self.embedding_generator.generate_embedding(sql_query)
+            embedding = self.embedding_generator.generate_embedding(sql_query)
             
             # Normalize SQL for better matching
             normalized_sql = self._normalize_sql(sql_query)
@@ -216,7 +216,7 @@ class SQLEmbeddingService:
                 threshold = settings.similarity_threshold
             
             # Generate embedding for query
-            query_embedding = await self.embedding_generator.generate_embedding(query)
+            query_embedding = self.embedding_generator.generate_embedding(query)
             
             # Search for similar queries
             results = await self.vector_searcher.search_similar(

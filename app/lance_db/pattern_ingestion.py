@@ -100,7 +100,7 @@ class BusinessPatternIngestion:
                 
                 # Create table with sample data to establish proper schema
                 # Generate a dummy embedding vector to establish vector field types
-                dummy_embedding = await self.embedding_generator.generate_embedding("sample text for schema")
+                dummy_embedding = self.embedding_generator.generate_embedding("sample text for schema")
                 
                 sample_data = [{
                     "id": "schema_sample_id",
@@ -287,11 +287,11 @@ class BusinessPatternIngestion:
         metadata = pattern_data["metadata"]
         
         # Generate dual embeddings
-        info_embedding = await self.embedding_generator.generate_embedding(
+        info_embedding = self.embedding_generator.generate_embedding(
             pattern_data["information"]
         )
         
-        workflow_embedding = await self.embedding_generator.generate_embedding(
+        workflow_embedding = self.embedding_generator.generate_embedding(
             metadata.get("pattern", "")
         )
         

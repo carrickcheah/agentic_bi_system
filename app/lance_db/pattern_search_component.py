@@ -68,14 +68,14 @@ class BusinessPatternSearcher:
             
             # Generate query embedding based on search type
             if search_type == "semantic":
-                query_embedding = await self.embedding_generator.generate_embedding(query)
+                query_embedding = self.embedding_generator.generate_embedding(query)
                 search_column = "information_vector"
             elif search_type == "workflow":
-                query_embedding = await self.embedding_generator.generate_embedding(query)
+                query_embedding = self.embedding_generator.generate_embedding(query)
                 search_column = "pattern_vector"
             elif search_type == "hybrid":
                 # Use information vector for primary search
-                query_embedding = await self.embedding_generator.generate_embedding(query)
+                query_embedding = self.embedding_generator.generate_embedding(query)
                 search_column = "information_vector"
             else:
                 raise ValueError(f"Invalid search_type: {search_type}")
@@ -94,7 +94,7 @@ class BusinessPatternSearcher:
             
             # Execute search
             search_query = search_query.limit(min(limit * 2, self.max_results))  # Get extra for filtering
-            results_df = await search_query.to_pandas()
+            results_df = search_query.to_pandas()
             
             # Process and filter results
             patterns = []
@@ -143,7 +143,7 @@ class BusinessPatternSearcher:
         """
         try:
             # Get the source pattern
-            source_results = await (
+            source_results = (
                 self.patterns_table.search()
                 .where(f"id = '{pattern_id}'")
                 .limit(1)
@@ -160,7 +160,7 @@ class BusinessPatternSearcher:
             search_query = self.patterns_table.search(source_embedding)
             search_query = search_query.metric("cosine").limit(limit + 1)  # +1 for source pattern
             
-            results_df = await search_query.to_pandas()
+            results_df = search_query.to_pandas()
             
             # Process results
             similar_patterns = []
@@ -205,7 +205,7 @@ class BusinessPatternSearcher:
             if complexity:
                 where_clauses.append(f"complexity = '{complexity}'")
             
-            results_df = await (
+            results_df = (
                 self.patterns_table.search()
                 .where(" AND ".join(where_clauses))
                 .limit(limit)
@@ -246,7 +246,7 @@ class BusinessPatternSearcher:
         """
         try:
             # Search for patterns that include this user role
-            results_df = await (
+            results_df = (
                 self.patterns_table.search()
                 .where(f"user_roles LIKE '%{user_role}%' AND complexity = '{complexity_preference}'")
                 .limit(limit * 2)  # Get extra for filtering
@@ -287,7 +287,7 @@ class BusinessPatternSearcher:
         """
         try:
             # Search in expected_deliverables field
-            results_df = await (
+            results_df = (
                 self.patterns_table.search()
                 .where(f"expected_deliverables LIKE '%{deliverable_query}%'")
                 .limit(limit)
@@ -355,12 +355,12 @@ class BusinessPatternSearcher:
         """Re-rank patterns using workflow similarity for hybrid search."""
         try:
             # Generate workflow embedding for query
-            workflow_embedding = await self.embedding_generator.generate_embedding(query)
+            workflow_embedding = self.embedding_generator.generate_embedding(query)
             
             # Get workflow embeddings for each pattern
             pattern_ids = [p["id"] for p in patterns]
             ids_joined = "', '".join(pattern_ids)
-            workflow_results = await (
+            workflow_results = (
                 self.patterns_table.search()
                 .where(f"id IN ('{ids_joined}')")
                 .limit(len(patterns))
