@@ -35,9 +35,6 @@ class Settings:
     mariadb_database = databases.mariadb_database
     postgres_url = databases.postgres_url
     supabase_access_token = databases.supabase_access_token
-    qdrant_url = databases.qdrant_url
-    qdrant_api_key = databases.qdrant_api_key
-    qdrant_collection_name = databases.qdrant_collection_name
     collection_name = databases.collection_name
     embedding_model = databases.embedding_model
     
@@ -117,16 +114,6 @@ def get_supabase_mcp_config() -> dict:
     """Get Supabase MCP configuration."""
     return {
         "access_token": settings.supabase_access_token
-    }
-
-
-def get_qdrant_mcp_config() -> dict:
-    """Get Qdrant MCP configuration."""
-    return {
-        "url": settings.qdrant_url,
-        "api_key": settings.qdrant_api_key,
-        "collection_name": settings.qdrant_collection_name,
-        "embedding_model": settings.mcp_embedding_model
     }
 
 

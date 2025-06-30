@@ -449,11 +449,6 @@ cp .env.example .env
 # Edit .env with your database credentials
 ```
 
-5. Initialize the system:
-```bash
-python scripts/init_db.py
-python scripts/init_qdrant.py
-```
 
 6. Start the MCP server:
 ```bash
@@ -628,7 +623,7 @@ testing/
 1. `app/main.py` ✅ EXISTS
 2. `app/fastmcp/mariadb_client.py` ✅ EXISTS  
 3. `app/fastmcp/postgres_client.py` ✅ EXISTS
-4. `app/fastmcp/qdrant_client.py` ✅ EXISTS
+4. `app/fastmcp/lancedb_client.py` ✅ EXISTS
 5. `app/fastmcp/graphrag_client.py` ✅ EXISTS
 6. `app/core/business_analyst.py` ✅ EXISTS
 
@@ -648,7 +643,7 @@ testing/
 ## 🎯 **Recently Completed - GraphRAG Integration**
 
 ### **✅ GraphRAG Integration Complete**
-- **Removed Supabase**: Clean 4-service architecture (MariaDB, PostgreSQL, LanceDB, GraphRAG)
+- **Removed Qdrant**: Clean 4-service architecture (MariaDB, PostgreSQL, LanceDB, GraphRAG)
 - **GraphRAG MCP Server**: Hybrid architecture solving stateful/stateless conflicts
 - **Smart Activation**: GraphRAG only for "comprehensive" complexity investigations
 - **Production Ready**: Cost controls, monitoring, graceful fallback to LanceDB

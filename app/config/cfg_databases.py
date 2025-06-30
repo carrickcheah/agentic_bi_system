@@ -1,7 +1,7 @@
 """
 Database Configuration Settings
 
-Handles all MCP database configurations for MariaDB, PostgreSQL, Supabase, and Qdrant.
+Handles all MCP database configurations for MariaDB, PostgreSQL, and Supabase.
 """
 
 from pydantic import Field
@@ -31,9 +31,6 @@ class DatabaseSettings(BaseSettings):
     # Supabase MCP configuration
     supabase_access_token: str = Field(description="Supabase access token for MCP")
     
-    # Qdrant MCP configuration
-    qdrant_url: str = Field(description="Qdrant cloud URL for MCP")
-    qdrant_api_key: str = Field(description="Qdrant API key for MCP")
-    qdrant_collection_name: str = "sql_knowledge"
-    collection_name: str = Field(default="valiant_vector", description="Qdrant collection name for patterns")
+    # General vector/embedding configuration
+    collection_name: str = Field(default="valiant_vector", description="Collection name for patterns")
     embedding_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Embedding model for vectors")

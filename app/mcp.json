@@ -22,17 +22,12 @@
         "${POSTGRES_URL}"
       ]
     },
-    "qdrant": {
-      "command": "uvx",
+    "lancedb": {
+      "command": "npx",
       "args": [
-        "mcp-server-qdrant"
-      ],
-      "env": {
-        "QDRANT_URL": "${QDRANT_URL}",
-        "QDRANT_API_KEY": "${QDRANT_API_KEY}",
-        "COLLECTION_NAME": "valiant_vector",
-        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
-      }
+        "lance-mcp",
+        "/Users/carrickcheah/Project/agentic_sql/app/lance_db/data"
+      ]
     },
     "graphrag": {
       "command": "python",

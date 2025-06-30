@@ -130,7 +130,7 @@ PostgreSQL/Supabase integration implements Row Level Security for multi-tenant a
 
 ### Vector Database Integration
 
-Qdrant integration for semantic schema search creates collections with 1536-dimensional vectors for OpenAI embeddings, stores schema elements with comprehensive metadata including relationships, and retrieves relevant schema based on semantic similarity with score thresholds.
+LanceDB integration for semantic schema search creates collections with 1536-dimensional vectors for OpenAI embeddings, stores schema elements with comprehensive metadata including relationships, and retrieves relevant schema based on semantic similarity with score thresholds.
 
 Pinecone integration for query pattern matching implements serverless indexes for scalable vector storage, stores successful query patterns with performance metrics, and finds similar patterns using filtered similarity search for high-success-rate queries.
 

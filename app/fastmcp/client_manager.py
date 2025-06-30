@@ -22,7 +22,6 @@ except ImportError:
     logger = logging.getLogger(__name__)
 from .mariadb_client import MariaDBClient
 from .postgres_client import PostgreSQLClient
-from .qdrant_client import QdrantClient
 from .graphrag_client import GraphRAGClient
 
 
@@ -39,7 +38,6 @@ class MCPClientManager:
         # Database client wrappers
         self.mariadb: Optional[MariaDBClient] = None
         self.postgres: Optional[PostgreSQLClient] = None
-        self.qdrant: Optional[QdrantClient] = None
         self.graphrag: Optional[GraphRAGClient] = None
     
     async def initialize(self):
@@ -82,8 +80,6 @@ class MCPClientManager:
                 "MARIADB_PASSWORD": settings.mariadb_password,
                 "MARIADB_DATABASE": settings.mariadb_database,
                 "POSTGRES_URL": settings.postgres_url,
-                "QDRANT_URL": settings.qdrant_url,
-                "QDRANT_API_KEY": settings.qdrant_api_key,
                 "GRAPHRAG_DATA_PATH": getattr(settings, 'graphrag_data_path', './graphrag_data'),
                 "GRAPHRAG_SERVER_HOST": getattr(settings, 'graphrag_server_host', 'localhost'),
                 "GRAPHRAG_SERVER_PORT": str(getattr(settings, 'graphrag_server_port', 8001)),
@@ -158,9 +154,6 @@ class MCPClientManager:
         if "postgres" in self.sessions:
             self.postgres = PostgreSQLClient(self.sessions["postgres"])
         
-        if "qdrant" in self.sessions:
-            self.qdrant = QdrantClient(self.sessions["qdrant"])
-        
         if "graphrag" in self.sessions:
             self.graphrag = GraphRAGClient(self.sessions["graphrag"])
     
@@ -184,7 +177,6 @@ class MCPClientManager:
             return None
         
         client_map = {
-            "qdrant": self.qdrant,
             "postgres": self.postgres,
             "mariadb": self.mariadb,
             "graphrag": self.graphrag

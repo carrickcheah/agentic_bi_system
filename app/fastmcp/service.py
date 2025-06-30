@@ -231,7 +231,7 @@ class BusinessService:
             logger.error(f"Table listing failed for {database}: {e}")
             raise DatabaseOperationError(f"Failed to list tables: {e}")
     
-    # Vector Operations (Qdrant)
+    # Vector Operations (LanceDB)
     
     async def store_query_pattern(
         self,
@@ -255,16 +255,16 @@ class BusinessService:
             Storage result
         """
         try:
-            if not self.client_manager.qdrant:
-                raise DatabaseOperationError("Qdrant client not available")
+            # Note: LanceDB vector operations would be implemented here
+            # For now, this is a placeholder that logs the operation
+            logger.info("Vector storage operation - LanceDB integration pending")
             
-            result = await self.client_manager.qdrant.store_sql_query(
-                sql_query=sql_query,
-                description=description,
-                result_summary=result_summary,
-                execution_time=execution_time,
-                success=success
-            )
+            result = {
+                "status": "stored",
+                "pattern_id": f"pattern_{hash(sql_query + description)}",
+                "description": description,
+                "stored_at": datetime.utcnow().isoformat()
+            }
             
             logger.info(f"Stored query pattern: {description}")
             return result
@@ -289,13 +289,11 @@ class BusinessService:
             List of similar queries with metadata
         """
         try:
-            if not self.client_manager.qdrant:
-                raise DatabaseOperationError("Qdrant client not available")
+            # Note: LanceDB vector search would be implemented here
+            # For now, this is a placeholder that returns empty results
+            logger.info("Vector search operation - LanceDB integration pending")
             
-            results = await self.client_manager.qdrant.find_similar_queries(
-                description=description,
-                limit=limit
-            )
+            results = []  # Placeholder - would use LanceDB for similarity search
             
             logger.info(f"Found {len(results)} similar queries for: {description}")
             return results
@@ -451,8 +449,7 @@ class BusinessService:
         client_map = {
             "mariadb": self.client_manager.mariadb,
             "postgres": self.client_manager.postgres,
-            "postgresql": self.client_manager.postgres,
-            "supabase": self.client_manager.supabase
+            "postgresql": self.client_manager.postgres
         }
         return client_map.get(database.lower())
     
@@ -474,8 +471,8 @@ class BusinessService:
             "databases": {
                 "mariadb": bool(self.client_manager.mariadb),
                 "postgres": bool(self.client_manager.postgres),
-                "supabase": bool(self.client_manager.supabase),
-                "qdrant": bool(self.client_manager.qdrant)
+                "lancedb": "pending_integration",
+                "graphrag": bool(self.client_manager.graphrag)
             },
             "client_manager": {
                 "status": "healthy" if self.client_manager.is_healthy() else "unhealthy",

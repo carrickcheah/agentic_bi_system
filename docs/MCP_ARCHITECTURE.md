@@ -67,8 +67,8 @@ Our Application (MCP HOST + CLIENTS)
 └── 4 External MCP Servers:
     ├── MariaDB MCP Server    (Business Data)
     ├── PostgreSQL MCP Server (Memory/Cache)
-    ├── Qdrant MCP Server     (Vector Search)
-    └── Supabase MCP Server   (Additional Operations)
+    ├── LanceDB MCP Server    (Vector Search)
+    └── GraphRAG MCP Server   (Knowledge Graph)
 ```
 
 ### Key Components
@@ -126,7 +126,7 @@ Internet/Users
                     │                  │                  │
                     ▼                  ▼                  ▼
             ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-            │   MariaDB   │   │ PostgreSQL  │   │   Qdrant    │
+            │   MariaDB   │   │ PostgreSQL  │   │   LanceDB   │
             │ MCP Server  │   │ MCP Server  │   │ MCP Server  │
             │             │   │             │   │             │
             │ (Business   │   │ (Memory/    │   │ (Vector     │
@@ -177,7 +177,7 @@ Internet/Users
         │          ┌──────────▼──────────┐          │
         │          │                     │          │
         │     ┌────▼────┐ ┌────▼────┐ ┌──▼────┐ ┌───▼───┐
-        │     │MariaDB  │ │PostGre  │ │Qdrant │ │Supa   │
+        │     │MariaDB  │ │PostGre  │ │LanceDB│ │GraphRAG│
         │     │MCP SVR  │ │MCP SVR  │ │MCP SVR│ │base   │
         │     └─────────┘ └─────────┘ └───────┘ └───────┘
         │           │         │         │         │
@@ -231,11 +231,11 @@ Step 4: Individual MCP Server Connections
 ║                    MCP SERVER STARTUP                         ║
 ╚═══════════════════════════════════════════════════════════════╝
 
-┌─ MariaDB ─┐  ┌─PostgreSQL─┐  ┌─ Qdrant ─┐  ┌─Supabase─┐
-│ npx       │  │ npx        │  │ uvx      │  │ npx      │
-│ mariadb-  │  │ @model...  │  │ mcp-     │  │ @supa... │
-│ mcp-      │  │ postgres   │  │ server-  │  │ mcp-     │
-│ server    │  │            │  │ qdrant   │  │ server   │
+┌─ MariaDB ─┐  ┌─PostgreSQL─┐  ┌─ LanceDB ─┐  ┌─GraphRAG─┐
+│ npx       │  │ npx        │  │ npx      │  │ uvx      │
+│ mariadb-  │  │ @model...  │  │ lance-   │  │ graphrag │
+│ mcp-      │  │ postgres   │  │ mcp      │  │ mcp-     │
+│ server    │  │            │  │          │  │ server   │
 └───────────┘  └────────────┘  └──────────┘  └──────────┘
       │              │              │              │
       ▼              ▼              ▼              ▼
@@ -396,7 +396,7 @@ Scenario A: Standalone MCP Backend
 │ │             │    │             │    │             │      │
 │ │ BackendSrv  │    │ MariaDB     │    │ External    │      │
 │ │ Runs Forever│    │ PostgreSQL  │    │ Processes   │      │
-│ │ No HTTP     │    │ Qdrant      │    │             │      │
+│ │ No HTTP     │    │ LanceDB     │    │             │      │
 │ └─────────────┘    │ Supabase    │    │             │      │
 │                    └─────────────┘    └─────────────┘      │
 └─────────────────────────────────────────────────────────────┘
@@ -421,7 +421,7 @@ Scenario B: Full Web Application (Embedded)
 │ │ │Bridge   │ │    │             │    │             │      │
 │ │ │(Embedded│ │    │ BackendSrv  │    │ MariaDB     │      │
 │ │ │ Mode)   │ │    │ (Embedded)  │    │ PostgreSQL  │      │
-│ │ └─────────┘ │    └─────────────┘    │ Qdrant      │      │
+│ │ └─────────┘ │    └─────────────┘    │ LanceDB     │      │
 │ │             │                       │ Supabase    │      │
 │ └─────────────┘                       └─────────────┘      │
 └─────────────────────────────────────────────────────────────┘
@@ -457,7 +457,7 @@ Cloud Deployment Process:
 │ ├─ Main Process: FastAPI (main.py)                         │
 │ ├─ Child Process: MariaDB MCP Server                       │
 │ ├─ Child Process: PostgreSQL MCP Server                    │
-│ ├─ Child Process: Qdrant MCP Server                        │
+│ ├─ Child Process: LanceDB MCP Server                       │
 │ ├─ Child Process: Supabase MCP Server                      │
 │ └─ All connected via stdio/JSON-RPC                        │
 │                                                             │
@@ -466,59 +466,7 @@ Cloud Deployment Process:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Configuration
 
-### MCP Configuration (`mcp.json`)
-```json
-{
-  "mcpServers": {
-    "mariadb": {
-      "command": "npx",
-      "args": ["-y", "mariadb-mcp-server"],
-      "env": {
-        "MARIADB_HOST": "${MARIADB_HOST}",
-        "MARIADB_PORT": "${MARIADB_PORT}",
-        "MARIADB_USER": "${MARIADB_USER}",
-        "MARIADB_PASSWORD": "${MARIADB_PASSWORD}",
-        "MARIADB_DATABASE": "${MARIADB_DATABASE}"
-      }
-    },
-    "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres", "${POSTGRES_URL}"]
-    },
-    "qdrant": {
-      "command": "uvx",
-      "args": ["mcp-server-qdrant"],
-      "env": {
-        "QDRANT_URL": "${QDRANT_URL}",
-        "QDRANT_API_KEY": "${QDRANT_API_KEY}",
-        "COLLECTION_NAME": "valiant_vector",
-        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
-      }
-    },
-    "supabase": {
-      "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--access-token", "${SUPABASE_ACCESS_TOKEN}"]
-    }
-  }
-}
-```
-
-### Environment Variables (`.env`)
-```bash
-# Database Configuration
-MARIADB_HOST=your-host
-MARIADB_PORT=3306
-MARIADB_USER=root
-MARIADB_PASSWORD=your-password
-MARIADB_DATABASE=your-database
-
-POSTGRES_URL=postgresql://user:pass@host:port/db
-SUPABASE_ACCESS_TOKEN=your-token
-QDRANT_URL=https://your-qdrant.cloud.qdrant.io:6333
-QDRANT_API_KEY=your-qdrant-key
-```
 
 ## Code Examples
 

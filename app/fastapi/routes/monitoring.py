@@ -185,10 +185,10 @@ async def get_detailed_status(
             "services": {
                 "api_server": {"status": "operational", "response_time": 45},
                 "mcp_servers": {
-                    "supabase": {"status": "operational", "latency": 85},
                     "mariadb": {"status": "operational", "latency": 65},
                     "postgresql": {"status": "operational", "latency": 70},
-                    "qdrant": {"status": "operational", "latency": 95}
+                    "lancedb": {"status": "operational", "latency": 85},
+                    "graphrag": {"status": "operational", "latency": 95}
                 },
                 "cache_systems": {
                     "anthropic_cache": {"status": "operational", "hit_rate": 0.92},

@@ -1,9 +1,9 @@
-# <× GraphRAG as MCP Service: Senior FAANG Engineer Analysis
+# <ï¿½ GraphRAG as MCP Service: Senior FAANG Engineer Analysis
 ## Ultra-Deep Technical Assessment of Architectural Integration
 
 ---
 
-## =Ë **Executive Technical Assessment**
+## =ï¿½ **Executive Technical Assessment**
 
 ### **Feasibility Verdict:  YES, WITH SIGNIFICANT ENGINEERING INVESTMENT**
 
@@ -22,7 +22,7 @@ Implement a **dedicated GraphRAG server with MCP interface wrapper** that solves
 
 ---
 
-## =¨ **Critical Architectural Conflicts Analysis**
+## =ï¿½ **Critical Architectural Conflicts Analysis**
 
 ### **Conflict 1: State Management**
 
@@ -189,7 +189,7 @@ class MCPPerformanceRequirements:
 
 ---
 
-## <× **SOLUTION: Hybrid GraphRAG Server Architecture**
+## <ï¿½ **SOLUTION: Hybrid GraphRAG Server Architecture**
 
 ### **Architecture Overview**
 
@@ -538,7 +538,7 @@ class FivePhaseWorkflowIntegration:
 
 ---
 
-## ¡ **Production Infrastructure Requirements**
+## ï¿½ **Production Infrastructure Requirements**
 
 ### **Monitoring and Observability**
 
@@ -605,7 +605,7 @@ class GraphRAGResilientOperations:
 
 ---
 
-## =Ê **Performance Benchmarks and SLAs**
+## =ï¿½ **Performance Benchmarks and SLAs**
 
 ### **Target Performance Characteristics**
 
@@ -641,7 +641,7 @@ class GraphRAGMCPPerformanceSLAs:
 
 ---
 
-## =€ **Deployment and MCP Configuration**
+## =ï¿½ **Deployment and MCP Configuration**
 
 ### **Updated MCP Configuration**
 
@@ -663,13 +663,11 @@ class GraphRAGMCPPerformanceSLAs:
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres", "${POSTGRES_URL}"]
     },
-    "qdrant": {
-      "command": "uvx",
-      "args": ["mcp-server-qdrant"],
+    "lancedb": {
+      "command": "npx",
+      "args": ["lance-mcp", "${LANCEDB_DATA_PATH}"],
       "env": {
-        "QDRANT_URL": "${QDRANT_URL}",
-        "QDRANT_API_KEY": "${QDRANT_API_KEY}",
-        "COLLECTION_NAME": "valiant_vector",
+        "LANCEDB_DATA_PATH": "./lance_db/data",
         "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2"
       }
     },
@@ -693,7 +691,7 @@ class GraphRAGMCPPerformanceSLAs:
 
 ---
 
-## =Ë **Implementation Roadmap**
+## =ï¿½ **Implementation Roadmap**
 
 ### **Phase 1: Core Infrastructure (Weeks 1-4)**
 
@@ -725,7 +723,7 @@ class GraphRAGMCPPerformanceSLAs:
 
 ---
 
-## <¯ **Business Value and ROI Analysis**
+## <ï¿½ **Business Value and ROI Analysis**
 
 ### **Expected Business Impact**
 
@@ -753,7 +751,7 @@ class GraphRAGBusinessValue:
     
     cost_benefit_analysis = {
         "implementation_cost": {
-            "development": "$150,000 (8 weeks × 2 engineers)",
+            "development": "$150,000 (8 weeks ï¿½ 2 engineers)",
             "infrastructure": "$2,000/month (additional compute)",
             "operations": "$1,000/month (monitoring, maintenance)"
         },
@@ -774,7 +772,7 @@ class GraphRAGBusinessValue:
 
 ---
 
-## <Æ **Final Recommendation: PROCEED WITH HYBRID ARCHITECTURE**
+## <ï¿½ **Final Recommendation: PROCEED WITH HYBRID ARCHITECTURE**
 
 ### **Technical Verdict:  FEASIBLE AND RECOMMENDED**
 
