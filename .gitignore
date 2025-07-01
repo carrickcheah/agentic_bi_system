@@ -12,6 +12,8 @@ wheels/
 *.egg
 MANIFEST
 CLAUDE.md
+agent.md
+agent.json
 
 # Virtual environments
 .venv/

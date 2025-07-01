@@ -19,14 +19,123 @@ logging.basicConfig(
 )
 
 async def chat_with_model():
-    """Simple chat using just the model module."""
+    """Simple chat using just the model module with streaming support."""
     from model.runner import ModelManager
+    from model.config import get_prompt
+    from datetime import datetime
+    
+    class StreamingModelManager(ModelManager):
+        """Extended ModelManager with streaming support for all models."""
+        
+        async def generate_response_stream(self, prompt, max_tokens=2048, temperature=0.7, use_system_prompt=True, schema_info=None):
+            """Generate streaming response from any model."""
+            model_name, model = self.current_model
+            
+            try:
+                if model_name == "anthropic":
+                    # Anthropic streaming with extended thinking support
+                    messages = [{"role": "user", "content": prompt}]
+                    system_prompt = get_prompt("sql_agent") if use_system_prompt else None
+                    
+                    api_params = {
+                        "model": model.model,
+                        "max_tokens": max_tokens,
+                        "temperature": temperature,
+                        "messages": messages
+                    }
+                    
+                    if system_prompt:
+                        api_params["system"] = [{"type": "text", "text": system_prompt}]
+                    
+                    # Add extended thinking if enabled
+                    supports_thinking = any(ver in model.model for ver in ["claude-opus-4", "claude-sonnet-4", "claude-sonnet-3.7"])
+                    if model.enable_thinking and supports_thinking:
+                        api_params["thinking"] = {
+                            "type": "enabled",
+                            "budget_tokens": model.thinking_budget
+                        }
+                        api_params["temperature"] = 1.0  # Required for extended thinking
+                        print("\n🧠 Extended thinking enabled...\n", flush=True)
+                    
+                    # Proper Anthropic async streaming implementation
+                    async with model.client.messages.stream(**api_params) as stream:
+                        async for text in stream.text_stream:
+                            yield text
+                            
+                elif model_name in ["deepseek", "openai"]:
+                    # DeepSeek and OpenAI streaming
+                    messages = []
+                    if use_system_prompt:
+                        system_prompt = get_prompt("sql_agent")
+                        messages.append({"role": "system", "content": system_prompt})
+                    messages.append({"role": "user", "content": prompt})
+                    
+                    stream = await model.client.chat.completions.create(
+                        model=model.model,
+                        messages=messages,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        stream=True
+                    )
+                    
+                    async for chunk in stream:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            yield chunk.choices[0].delta.content
+                            
+                else:
+                    # Fallback to non-streaming
+                    response = await self.generate_response(prompt, max_tokens, temperature, use_system_prompt, schema_info)
+                    yield response
+                    
+            except Exception as e:
+                print(f"\n⚠️ {model_name} failed: {str(e)[:200]}...")
+                # Try all remaining models in order (avoid infinite recursion)
+                original_model = model_name
+                for fallback_name, fallback_model in self.models:
+                    if fallback_name != original_model:
+                        try:
+                            print(f"\n🔄 Falling back to {fallback_name}...")
+                            self.current_model = (fallback_name, fallback_model)
+                            
+                            # Use direct model call instead of recursive stream call
+                            if fallback_name == "anthropic":
+                                # Skip anthropic if it already failed
+                                continue
+                            elif fallback_name in ["deepseek", "openai"]:
+                                # Try OpenAI-compatible models directly
+                                messages = []
+                                if use_system_prompt:
+                                    system_prompt = get_prompt("sql_agent")
+                                    messages.append({"role": "system", "content": system_prompt})
+                                messages.append({"role": "user", "content": prompt})
+                                
+                                stream = await fallback_model.client.chat.completions.create(
+                                    model=fallback_model.model,
+                                    messages=messages,
+                                    max_tokens=max_tokens,
+                                    temperature=temperature,
+                                    stream=True
+                                )
+                                
+                                async for chunk in stream:
+                                    if chunk.choices and chunk.choices[0].delta.content:
+                                        yield chunk.choices[0].delta.content
+                                return
+                                
+                        except Exception as e2:
+                            print(f"\n⚠️ {fallback_name} also failed: {str(e2)[:100]}...")
+                            continue
+                            
+                # If we get here, all models failed
+                yield f"\n\nError: All models failed. Original error: {e}"
     
     print("Initializing Model-based Assistant...")
-    model_manager = ModelManager()
-    print(f"Using {model_manager.get_current_model()} model\n")
+    model_manager = StreamingModelManager()
+    print(f"✅ Using {model_manager.get_current_model()} model")
+    print(f"📋 Available models: {', '.join(model_manager.get_available_models())}\n")
     
     print("Hi! I am your Business Intelligence Assistant (Direct Mode).")
+    print("✨ Responses will stream in real-time")
     print("(Type 'exit' to quit)\n")
     
     while True:
@@ -39,26 +148,39 @@ async def chat_with_model():
                 print("\nGoodbye!")
                 break
             
-            print("\nAssistant: ", end="", flush=True)
+            initial_model = model_manager.get_current_model()
+            print(f"\n🤔 Processing with {initial_model}...")
+            start_time = datetime.now()
             
             prompt = f"""You are a business intelligence analyst. Answer this question concisely: "{user_query}"
 Provide key insights and actionable recommendations where relevant."""
             
-            response = await model_manager.generate_response(
+            print("\nAssistant: ", end="", flush=True)
+            
+            char_count = 0
+            async for chunk in model_manager.generate_response_stream(
                 prompt=prompt,
-                max_tokens=1024,
+                max_tokens=16000,  # Must be > thinking_budget (10000)
                 temperature=0.7,
                 use_system_prompt=True
-            )
+            ):
+                print(chunk, end="", flush=True)
+                char_count += len(chunk)
             
-            print(response)
+            total_time = (datetime.now() - start_time).total_seconds()
+            final_model = model_manager.get_current_model()
+            
+            if final_model != initial_model:
+                print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model} model (⚠️ fell back from {initial_model})")
+            else:
+                print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model} model")
             print()
             
         except KeyboardInterrupt:
             print("\n\nExiting...")
             break
         except Exception as e:
-            print(f"\nError: {e}\n")
+            print(f"\n❌ Error: {e}\n")
 
 async def chat_with_phases():
     """Chat using the full 5-phase orchestrator."""

@@ -26,7 +26,9 @@ class AnthropicModel:
         self.enable_caching = settings.anthropic_enable_caching
         self.cache_system_prompt = settings.cache_system_prompt
         self.cache_schema_info = settings.cache_schema_info
-        logger.info(f"Anthropic model initialized: {self.model}, caching: {self.enable_caching}")
+        self.enable_thinking = True  # Enable extended thinking by default
+        self.thinking_budget = 10000  # Default thinking budget tokens
+        logger.info(f"Anthropic model initialized: {self.model}, caching: {self.enable_caching}, thinking: {self.enable_thinking}")
     
     def _build_cached_messages(
         self, 
@@ -83,10 +85,12 @@ class AnthropicModel:
         max_tokens: int = 2048,
         temperature: float = 0.7,
         use_system_prompt: bool = True,
-        schema_info: Optional[Dict] = None
+        schema_info: Optional[Dict] = None,
+        enable_thinking: Optional[bool] = None,
+        thinking_budget: Optional[int] = None
     ) -> str:
         """
-        Generate a response from Claude with prompt caching support.
+        Generate a response from Claude with prompt caching and extended thinking support.
         
         Args:
             prompt: The user prompt
@@ -94,6 +98,8 @@ class AnthropicModel:
             temperature: Response creativity (0-1)
             use_system_prompt: Whether to include SQL agent system prompt
             schema_info: Database schema info to cache (optional)
+            enable_thinking: Override default thinking setting (optional)
+            thinking_budget: Override default thinking budget tokens (optional)
             
         Returns:
             Claude's response text
@@ -125,9 +131,34 @@ class AnthropicModel:
                 else:
                     api_params["system"] = system_prompt
             
+            # Add extended thinking if enabled and model supports it
+            use_thinking = enable_thinking if enable_thinking is not None else self.enable_thinking
+            thinking_tokens = thinking_budget if thinking_budget is not None else self.thinking_budget
+            
+            # Only Claude 4 models and Claude Sonnet 3.7 support thinking
+            supports_thinking = any(ver in self.model for ver in ["claude-opus-4", "claude-sonnet-4", "claude-sonnet-3.7"])
+            
+            if use_thinking and supports_thinking:
+                api_params["thinking"] = {
+                    "type": "enabled",
+                    "budget_tokens": thinking_tokens
+                }
+                api_params["temperature"] = 1.0  # Required for extended thinking
+                logger.info(f"Extended thinking enabled with budget: {thinking_tokens} tokens")
+            
             response = await self.client.messages.create(**api_params)
             
-            return response.content[0].text
+            # Handle response based on whether thinking was used
+            if use_thinking and supports_thinking and hasattr(response, 'content'):
+                # Look for the text content block (thinking blocks are separate)
+                for content_block in response.content:
+                    if hasattr(content_block, 'type') and content_block.type == 'text':
+                        return content_block.text
+                # Fallback if no text block found
+                return response.content[0].text if response.content else ""
+            else:
+                # Standard response handling
+                return response.content[0].text
             
         except Exception as e:
             logger.error(f"Anthropic API error: {e}")

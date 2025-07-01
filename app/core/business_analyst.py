@@ -12,7 +12,7 @@ import logging
 
 # Import phase runners
 from intelligence.runner import IntelligenceModuleRunner
-from fastmcp.mcp_client_manager import MCPClientManager
+from fastmcp.client_manager import MCPClientManager
 from investigation.runner import conduct_autonomous_investigation
 from insight_synthesis.runner import InsightSynthesizer, OutputFormat
 
