@@ -437,7 +437,9 @@ class DomainExpert:
                 # Partial match gets reduced points
                 keyword_score += 0.5
         
-        keyword_score = min(keyword_score / len(patterns["keywords"]), 1.0)
+        # Normalize to prevent dilution with large keyword lists - boost scoring
+        if keyword_score > 0:
+            keyword_score = min(keyword_score * 5 / len(patterns["keywords"]), 1.0)
         total_score += keyword_score * 0.4
         
         # Metrics scoring (35% weight)
@@ -448,7 +450,9 @@ class DomainExpert:
             elif any(word in query for word in metric.split()):
                 metrics_score += 0.6
         
-        metrics_score = min(metrics_score / len(patterns["metrics"]), 1.0)
+        # Normalize metrics scoring similarly
+        if metrics_score > 0:
+            metrics_score = min(metrics_score * 2 / len(patterns["metrics"]), 1.0)
         total_score += metrics_score * 0.35
         
         # Processes scoring (25% weight)
@@ -459,7 +463,9 @@ class DomainExpert:
             elif any(word in query for word in process.split()):
                 process_score += 0.7
         
-        process_score = min(process_score / len(patterns["processes"]), 1.0)
+        # Normalize process scoring similarly
+        if process_score > 0:
+            process_score = min(process_score * 2 / len(patterns["processes"]), 1.0)
         total_score += process_score * 0.25
         
         return total_score

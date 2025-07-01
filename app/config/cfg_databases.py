@@ -28,8 +28,8 @@ class DatabaseSettings(BaseSettings):
     # PostgreSQL MCP configuration
     postgres_url: str = Field(description="PostgreSQL connection URL for MCP")
     
-    # Supabase MCP configuration
-    supabase_access_token: str = Field(description="Supabase access token for MCP")
+    # Supabase MCP configuration (optional - removed from backend)
+    supabase_access_token: str = Field(default="", description="Supabase access token for MCP (deprecated)")
     
     # General vector/embedding configuration
     collection_name: str = Field(default="valiant_vector", description="Collection name for patterns")

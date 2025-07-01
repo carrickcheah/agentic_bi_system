@@ -373,7 +373,9 @@ class ComplexityAnalyzer:
                     "complex": 0.75,
                     "advanced": 1.0
                 }
-                scores.append(level_values[level] * min(level_score / len(keywords), 1.0))
+                # Boost scoring to prevent dilution
+                normalized_score = min(level_score * 2 / len(keywords), 1.0)
+                scores.append(level_values[level] * normalized_score)
         
         if not scores:
             return 0.3  # Default moderate score

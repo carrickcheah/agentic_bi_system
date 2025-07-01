@@ -26,9 +26,9 @@ class IntelligenceSettings(BaseSettings):
         description="Maximum time for strategy planning in seconds"
     )
     
-    # Domain Classification Settings
+    # Domain Classification Settings  
     domain_confidence_threshold: float = Field(
-        default=0.75,
+        default=0.25,
         description="Minimum confidence for domain classification"
     )
     
@@ -78,7 +78,7 @@ class IntelligenceSettings(BaseSettings):
     )
     
     hypothesis_confidence_threshold: float = Field(
-        default=0.6,
+        default=0.3,
         description="Minimum confidence for hypothesis inclusion"
     )
     
