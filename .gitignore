@@ -68,6 +68,7 @@ coverage.xml
 .pytest_cache/
 cover/
 
+
 # Translations
 *.mo
 *.pot
@@ -217,3 +218,5 @@ logic.md
 /winru
 
 /supa_ui
+
+z_dairy.md
