@@ -1,0 +1,117 @@
+{
+  "enhanced_sql_queries": [
+    {
+      "_id": "sql_001_20241201_143022",
+      
+      "query_content": {
+        "sql_query": "SELECT p.product_name, SUM(oi.quantity) as total_sold, SUM(oi.quantity * oi.price) as revenue FROM products p JOIN order_items oi ON p.id = oi.product_id JOIN orders o ON oi.order_id = o.id WHERE o.status = 'completed' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY) GROUP BY p.id, p.product_name ORDER BY total_sold DESC LIMIT 10",
+        "readable_description": "Find top 10 best-selling products by quantity in the last 90 days with revenue",
+        "business_question": "What are our top-performing products this quarter?",
+        "query_intent": "sales_performance_analysis",
+        "query_type": "analytical"
+      },
+
+      "semantic_context": {
+        "business_domain": "sales",
+        "business_function": "product_analysis", 
+        "analysis_type": "ranking",
+        "time_dimension": "quarterly",
+        "metrics": ["quantity_sold", "revenue"],
+        "entities": ["products", "orders", "sales"],
+        "business_concepts": [
+          "top sellers",
+          "product performance", 
+          "sales ranking",
+          "quarterly analysis"
+        ],
+        "keywords": [
+          "best selling products",
+          "top products",
+          "product sales",
+          "quarterly performance",
+          "sales analysis"
+        ]
+      },
+
+      "technical_metadata": {
+        "database": "mariadb",
+        "tables_used": ["products", "order_items", "orders"],
+        "join_count": 2,
+        "aggregation_functions": ["SUM", "GROUP BY"],
+        "complexity_score": 3,
+        "performance_tier": "medium",
+        "estimated_cost": "low",
+        "query_pattern": "top_n_analysis",
+        "has_subqueries": false,
+        "has_window_functions": false,
+        "sql_dialect": "mysql",
+        "optimization_hints": [
+          "ensure_orders_status_index",
+          "partition_by_date_range",
+          "consider_materialized_view"
+        ]
+      },
+
+      "user_context": {
+        "user_id": "product_manager_sarah",
+        "user_role": "product_manager",
+        "user_department": "product",
+        "user_skill_level": "intermediate",
+        "organization_id": "acme_corp",
+        "industry": "ecommerce"
+      },
+
+      "investigation_context": {
+        "investigation_phase": "data_exploration",
+        "hypothesis": "Certain products drive majority of sales volume",
+        "confidence_level": "high",
+        "business_impact": "high",
+        "follows_pattern": "quarterly_review"
+      },
+
+      "execution_results": {
+        "execution_status": "completed",
+        "success": true,
+        "execution_time_ms": 185.4,
+        "rows_returned": 10,
+        "execution_count": 3,
+        "last_executed_at": "2024-12-01T14:45:22Z",
+        "first_executed_at": "2024-12-01T14:30:22Z",
+        "average_execution_time_ms": 192.1
+      },
+
+      "learning_metadata": {
+        "usage_frequency": 3,
+        "success_rate": 1.0,
+        "reuse_patterns": ["quarterly_review"],
+        "similar_queries": ["sql_002_product_ranking", "sql_015_sales_analysis"],
+        "performance_trends": "stable"
+      },
+
+      "business_intelligence": {
+        "kpi_category": "sales_performance",
+        "decision_support_level": "tactical",
+        "stakeholder_relevance": ["product_team", "sales_team", "executive"],
+        "actionability_score": 0.85,
+        "strategic_alignment": "revenue_growth",
+        "business_value": "high"
+      },
+
+      "version_control": {
+        "created_at": "2024-12-01T14:30:22Z",
+        "updated_at": "2024-12-01T14:45:22Z", 
+        "version": "1.0",
+        "created_by": "investigation_engine",
+        "validation_status": "validated"
+      },
+
+      "tags": [
+        "sales",
+        "product_analysis", 
+        "quarterly_review",
+        "top_performers",
+        "revenue_analysis"
+      ]
+    }
+  ]
+}

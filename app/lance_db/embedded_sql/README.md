@@ -1,5 +1,7 @@
 # SQL Query Embeddings for LanceDB
 
+uv run python -m lance_db.embedded_sql.ingest_sql_queries sample_queries.json
+
 Simple system to save SQL queries in JSON format and ingest them into LanceDB for semantic similarity search.
 
 ## Quick Start

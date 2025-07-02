@@ -14,15 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
 
-# Add parent module to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-try:
-    from runner import SQLEmbeddingService
-    from lance_logging import logger
-except ImportError:
-    print("Error: Could not import LanceDB components. Make sure you're running from the correct directory.")
-    sys.exit(1)
+from ..runner import SQLEmbeddingService
+from ..lance_logging import logger
 
 
 class SQLQueryIngester:

@@ -13,6 +13,17 @@
 backup.env
 node_modules/
 
+
+# attch
+/supa_ui
+.mcp/
+z_dairy.md
+gantt_chart/
+agents/
+search_db.sh
+**/CLAUDE.local.md
+
+
 # OS files
 .DS_Store
 .DS_Store?

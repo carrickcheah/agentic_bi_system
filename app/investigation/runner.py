@@ -15,10 +15,14 @@ try:
     from .config import settings, runtime_config
     from .investigation_logging import InvestigationLogger
     from .prompts import InvestigationPrompts, PromptTemplates
+    from ..fastmcp.service import BusinessService
 except ImportError:
     from config import settings, runtime_config
     from investigation_logging import InvestigationLogger
     from prompts import InvestigationPrompts, PromptTemplates
+    # Placeholder for BusinessService in standalone mode
+    class BusinessService:
+        async def execute_sql(self, *args, **kwargs): return None
 
 
 @dataclass
@@ -111,6 +115,15 @@ class AutonomousInvestigationEngine:
         self.execution_context = execution_context
         self.start_time = datetime.now()
         self.mcp_client_manager = mcp_client_manager
+        
+        # Initialize BusinessService for query learning
+        self.business_service = None
+        if mcp_client_manager:
+            try:
+                self.business_service = BusinessService(mcp_client_manager, enable_query_learning=True)
+                asyncio.create_task(self.business_service.initialize())
+            except Exception as e:
+                self.logger.logger.warning(f"Failed to initialize BusinessService for query learning: {e}")
         
         # Register investigation in runtime config
         runtime_config.register_investigation(self.investigation_id, {
@@ -405,11 +418,20 @@ class AutonomousInvestigationEngine:
         return schema_results
     
     async def _perform_data_exploration(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Explore data quality and patterns using MCP clients."""
+        """Explore data quality and patterns using MCP clients with query learning."""
         exploration_results = {}
         
         # Get schema information from previous step
         schema_info = context.get("previous_steps", {}).get("schema_analysis", {})
+        
+        # Prepare business context for query learning
+        business_context = {
+            "investigation_phase": "data_exploration",
+            "investigation_id": self.investigation_id,
+            "business_question": self.investigation_request,
+            "step_name": "data_exploration",
+            "business_domain": self._extract_business_domain(self.investigation_request)
+        }
         
         # Explore MariaDB data
         mariadb_client = self.mcp_client_manager.get_client("mariadb")
@@ -420,17 +442,27 @@ class AutonomousInvestigationEngine:
                 
                 for table in tables[:3]:  # Limit to first 3 tables
                     try:
-                        # Get row count
-                        count = await mariadb_client.get_table_count(table)
+                        # Get row count with query learning
+                        count_query = f"SELECT COUNT(*) as total_rows FROM {table}"
+                        count_result = await self._execute_query_with_learning(
+                            query=count_query,
+                            database="mariadb",
+                            business_context={**business_context, "table": table, "operation": "count"}
+                        )
+                        count = count_result.data[0]["total_rows"] if count_result.success and count_result.data else 0
                         
-                        # Sample data
+                        # Sample data with query learning
                         sample_query = f"SELECT * FROM {table} LIMIT 5"
-                        sample_result = await mariadb_client.execute_query(sample_query)
+                        sample_result = await self._execute_query_with_learning(
+                            query=sample_query,
+                            database="mariadb",
+                            business_context={**business_context, "table": table, "operation": "sample"}
+                        )
                         
                         exploration_results["mariadb"][table] = {
                             "row_count": count,
-                            "sample_rows": len(sample_result.rows),
-                            "columns": sample_result.columns,
+                            "sample_rows": len(sample_result.data) if sample_result.success else 0,
+                            "columns": sample_result.columns if sample_result.success else [],
                             "execution_time": sample_result.execution_time
                         }
                         
@@ -468,12 +500,108 @@ class AutonomousInvestigationEngine:
         
         return exploration_results
     
+    async def _execute_query_with_learning(
+        self,
+        query: str,
+        database: str,
+        business_context: Dict[str, Any],
+        user_id: str = "investigation_engine"
+    ):
+        """
+        Execute query using BusinessService for automatic learning.
+        Falls back to direct MCP client if BusinessService unavailable.
+        """
+        # Try to use BusinessService for query learning
+        if self.business_service:
+            try:
+                return await self.business_service.execute_sql(
+                    query=query,
+                    database=database,
+                    user_id=user_id,
+                    business_context=business_context
+                )
+            except Exception as e:
+                self.logger.logger.warning(f"BusinessService query failed, falling back to direct MCP: {e}")
+        
+        # Fallback to direct MCP client execution
+        client = self.mcp_client_manager.get_client(database)
+        if client:
+            try:
+                result = await client.execute_query(query)
+                # Convert to QueryResult format for compatibility
+                from ..fastmcp.service import QueryResult
+                return QueryResult(
+                    data=result.rows if hasattr(result, 'rows') else result.get("data", []),
+                    columns=result.columns if hasattr(result, 'columns') else result.get("columns", []),
+                    row_count=len(result.rows) if hasattr(result, 'rows') else result.get("row_count", 0),
+                    execution_time=result.execution_time if hasattr(result, 'execution_time') else 0.0,
+                    database=database,
+                    success=True
+                )
+            except Exception as e:
+                from ..fastmcp.service import QueryResult
+                return QueryResult(
+                    data=[],
+                    columns=[],
+                    row_count=0,
+                    execution_time=0.0,
+                    database=database,
+                    success=False,
+                    error=str(e)
+                )
+        
+        # No client available
+        from ..fastmcp.service import QueryResult
+        return QueryResult(
+            data=[],
+            columns=[],
+            row_count=0,
+            execution_time=0.0,
+            database=database,
+            success=False,
+            error=f"No {database} client available"
+        )
+    
+    def _extract_business_domain(self, investigation_request: str) -> str:
+        """
+        Extract business domain from investigation request for query classification.
+        """
+        request_lower = investigation_request.lower()
+        
+        # Define domain keywords
+        domain_keywords = {
+            "sales": ["sales", "revenue", "order", "customer", "purchase", "transaction"],
+            "finance": ["finance", "profit", "cost", "budget", "expense", "financial"],
+            "hr": ["employee", "staff", "payroll", "hr", "human resource", "personnel"],
+            "production": ["production", "manufacturing", "inventory", "supply", "warehouse"],
+            "marketing": ["marketing", "campaign", "advertisement", "promotion", "lead"],
+            "quality": ["quality", "defect", "compliance", "standard", "audit"],
+            "logistics": ["logistics", "shipping", "delivery", "transport", "fulfillment"]
+        }
+        
+        # Check for domain keywords
+        for domain, keywords in domain_keywords.items():
+            if any(keyword in request_lower for keyword in keywords):
+                return domain
+        
+        # Default to general analytics
+        return "analytics"
+    
     async def _perform_hypothesis_testing(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Test hypotheses using actual database queries."""
+        """Test hypotheses using actual database queries with learning integration."""
         testing_results = {}
         
         # Extract hypotheses from context
         hypotheses = context.get("hypotheses", {})
+        
+        # Prepare business context for query learning
+        business_context = {
+            "investigation_phase": "hypothesis_testing",
+            "investigation_id": self.investigation_id,
+            "business_question": self.investigation_request,
+            "step_name": "hypothesis_testing",
+            "business_domain": self._extract_business_domain(self.investigation_request)
+        }
         
         # Test hypotheses against MariaDB
         mariadb_client = self.mcp_client_manager.get_client("mariadb")
@@ -485,22 +613,58 @@ class AutonomousInvestigationEngine:
                 request_lower = self.investigation_request.lower()
                 
                 if "sales" in request_lower:
-                    # Test sales-related hypotheses
+                    # Test sales-related hypotheses with learning
                     queries = [
-                        "SELECT COUNT(*) as total_records FROM sales",
-                        "SELECT YEAR(date) as year, SUM(amount) as total FROM sales GROUP BY YEAR(date) ORDER BY year DESC LIMIT 5"
+                        ("SELECT COUNT(*) as total_records FROM sales", "total_sales_count"),
+                        ("SELECT YEAR(date) as year, SUM(amount) as total FROM sales GROUP BY YEAR(date) ORDER BY year DESC LIMIT 5", "yearly_sales_trend")
                     ]
                     
-                    for i, query in enumerate(queries):
+                    for i, (query, hypothesis_name) in enumerate(queries):
                         try:
-                            result = await mariadb_client.execute_query(query)
+                            result = await self._execute_query_with_learning(
+                                query=query,
+                                database="mariadb",
+                                business_context={**business_context, "hypothesis": hypothesis_name}
+                            )
                             testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
+                                "hypothesis": hypothesis_name,
                                 "query": query,
-                                "results": result.rows,
-                                "execution_time": result.execution_time
+                                "results": result.data if result.success else [],
+                                "execution_time": result.execution_time,
+                                "success": result.success
                             }
                         except Exception as e:
-                            testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {"error": str(e)}
+                            testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
+                                "hypothesis": hypothesis_name,
+                                "error": str(e)
+                            }
+                
+                elif "customer" in request_lower or "user" in request_lower:
+                    # Test customer-related hypotheses
+                    queries = [
+                        ("SELECT COUNT(DISTINCT customer_id) as unique_customers FROM orders", "unique_customer_count"),
+                        ("SELECT status, COUNT(*) as count FROM customers GROUP BY status", "customer_status_distribution")
+                    ]
+                    
+                    for i, (query, hypothesis_name) in enumerate(queries):
+                        try:
+                            result = await self._execute_query_with_learning(
+                                query=query,
+                                database="mariadb",
+                                business_context={**business_context, "hypothesis": hypothesis_name}
+                            )
+                            testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
+                                "hypothesis": hypothesis_name,
+                                "query": query,
+                                "results": result.data if result.success else [],
+                                "execution_time": result.execution_time,
+                                "success": result.success
+                            }
+                        except Exception as e:
+                            testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
+                                "hypothesis": hypothesis_name,
+                                "error": str(e)
+                            }
                             
             except Exception as e:
                 self.logger.logger.warning(f"MariaDB hypothesis testing failed: {e}")
