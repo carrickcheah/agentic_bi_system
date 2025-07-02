@@ -5,14 +5,10 @@ Domain-separated configuration with simple composition for backwards compatibili
 """
 
 from .cfg_databases import DatabaseSettings
-from .cfg_intelligence import IntelligenceSettings
-from .cfg_security import SecuritySettings
 from .cfg_infrastructure import InfrastructureSettings
 
 # Create individual domain instances
 databases = DatabaseSettings()
-intelligence = IntelligenceSettings()
-security = SecuritySettings()
 infrastructure = InfrastructureSettings()
 
 
@@ -22,8 +18,6 @@ class Settings:
     
     Domain ownership:
     - databases: Data team
-    - intelligence: ML team  
-    - security: Security team
     - infrastructure: DevOps team
     """
     
@@ -37,36 +31,6 @@ class Settings:
     supabase_access_token = databases.supabase_access_token
     collection_name = databases.collection_name
     embedding_model = databases.embedding_model
-    
-    # Intelligence settings (ML team)
-    anthropic_api_key = intelligence.anthropic_api_key
-    anthropic_model = intelligence.anthropic_model
-    anthropic_enable_caching = intelligence.anthropic_enable_caching
-    cache_system_prompt = intelligence.cache_system_prompt
-    cache_schema_info = intelligence.cache_schema_info
-    prompt_cache_ttl = intelligence.prompt_cache_ttl
-    deepseek_api_key = intelligence.deepseek_api_key
-    deepseek_model = intelligence.deepseek_model
-    deepseek_base_url = intelligence.deepseek_base_url
-    openai_api_key = intelligence.openai_api_key
-    openai_model = intelligence.openai_model
-    openai_base_url = intelligence.openai_base_url
-    embedding_model_name = intelligence.embedding_model_name
-    embedding_device = intelligence.embedding_device
-    embedding_batch_size = intelligence.embedding_batch_size
-    mcp_embedding_model = intelligence.mcp_embedding_model
-    max_investigation_steps = intelligence.max_investigation_steps
-    investigation_timeout = intelligence.investigation_timeout
-    
-    # Security settings (Security team)
-    max_query_timeout = security.max_query_timeout
-    max_rows_returned = security.max_rows_returned
-    allowed_sql_keywords = security.allowed_sql_keywords
-    dangerous_sql_keywords = security.dangerous_sql_keywords
-    rate_limit_requests = security.rate_limit_requests
-    rate_limit_window = security.rate_limit_window
-    session_timeout = security.session_timeout
-    cache_ttl = security.cache_ttl
     
     # Infrastructure settings (DevOps team)
     app_name = infrastructure.app_name

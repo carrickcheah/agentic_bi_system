@@ -1,7 +1,7 @@
 """
 Database Configuration Settings
 
-Handles all MCP database configurations for MariaDB, PostgreSQL, and Supabase.
+Handles all MCP database configurations for MariaDB, PostgreSQL.
 """
 
 from pydantic import Field

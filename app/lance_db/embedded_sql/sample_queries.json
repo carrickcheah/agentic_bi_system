@@ -1,0 +1,229 @@
+{
+  "queries": [
+    {
+      "sql_query": "SELECT COUNT(*) as total_sales, SUM(amount) as revenue FROM sales WHERE date >= '2024-01-01'",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 45.2,
+      "row_count": 1,
+      "user_id": "sales_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "What are our total sales and revenue for 2024?",
+        "tables_used": ["sales"],
+        "business_domain": "sales",
+        "complexity": "simple"
+      }
+    },
+    {
+      "sql_query": "SELECT p.product_name, SUM(oi.quantity) as total_sold FROM products p JOIN order_items oi ON p.id = oi.product_id JOIN orders o ON oi.order_id = o.id WHERE o.status = 'completed' GROUP BY p.id ORDER BY total_sold DESC LIMIT 10",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 156.8,
+      "row_count": 10,
+      "user_id": "product_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "What are our top 10 best-selling products?",
+        "tables_used": ["products", "order_items", "orders"],
+        "business_domain": "sales",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT e.name, e.department, COUNT(t.id) as hours_logged FROM employees e LEFT JOIN timesheets t ON e.id = t.employee_id WHERE t.date BETWEEN '2024-06-01' AND '2024-06-30' GROUP BY e.id",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 89.3,
+      "row_count": 245,
+      "user_id": "hr_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Show employee hours logged in June 2024",
+        "tables_used": ["employees", "timesheets"],
+        "business_domain": "hr",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT i.item_code, i.description, i.current_stock, i.min_stock_level FROM inventory i WHERE i.current_stock < i.min_stock_level ORDER BY (i.min_stock_level - i.current_stock) DESC",
+      "database": "mariadb",
+      "query_type": "operational",
+      "execution_time_ms": 32.1,
+      "row_count": 23,
+      "user_id": "warehouse_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Which items are below minimum stock levels?",
+        "tables_used": ["inventory"],
+        "business_domain": "inventory",
+        "complexity": "simple"
+      }
+    },
+    {
+      "sql_query": "SELECT m.machine_id, m.machine_name, AVG(p.efficiency_percentage) as avg_efficiency FROM machines m JOIN production_logs p ON m.id = p.machine_id WHERE p.shift_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) GROUP BY m.id HAVING avg_efficiency < 85",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 201.5,
+      "row_count": 8,
+      "user_id": "production_supervisor",
+      "success": true,
+      "metadata": {
+        "original_question": "Which machines have below average efficiency in the last week?",
+        "tables_used": ["machines", "production_logs"],
+        "business_domain": "production",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT c.customer_name, c.email, SUM(o.total_amount) as lifetime_value FROM customers c JOIN orders o ON c.id = o.customer_id WHERE o.status = 'completed' GROUP BY c.id ORDER BY lifetime_value DESC LIMIT 50",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 278.9,
+      "row_count": 50,
+      "user_id": "customer_success",
+      "success": true,
+      "metadata": {
+        "original_question": "Who are our top 50 customers by lifetime value?",
+        "tables_used": ["customers", "orders"],
+        "business_domain": "customer_management",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT MONTH(order_date) as month, COUNT(*) as order_count, AVG(total_amount) as avg_order_value FROM orders WHERE YEAR(order_date) = 2024 GROUP BY MONTH(order_date) ORDER BY month",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 67.4,
+      "row_count": 6,
+      "user_id": "business_analyst",
+      "success": true,
+      "metadata": {
+        "original_question": "Show monthly order trends for 2024",
+        "tables_used": ["orders"],
+        "business_domain": "sales",
+        "complexity": "simple"
+      }
+    },
+    {
+      "sql_query": "SELECT qc.inspection_date, COUNT(*) as total_inspections, SUM(CASE WHEN qc.result = 'pass' THEN 1 ELSE 0 END) as passed, ROUND(SUM(CASE WHEN qc.result = 'pass' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) as pass_rate FROM quality_control qc WHERE qc.inspection_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY qc.inspection_date ORDER BY qc.inspection_date DESC",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 112.6,
+      "row_count": 30,
+      "user_id": "quality_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "What's our daily quality control pass rate for the last 30 days?",
+        "tables_used": ["quality_control"],
+        "business_domain": "quality",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT s.supplier_name, COUNT(po.id) as order_count, AVG(po.delivery_days) as avg_delivery_time FROM suppliers s JOIN purchase_orders po ON s.id = po.supplier_id WHERE po.status = 'delivered' AND po.order_date >= DATE_SUB(CURDATE(), INTERVAL 90 DAY) GROUP BY s.id ORDER BY avg_delivery_time ASC",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 145.7,
+      "row_count": 18,
+      "user_id": "procurement_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Which suppliers have the fastest delivery times in the last 3 months?",
+        "tables_used": ["suppliers", "purchase_orders"],
+        "business_domain": "procurement",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT cost_center, budget_category, SUM(amount) as total_spent, budget_limit, ROUND((SUM(amount) / budget_limit) * 100, 2) as budget_utilization FROM expenses e JOIN budgets b ON e.cost_center = b.cost_center AND e.budget_category = b.category WHERE e.expense_date BETWEEN '2024-01-01' AND '2024-06-30' GROUP BY cost_center, budget_category HAVING budget_utilization > 80",
+      "database": "mariadb",
+      "query_type": "analytical",
+      "execution_time_ms": 189.2,
+      "row_count": 12,
+      "user_id": "finance_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Which cost centers are over 80% budget utilization for H1 2024?",
+        "tables_used": ["expenses", "budgets"],
+        "business_domain": "finance",
+        "complexity": "complex"
+      }
+    },
+    {
+      "sql_query": "SELECT * FROM users WHERE status = 'active' AND last_login_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
+      "database": "postgres",
+      "query_type": "simple",
+      "execution_time_ms": 25.8,
+      "row_count": 1247,
+      "user_id": "it_admin",
+      "success": true,
+      "metadata": {
+        "original_question": "Show active users who logged in within the last 30 days",
+        "tables_used": ["users"],
+        "business_domain": "user_management",
+        "complexity": "simple"
+      }
+    },
+    {
+      "sql_query": "SELECT campaign_name, SUM(clicks) as total_clicks, SUM(impressions) as total_impressions, ROUND(SUM(clicks) * 100.0 / SUM(impressions), 2) as ctr, SUM(cost) as total_cost FROM marketing_campaigns WHERE start_date >= '2024-01-01' GROUP BY campaign_name ORDER BY ctr DESC",
+      "database": "postgres",
+      "query_type": "analytical",
+      "execution_time_ms": 78.3,
+      "row_count": 15,
+      "user_id": "marketing_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "What's the performance of our 2024 marketing campaigns by CTR?",
+        "tables_used": ["marketing_campaigns"],
+        "business_domain": "marketing",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "WITH monthly_revenue AS (SELECT DATE_TRUNC('month', order_date) as month, SUM(total_amount) as revenue FROM orders WHERE status = 'completed' GROUP BY DATE_TRUNC('month', order_date)), growth_calc AS (SELECT month, revenue, LAG(revenue) OVER (ORDER BY month) as prev_month_revenue FROM monthly_revenue) SELECT month, revenue, prev_month_revenue, ROUND(((revenue - prev_month_revenue) / prev_month_revenue) * 100, 2) as growth_rate FROM growth_calc WHERE prev_month_revenue IS NOT NULL ORDER BY month DESC",
+      "database": "postgres",
+      "query_type": "analytical",
+      "execution_time_ms": 234.1,
+      "row_count": 11,
+      "user_id": "ceo",
+      "success": true,
+      "metadata": {
+        "original_question": "What's our month-over-month revenue growth rate?",
+        "tables_used": ["orders"],
+        "business_domain": "finance",
+        "complexity": "complex"
+      }
+    },
+    {
+      "sql_query": "SELECT w.worker_id, w.name, COUNT(DISTINCT s.shift_date) as days_worked, SUM(s.hours_worked) as total_hours FROM workers w JOIN shifts s ON w.id = s.worker_id WHERE s.shift_date >= DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY) GROUP BY w.id ORDER BY total_hours DESC",
+      "database": "mariadb",
+      "query_type": "operational",
+      "execution_time_ms": 92.7,
+      "row_count": 156,
+      "user_id": "operations_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Show worker productivity for the last 30 days",
+        "tables_used": ["workers", "shifts"],
+        "business_domain": "operations",
+        "complexity": "moderate"
+      }
+    },
+    {
+      "sql_query": "SELECT ticket_id, customer_name, issue_category, priority, status, created_at, DATEDIFF(CURDATE(), created_at) as days_open FROM support_tickets WHERE status IN ('open', 'in_progress') ORDER BY priority DESC, days_open DESC",
+      "database": "mariadb",
+      "query_type": "operational",
+      "execution_time_ms": 41.9,
+      "row_count": 67,
+      "user_id": "support_manager",
+      "success": true,
+      "metadata": {
+        "original_question": "Show all open support tickets ordered by priority and age",
+        "tables_used": ["support_tickets"],
+        "business_domain": "customer_support",
+        "complexity": "simple"
+      }
+    }
+  ]
+}
