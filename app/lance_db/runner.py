@@ -13,36 +13,33 @@ from pathlib import Path
 import lancedb
 import pandas as pd
 
-try:
+# Smart import handling for both package and direct execution contexts
+if __package__:
+    # We're being imported as part of a package
     from .config import settings
-    from .lance_logging import logger, log_operation, log_error, log_performance
-    from .embedding_component import EmbeddingGenerator
-    from .search_component import VectorSearcher
-    from .pattern_ingestion import BusinessPatternIngestion
-    from .pattern_search_component import BusinessPatternSearcher
-    from .enhanced_schema import (
+    from .src.lance_logging import logger, log_operation, log_error, log_performance
+    from .src.embedding_component import EmbeddingGenerator
+    from .src.search_component import VectorSearcher
+    from .src.pattern_ingestion import BusinessPatternIngestion
+    from .src.pattern_search_component import BusinessPatternSearcher
+    from .src.enhanced_schema import (
         EnhancedSQLQuery, QueryContent, SemanticContext, TechnicalMetadata,
         UserContext, InvestigationContext, ExecutionResults, LearningMetadata,
         BusinessIntelligence, create_enhanced_query_from_simple, validate_enhanced_query
     )
-except ImportError:
-    
+else:
+    # We're being run directly or imported from a script
     from config import settings
-    from lance_logging import logger, log_operation, log_error, log_performance
-    from embedding_component import EmbeddingGenerator
-    from search_component import VectorSearcher
-    from pattern_ingestion import BusinessPatternIngestion
-    from pattern_search_component import BusinessPatternSearcher
-    # Simplified schema for standalone mode
-    class EnhancedSQLQuery:
-        def __init__(self):
-            self.query_content = type('obj', (object,), {'sql_query': ''})()
-        def to_lancedb_record(self):
-            return {}
-    def create_enhanced_query_from_simple(*args, **kwargs):
-        return EnhancedSQLQuery()
-    def validate_enhanced_query(query):
-        return []
+    from src.lance_logging import logger, log_operation, log_error, log_performance
+    from src.embedding_component import EmbeddingGenerator
+    from src.search_component import VectorSearcher
+    from src.pattern_ingestion import BusinessPatternIngestion
+    from src.pattern_search_component import BusinessPatternSearcher
+    from src.enhanced_schema import (
+        EnhancedSQLQuery, QueryContent, SemanticContext, TechnicalMetadata,
+        UserContext, InvestigationContext, ExecutionResults, LearningMetadata,
+        BusinessIntelligence, create_enhanced_query_from_simple, validate_enhanced_query
+    )
 
 
 class SQLEmbeddingService:
@@ -253,7 +250,8 @@ class SQLEmbeddingService:
                 enhanced_query.embeddings.description_embedding = desc_embedding
             
             # Generate business context embedding
-            business_text = f"{enhanced_query.query_content.business_question or ''} {enhanced_query.semantic_context.business_domain.value}"
+            business_domain_value = enhanced_query.semantic_context.business_domain.value if hasattr(enhanced_query.semantic_context.business_domain, 'value') else enhanced_query.semantic_context.business_domain
+            business_text = f"{enhanced_query.query_content.business_question or ''} {business_domain_value}"
             if business_text.strip():
                 context_embedding = self.embedding_generator.generate_embedding(business_text.strip())
                 enhanced_query.embeddings.business_context_embedding = context_embedding
@@ -268,7 +266,9 @@ class SQLEmbeddingService:
             duration_ms = (time.time() - start_time) * 1000
             log_performance(f"Store enhanced SQL query {enhanced_query._id}", duration_ms)
             
-            logger.info(f"Stored enhanced query: {enhanced_query._id} | Domain: {enhanced_query.semantic_context.business_domain.value} | Type: {enhanced_query.query_content.query_type.value}")
+            business_domain_value = enhanced_query.semantic_context.business_domain.value if hasattr(enhanced_query.semantic_context.business_domain, 'value') else enhanced_query.semantic_context.business_domain
+            query_type_value = enhanced_query.query_content.query_type.value if hasattr(enhanced_query.query_content.query_type, 'value') else enhanced_query.query_content.query_type
+            logger.info(f"Stored enhanced query: {enhanced_query._id} | Domain: {business_domain_value} | Type: {query_type_value}")
             
             return enhanced_query._id
             

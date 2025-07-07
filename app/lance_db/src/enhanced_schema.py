@@ -18,6 +18,7 @@ class QueryType(Enum):
     ANALYTICAL = "analytical"
     OPERATIONAL = "operational"
     INVESTIGATIVE = "investigative"
+    CUSTOMER_ADVISORY = "customer_advisory"
 
 
 class BusinessDomain(Enum):
@@ -30,6 +31,7 @@ class BusinessDomain(Enum):
     QUALITY = "quality"
     LOGISTICS = "logistics"
     ANALYTICS = "analytics"
+    MANUFACTURING_SALES = "manufacturing_sales"
 
 
 class AnalysisType(Enum):
@@ -41,6 +43,7 @@ class AnalysisType(Enum):
     FILTERING = "filtering"
     CORRELATION = "correlation"
     FORECASTING = "forecasting"
+    TIER_ANALYSIS = "tier_analysis"
 
 
 class ComplexityTier(Enum):
@@ -63,6 +66,7 @@ class ExecutionStatus(Enum):
 class UserRole(Enum):
     """User role classifications."""
     ANALYST = "analyst"
+    BUSINESS_ANALYST = "business_analyst"
     MANAGER = "manager"
     EXECUTIVE = "executive"
     ENGINEER = "engineer"
@@ -86,15 +90,15 @@ class QueryContent:
     readable_description: Optional[str] = None
     business_question: Optional[str] = None
     query_intent: Optional[str] = None
-    query_type: QueryType = QueryType.SIMPLE
+    query_type: Optional[str] = None
 
 
 @dataclass
 class SemanticContext:
     """Semantic and business context for query understanding."""
-    business_domain: BusinessDomain = BusinessDomain.ANALYTICS
+    business_domain: Optional[str] = None
     business_function: Optional[str] = None
-    analysis_type: Optional[AnalysisType] = None
+    analysis_type: Optional[str] = None
     time_dimension: Optional[str] = None
     metrics: List[str] = field(default_factory=list)
     entities: List[str] = field(default_factory=list)
@@ -109,9 +113,9 @@ class TechnicalMetadata:
     tables_used: List[str] = field(default_factory=list)
     join_count: int = 0
     aggregation_functions: List[str] = field(default_factory=list)
-    complexity_score: int = 1
-    performance_tier: ComplexityTier = ComplexityTier.LOW
-    estimated_cost: str = "low"
+    complexity_score: Optional[int] = None
+    performance_tier: Optional[str] = None
+    estimated_cost: Optional[str] = None
     query_pattern: Optional[str] = None
     has_subqueries: bool = False
     has_window_functions: bool = False
@@ -126,9 +130,9 @@ class TechnicalMetadata:
 class UserContext:
     """User and organizational context."""
     user_id: str = "system"
-    user_role: Optional[UserRole] = None
+    user_role: Optional[str] = None
     user_department: Optional[str] = None
-    user_skill_level: UserSkillLevel = UserSkillLevel.INTERMEDIATE
+    user_skill_level: Optional[str] = None
     organization_id: Optional[str] = None
     industry: Optional[str] = None
     timezone: str = "UTC"
@@ -151,7 +155,7 @@ class InvestigationContext:
 @dataclass
 class ExecutionResults:
     """Query execution results and performance tracking."""
-    execution_status: ExecutionStatus = ExecutionStatus.NOT_EXECUTED
+    execution_status: Optional[str] = None
     is_validated: bool = False
     success: Optional[bool] = None
     execution_time_ms: Optional[float] = None
@@ -358,10 +362,10 @@ class EnhancedSQLQuery:
             
             # Key classification fields for indexing
             "database": self.technical_metadata.database,
-            "query_type": self.query_content.query_type.value,
-            "business_domain": self.semantic_context.business_domain.value,
+            "query_type": self.query_content.query_type.value if hasattr(self.query_content.query_type, 'value') else self.query_content.query_type,
+            "business_domain": self.semantic_context.business_domain.value if hasattr(self.semantic_context.business_domain, 'value') else self.semantic_context.business_domain,
             "user_id": self.user_context.user_id,
-            "execution_status": self.execution_results.execution_status.value,
+            "execution_status": self.execution_results.execution_status.value if hasattr(self.execution_results.execution_status, 'value') else self.execution_results.execution_status,
             "success": self.execution_results.success,
             
             # Performance metrics
@@ -406,6 +410,9 @@ class EnhancedSQLQuery:
                     cleaned_record[k] = v.isoformat()
                 else:
                     cleaned_record[k] = v
+            else:
+                # Skip None values to avoid schema conflicts
+                continue
         
         return cleaned_record
 
@@ -429,19 +436,23 @@ class EnhancedSQLQuery:
         return normalized
 
     def _serialize_for_json(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Serialize data for JSON storage, handling enums and datetimes."""
+        """Serialize data for JSON storage, handling enums, datetimes, and numpy arrays."""
+        import numpy as np
         result = {}
         for key, value in data.items():
             if hasattr(value, 'value'):  # Enum
                 result[key] = value.value
             elif isinstance(value, datetime):
                 result[key] = value.isoformat()
+            elif isinstance(value, np.ndarray):
+                result[key] = value.tolist()  # Convert numpy array to list
             elif isinstance(value, dict):
                 result[key] = self._serialize_for_json(value)
             elif isinstance(value, list):
                 result[key] = [
                     item.value if hasattr(item, 'value') else 
                     item.isoformat() if isinstance(item, datetime) else
+                    item.tolist() if isinstance(item, np.ndarray) else
                     self._serialize_for_json(item) if isinstance(item, dict) else
                     item
                     for item in value

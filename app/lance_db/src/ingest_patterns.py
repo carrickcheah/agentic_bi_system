@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 try:
     from .pattern_ingestion import BusinessPatternIngestion
     from .lance_logging import get_logger
-    from .config import settings
+    from ..config import settings
 except ImportError:
     from pattern_ingestion import BusinessPatternIngestion
     from lance_logging import get_logger

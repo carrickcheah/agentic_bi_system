@@ -10,7 +10,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 try:
-    from .config import settings
+    from ..config import settings
     from .lance_logging import get_logger, log_operation, log_error, log_performance
 except ImportError:
     # For standalone execution

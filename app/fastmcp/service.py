@@ -28,7 +28,7 @@ try:
     from ..utils.logging import logger
     from ..utils.exceptions import BusinessLogicError, DatabaseOperationError
     from ..lance_db.runner import SQLEmbeddingService
-    from ..lance_db.enhanced_schema import (
+    from ..lance_db.src.enhanced_schema import (
         EnhancedSQLQuery, QueryContent, SemanticContext, TechnicalMetadata,
         UserContext, InvestigationContext, ExecutionResults, LearningMetadata,
         BusinessIntelligence, create_enhanced_query_from_simple, validate_enhanced_query,

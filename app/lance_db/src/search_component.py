@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 import numpy as np
 
 try:
-    from .config import settings
+    from ..config import settings
     from .lance_logging import get_logger, log_operation, log_error, log_performance
 except ImportError:
     # For standalone execution

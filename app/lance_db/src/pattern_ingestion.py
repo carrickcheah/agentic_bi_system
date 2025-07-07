@@ -14,7 +14,7 @@ import pandas as pd
 import lancedb
 
 try:
-    from .config import settings
+    from ..config import settings
     from .lance_logging import get_logger, log_operation, log_error, log_performance
     from .embedding_component import EmbeddingGenerator
 except ImportError:

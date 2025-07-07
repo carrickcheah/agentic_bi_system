@@ -55,16 +55,50 @@ class SQLQueryIngester:
         with open(json_file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # Handle both array format and object with 'queries' key
+        # Handle different JSON formats
         if isinstance(data, list):
             queries = data
         elif isinstance(data, dict) and 'queries' in data:
             queries = data['queries']
+        elif isinstance(data, dict) and 'query_content' in data:
+            # This is an enhanced template format (like template_moq.json)
+            queries = [self._convert_enhanced_template_to_query(data)]
+            print(f"Detected enhanced template format")
         else:
-            raise ValueError("JSON file must contain an array of queries or an object with 'queries' key")
+            raise ValueError("JSON file must contain an array of queries, an object with 'queries' key, or an enhanced template")
         
         print(f"Loaded {len(queries)} queries from JSON file")
         return queries
+    
+    def _convert_enhanced_template_to_query(self, template: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert enhanced template format to simple query format."""
+        query = {
+            "sql_query": template["query_content"]["sql_query"],
+            "database": template.get("technical_metadata", {}).get("database", "mariadb"),
+            "query_type": template["query_content"].get("query_type", "analytical"),
+            "user_id": template.get("user_context", {}).get("user_id", "system"),
+            "metadata": {
+                "readable_description": template["query_content"].get("readable_description", ""),
+                "business_question": template["query_content"].get("business_question", ""),
+                "query_intent": template["query_content"].get("query_intent", ""),
+                "business_domain": template.get("semantic_context", {}).get("business_domain", ""),
+                "tags": template.get("tags", []),
+                "kpi_category": template.get("business_intelligence", {}).get("kpi_category", ""),
+                "entities": template.get("semantic_context", {}).get("entities", []),
+                "keywords": template.get("semantic_context", {}).get("keywords", [])
+            }
+        }
+        
+        # Add any custom fields (like moq_specific_metadata)
+        for key in template:
+            if key not in ["query_content", "semantic_context", "technical_metadata", 
+                          "user_context", "investigation_context", "execution_results",
+                          "learning_metadata", "business_intelligence", "collaboration",
+                          "version_control", "caching", "monitoring", "security",
+                          "automation", "embeddings", "tags", "_id"]:
+                query["metadata"][key] = template[key]
+        
+        return query
     
     def validate_query(self, query: Dict[str, Any], index: int) -> Dict[str, Any]:
         """Validate and normalize a single query object."""

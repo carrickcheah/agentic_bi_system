@@ -68,7 +68,7 @@ Configuration:
 """
 
 from .runner import SQLEmbeddingService
-from .embedding_component import EmbeddingGenerator
+from .src.embedding_component import EmbeddingGenerator
 from .search_component import VectorSearcher
 from .pattern_ingestion import BusinessPatternIngestion
 from .pattern_search_component import BusinessPatternSearcher
