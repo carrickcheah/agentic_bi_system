@@ -195,10 +195,6 @@ tools.txt
 
 # Specific directories
 services/news_signal/data
-**/CLAUDE.local.md
-
-# windsurf rules
-.windsurfrules
 
 
 supabase-js
@@ -208,15 +204,31 @@ manual.md
 node_modules/
 m_purchasing/
 
-search_db.sh
 
 .cursor/
 logic.md
 
-.mcp/
 
-/winru
 
+# attch
 /supa_ui
-
+.mcp/
 z_dairy.md
+gantt_chart/
+agents/
+search_db.sh
+**/CLAUDE.local.md
+
+
+# Agents
+agent_bi.json
+agent_fastapi.json
+agent_lancedb.json
+agent_mcp.json
+agent_rag.json
+agent_sql.json
+memory/
+
+
+
+

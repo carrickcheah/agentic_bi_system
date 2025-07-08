@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "formatters": {
+    "standard": {
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    },
+    "detailed": {
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
+    }
+  },
+  "handlers": {
+    "console": {
+      "class": "logging.StreamHandler",
+      "level": "INFO",
+      "formatter": "standard",
+      "stream": "ext://sys.stdout"
+    },
+    "file": {
+      "class": "logging.FileHandler",
+      "level": "DEBUG",
+      "formatter": "detailed",
+      "filename": "logs/agentic_sql.log"
+    },
+    "error_file": {
+      "class": "logging.FileHandler",
+      "level": "ERROR",
+      "formatter": "detailed",
+      "filename": "logs/errors.log"
+    }
+  },
+  "loggers": {
+    "": {
+      "handlers": [
+        "console",
+        "file"
+      ],
+      "level": "INFO",
+      "propagate": true
+    },
+    "intelligence": {
+      "handlers": [
+        "file"
+      ],
+      "level": "DEBUG",
+      "propagate": false
+    },
+    "model": {
+      "handlers": [
+        "file"
+      ],
+      "level": "INFO",
+      "propagate": false
+    }
+  }
+}
