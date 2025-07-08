@@ -21,31 +21,6 @@
         "@modelcontextprotocol/server-postgres",
         "${POSTGRES_URL}"
       ]
-    },
-    "lancedb": {
-      "command": "npx",
-      "args": [
-        "lance-mcp",
-        "/Users/carrickcheah/Project/agentic_sql/app/lance_db/data"
-      ]
-    },
-    "graphrag": {
-      "command": "python",
-      "args": [
-        "-m",
-        "app.graphrag.mcp_server"
-      ],
-      "env": {
-        "GRAPHRAG_DATA_PATH": "${GRAPHRAG_DATA_PATH}",
-        "GRAPHRAG_SERVER_HOST": "${GRAPHRAG_SERVER_HOST}",
-        "GRAPHRAG_SERVER_PORT": "${GRAPHRAG_SERVER_PORT}",
-        "GRAPHRAG_TIMEOUT": "${GRAPHRAG_TIMEOUT}",
-        "GRAPHRAG_MAX_CONCURRENT": "${GRAPHRAG_MAX_CONCURRENT}",
-        "GRAPHRAG_COST_LIMIT_PER_QUERY": "${GRAPHRAG_COST_LIMIT_PER_QUERY}",
-        "GRAPHRAG_DAILY_BUDGET_LIMIT": "${GRAPHRAG_DAILY_BUDGET_LIMIT}",
-        "GRAPHRAG_CACHE_SIZE": "${GRAPHRAG_CACHE_SIZE}",
-        "GRAPHRAG_ENABLE_DETAILED_LOGGING": "${GRAPHRAG_ENABLE_DETAILED_LOGGING}"
-      }
     }
   }
 }

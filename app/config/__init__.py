@@ -28,9 +28,11 @@ class Settings:
     mariadb_password = databases.mariadb_password
     mariadb_database = databases.mariadb_database
     postgres_url = databases.postgres_url
-    supabase_access_token = databases.supabase_access_token
     collection_name = databases.collection_name
     embedding_model = databases.embedding_model
+    use_qdrant = databases.use_qdrant
+    qdrant_url = databases.qdrant_url
+    qdrant_api_key = databases.qdrant_api_key
     
     # Infrastructure settings (DevOps team)
     app_name = infrastructure.app_name

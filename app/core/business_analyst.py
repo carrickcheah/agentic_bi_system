@@ -15,6 +15,7 @@ from intelligence.runner import IntelligenceModuleRunner
 from fastmcp.client_manager import MCPClientManager
 from investigation.runner import conduct_autonomous_investigation
 from insight_synthesis.runner import InsightSynthesizer, OutputFormat
+from ..config import settings
 
 # Set up logger
 logger = logging.getLogger("business_analyst")
@@ -48,6 +49,7 @@ class AutonomousBusinessAnalyst:
         self.intelligence_runner = None
         self.synthesizer = None
         self.mcp_manager = None
+        self.vector_service = None
         
         logger.info("AutonomousBusinessAnalyst initialized")
     
@@ -57,6 +59,16 @@ class AutonomousBusinessAnalyst:
             # Initialize MCP client manager
             self.mcp_manager = MCPClientManager()
             await self.mcp_manager.initialize()
+            
+            # Initialize vector service based on configuration
+            if settings.use_qdrant:
+                try:
+                    from ..qdrant.runner import get_qdrant_service
+                    self.vector_service = await get_qdrant_service()
+                    logger.info("✅ Qdrant vector search initialized")
+                except Exception as e:
+                    logger.warning(f"Qdrant initialization failed (optional): {e}")
+                    logger.info("System will continue without vector search capabilities")
             
             # Initialize phase runners
             self.intelligence_runner = IntelligenceModuleRunner()
@@ -101,6 +113,21 @@ class AutonomousBusinessAnalyst:
             
             # Phase results accumulator
             phase_results = {}
+            
+            # Check LanceDB cache for similar queries (optional optimization)
+            if self.vector_service:
+                try:
+                    similar_queries = await self.vector_service.search_similar_queries(
+                        query=business_question,
+                        limit=5,
+                        threshold=0.85
+                    )
+                    if similar_queries:
+                        logger.info(f"Found {len(similar_queries)} similar queries in cache")
+                        # Could potentially return cached results for very similar queries
+                        # For now, just log and continue with full investigation
+                except Exception as e:
+                    logger.debug(f"Cache check failed (non-critical): {e}")
             
             # Phase 1 & 2: Intelligence Planning (Query Processing + Strategy Planning)
             if stream_progress:
@@ -229,6 +256,27 @@ class AutonomousBusinessAnalyst:
             self.investigation_cache[investigation_id] = final_result
             self.active_investigations[investigation_id]["status"] = "completed"
             
+            # Store successful investigation in vector database (optional)
+            if self.vector_service and investigation_result.get("sql_queries"):
+                try:
+                    # Store each SQL query with its context
+                    for sql_info in investigation_result.get("sql_queries", []):
+                        await self.vector_service.store_query(
+                            query_id=f"{investigation_id}_{sql_info.get('step', 'unknown')}",
+                            sql_query=sql_info.get("query", ""),
+                            business_question=business_question,
+                            database=sql_info.get("database", "mariadb"),
+                            metadata={
+                                "investigation_id": investigation_id,
+                                "executive_summary": synthesis_result.executive_summary,
+                                "insights_count": len(synthesis_result.insights),
+                                "recommendations_count": len(synthesis_result.recommendations)
+                            }
+                        )
+                    logger.info(f"Stored {len(investigation_result.get('sql_queries', []))} queries in vector database")
+                except Exception as e:
+                    logger.debug(f"Failed to store investigation in LanceDB (non-critical): {e}")
+            
             if stream_progress:
                 yield self._create_progress_update(
                     investigation_id, "completed", 5, 5, 100.0,
@@ -294,12 +342,25 @@ class AutonomousBusinessAnalyst:
         """Execute Phase 4: Investigation Execution."""
         try:
             # Run autonomous investigation
+            # Prepare coordinated services
+            coordinated_services = {
+                "mariadb": {"enabled": True, "priority": 1},
+                "postgres": {"enabled": True, "priority": 2},
+                "lancedb": {"enabled": True, "priority": 3}
+            }
+            
+            # Prepare execution context
+            execution_context = {
+                "business_intent": intelligence_result["business_intent"],
+                "investigation_strategy": intelligence_result["contextual_strategy"],
+                "user_context": user_context
+            }
+            
             investigation_result = await conduct_autonomous_investigation(
-                business_question=business_question,
-                business_intent=intelligence_result["business_intent"],
-                investigation_strategy=intelligence_result["contextual_strategy"],
-                mcp_client_manager=self.mcp_manager,
-                user_context=user_context
+                coordinated_services=coordinated_services,
+                investigation_request=business_question,
+                execution_context=execution_context,
+                mcp_client_manager=self.mcp_manager
             )
             
             return investigation_result

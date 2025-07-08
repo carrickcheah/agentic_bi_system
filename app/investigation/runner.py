@@ -12,14 +12,14 @@ from datetime import datetime
 import json
 
 try:
-    from .config import settings, runtime_config
+    from .config import settings
     from .investigation_logging import InvestigationLogger
     from .prompts import InvestigationPrompts, PromptTemplates
     from ..fastmcp.service import BusinessService
 except ImportError:
-    from config import settings, runtime_config
-    from investigation_logging import InvestigationLogger
-    from prompts import InvestigationPrompts, PromptTemplates
+    from config import settings
+    from investigation.investigation_logging import InvestigationLogger
+    from investigation.prompts import InvestigationPrompts, PromptTemplates
     # Placeholder for BusinessService in standalone mode
     class BusinessService:
         async def execute_sql(self, *args, **kwargs): return None
@@ -126,11 +126,11 @@ class AutonomousInvestigationEngine:
                 self.logger.logger.warning(f"Failed to initialize BusinessService for query learning: {e}")
         
         # Register investigation in runtime config
-        runtime_config.register_investigation(self.investigation_id, {
-            "request": investigation_request,
-            "services": list(coordinated_services.keys()),
-            "context": execution_context
-        })
+        # runtime_config.register_investigation(self.investigation_id, {
+        #     "request": investigation_request,
+        #     "services": list(coordinated_services.keys()),
+        #     "context": execution_context
+        # })
         
         self.logger.logger.info(f"Starting autonomous investigation: {self.investigation_id}")
         self.logger.logger.info(f"Request: {investigation_request}")
@@ -171,11 +171,11 @@ class AutonomousInvestigationEngine:
             self.steps.append(step)
             
             # Update runtime progress
-            runtime_config.update_investigation_progress(
-                self.investigation_id, 
-                step_number, 
-                "running"
-            )
+            # runtime_config.update_investigation_progress(
+            #     self.investigation_id, 
+            #     step_number, 
+            #     "running"
+            # )
             
             try:
                 # Execute step with AI reasoning
@@ -359,22 +359,60 @@ class AutonomousInvestigationEngine:
             return {"error": str(e)}
     
     async def _perform_schema_analysis(self) -> Dict[str, Any]:
-        """Analyze database schemas using MCP clients."""
+        """Analyze database schemas using intelligent table filtering based on business question."""
         schema_results = {}
+        
+        # Determine relevant table patterns based on the business question
+        table_patterns = []
+        request_lower = self.investigation_request.lower()
+        
+        if any(word in request_lower for word in ["product", "item", "sku"]):
+            table_patterns.extend(["product", "item", "sku", "catalog"])
+        if any(word in request_lower for word in ["sale", "revenue", "order", "selling"]):
+            table_patterns.extend(["sale", "order", "revenue", "transaction", "invoice"])
+        if any(word in request_lower for word in ["customer", "client", "buyer"]):
+            table_patterns.extend(["customer", "client", "user", "account"])
+        if any(word in request_lower for word in ["inventory", "stock"]):
+            table_patterns.extend(["inventory", "stock", "warehouse"])
+        if any(word in request_lower for word in ["price", "pricing", "cost"]):
+            table_patterns.extend(["price", "pricing", "cost", "rate"])
+            
+        # Log the search strategy
+        if table_patterns:
+            self.logger.logger.info(f"Filtering tables with patterns: {table_patterns}")
+        else:
+            self.logger.logger.info("No specific patterns identified, will analyze general tables")
         
         # Analyze MariaDB schema
         mariadb_client = self.mcp_client_manager.get_client("mariadb")
         if mariadb_client:
             try:
-                tables = await mariadb_client.list_tables()
+                all_tables = await mariadb_client.list_tables()
+                
+                # Filter tables based on patterns
+                if table_patterns:
+                    relevant_tables = []
+                    for table in all_tables:
+                        table_lower = table.lower()
+                        if any(pattern in table_lower for pattern in table_patterns):
+                            relevant_tables.append(table)
+                    
+                    # If we found relevant tables, use them; otherwise take first 10
+                    tables_to_analyze = relevant_tables[:15] if relevant_tables else all_tables[:10]
+                    self.logger.logger.info(f"Found {len(relevant_tables)} relevant tables out of {len(all_tables)} total")
+                else:
+                    tables_to_analyze = all_tables[:10]
+                
                 schema_results["mariadb"] = {
-                    "tables": tables,
-                    "table_count": len(tables),
+                    "tables": tables_to_analyze,
+                    "total_table_count": len(all_tables),
+                    "analyzed_table_count": len(tables_to_analyze),
+                    "filter_patterns": table_patterns,
                     "schemas": {}
                 }
                 
-                # Get schema for key tables (limit to first 5 for performance)
-                for table in tables[:5]:
+                # Get schema for filtered tables
+                for table in tables_to_analyze:
                     try:
                         schema = await mariadb_client.get_table_schema(table)
                         schema_results["mariadb"]["schemas"][table] = {

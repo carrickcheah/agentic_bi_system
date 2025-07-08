@@ -1,0 +1,225 @@
+{
+  "_id": null,
+  
+  "query_content": {
+    "sql_query": "SELECT p.product_name, SUM(oi.quantity) as total_sold, SUM(oi.quantity * oi.price) as revenue FROM products p JOIN order_items oi ON p.id = oi.product_id JOIN orders o ON oi.order_id = o.id WHERE o.status = 'completed' AND o.created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY) GROUP BY p.id, p.product_name ORDER BY total_sold DESC LIMIT 10",
+    "readable_description": "Find top 10 best-selling products by quantity in the last 90 days with revenue",
+    "business_question": "What are our top-performing products this quarter?",
+    "query_intent": "sales_performance_analysis",
+    "query_type": "analytical"
+  },
+
+  "semantic_context": {
+    "business_domain": "sales",
+    "business_function": "product_analysis", 
+    "analysis_type": "ranking",
+    "time_dimension": "quarterly",
+    "metrics": ["quantity_sold", "revenue"],
+    "entities": ["products", "orders", "sales"],
+    "business_concepts": [
+      "top sellers",
+      "product performance", 
+      "sales ranking",
+      "quarterly analysis"
+    ],
+    "keywords": [
+      "best selling products",
+      "top products",
+      "product sales",
+      "quarterly performance",
+      "sales analysis"
+    ]
+  },
+
+  "technical_metadata": {
+    "database": "mariadb",
+    "tables_used": ["products", "order_items", "orders"],
+    "join_count": 2,
+    "aggregation_functions": ["SUM", "GROUP BY"],
+    "complexity_score": 3,
+    "performance_tier": "medium",
+    "estimated_cost": "low",
+    "query_pattern": "top_n_analysis",
+    "has_subqueries": false,
+    "has_window_functions": false,
+    "estimated_execution_time_ms": 200,
+    "estimated_row_count": 10,
+    "requires_indexes": ["orders.status", "orders.created_at", "products.id"],
+    "sql_dialect": "mysql",
+    "optimization_hints": [
+      "ensure_orders_status_index",
+      "partition_by_date_range",
+      "consider_materialized_view"
+    ]
+  },
+
+  "user_context": {
+    "user_id": "product_manager_sarah",
+    "user_role": "product_manager",
+    "user_department": "product",
+    "user_skill_level": "intermediate",
+    "organization_id": "acme_corp",
+    "industry": "ecommerce",
+    "timezone": "UTC",
+    "preferred_date_format": "YYYY-MM-DD"
+  },
+
+  "investigation_context": {
+    "investigation_phase": "data_exploration",
+    "hypothesis": "Certain products drive majority of sales volume",
+    "confidence_level": "high",
+    "business_impact": "high",
+    "urgency": "medium",
+    "follows_pattern": "quarterly_review",
+    "related_questions": [
+      "Which products are underperforming?",
+      "What seasonal trends affect top products?",
+      "How do top products vary by region?"
+    ]
+  },
+
+  "execution_results": {
+    "execution_status": "not_executed",
+    "is_validated": false,
+    "success": null,
+    "execution_time_ms": null,
+    "rows_returned": null,
+    "data_quality_score": null,
+    "business_relevance_score": null,
+    "user_satisfaction": null,
+    "was_modified": false,
+    "led_to_followup": null,
+    "execution_count": 0,
+    "last_executed_at": null,
+    "first_executed_at": null,
+    "execution_history": [],
+    "average_execution_time_ms": null,
+    "fastest_execution_ms": null,
+    "slowest_execution_ms": null,
+    "cache_hit_rate": null,
+    "error_history": []
+  },
+
+  "learning_metadata": {
+    "usage_frequency": 0,
+    "success_rate": null,
+    "average_user_rating": null,
+    "reuse_patterns": [],
+    "common_modifications": [],
+    "triggered_investigations": [],
+    "first_used_at": null,
+    "last_used_at": null,
+    "learning_updated_at": null,
+    "user_feedback": [],
+    "optimization_suggestions": [],
+    "similar_queries": [],
+    "performance_improvements": []
+  },
+
+  "business_intelligence": {
+    "kpi_category": "sales_performance",
+    "decision_support_level": "tactical",
+    "stakeholder_relevance": ["product_team", "sales_team", "executive"],
+    "reporting_frequency": "monthly",
+    "benchmark_comparison": "period_over_period",
+    "actionability_score": 0.85,
+    "strategic_alignment": "revenue_growth",
+    "business_value": "high",
+    "regulatory_compliance": [],
+    "data_governance_level": "standard"
+  },
+
+  "collaboration": {
+    "is_shared": false,
+    "shared_with": [],
+    "created_by_user_id": "product_manager_sarah",
+    "review_status": "pending",
+    "reviewers": [],
+    "comments": [],
+    "approval_required": false,
+    "collaboration_history": []
+  },
+
+  "version_control": {
+    "created_at": null,
+    "updated_at": null, 
+    "version": "1.0",
+    "created_by": "autonomous_analyst_v2",
+    "validation_status": "pending_execution",
+    "peer_review_score": null,
+    "change_log": [],
+    "parent_query_id": null,
+    "child_query_ids": []
+  },
+
+  "caching": {
+    "is_cacheable": true,
+    "cache_key": null,
+    "cache_ttl_seconds": 3600,
+    "cache_strategy": "time_based",
+    "cache_dependencies": ["products", "orders", "order_items"],
+    "last_cache_update": null,
+    "cache_hit_count": 0,
+    "cache_miss_count": 0
+  },
+
+  "monitoring": {
+    "alert_thresholds": {
+      "execution_time_ms": 5000,
+      "row_count_variance": 0.2,
+      "error_rate": 0.05
+    },
+    "performance_baseline": {
+      "expected_execution_time_ms": 200,
+      "expected_row_count_range": [8, 12],
+      "resource_usage": "low"
+    },
+    "health_check_frequency": "daily",
+    "last_health_check": null,
+    "health_status": "unknown"
+  },
+
+  "security": {
+    "access_level": "standard",
+    "contains_pii": false,
+    "contains_sensitive_data": false,
+    "data_classification": "internal",
+    "requires_audit_log": true,
+    "allowed_roles": ["product_manager", "analyst", "executive"],
+    "data_retention_days": 365
+  },
+
+  "automation": {
+    "auto_execute_schedule": null,
+    "auto_refresh_enabled": false,
+    "notification_rules": [],
+    "integration_webhooks": [],
+    "downstream_dependencies": [],
+    "upstream_dependencies": []
+  },
+
+  "embeddings": {
+    "query_embedding": null,
+    "description_embedding": null,
+    "business_context_embedding": null,
+    "embedding_model": "bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_created_at": null,
+    "embedding_version": "1.0"
+  },
+
+  "tags": [
+    "sales",
+    "product_analysis", 
+    "quarterly_review",
+    "top_performers",
+    "revenue_analysis"
+  ],
+
+  "custom_fields": {
+    "business_unit": "retail",
+    "cost_center": "product_analytics",
+    "project_code": "Q4_REVIEW_2024",
+    "priority_level": 3
+  }
+}

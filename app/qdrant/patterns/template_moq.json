@@ -1,0 +1,253 @@
+{
+  "_id": null,
+  
+  "query_content": {
+    "sql_query": "SELECT c.CustName_v as Customer, pc.StkCode_v as ProductCode, cms.Moq_d as MinOrderQty, cms.Price_d as PricePerUnit, ROUND(cms.Moq_d * cms.Price_d, 2) as TotalCost, CASE WHEN LAG(cms.Price_d) OVER (PARTITION BY cms.CustId_i, cms.ItemId_i ORDER BY cms.Moq_d) IS NULL THEN 'Starting Price' ELSE CONCAT('Save RM ', ROUND(LAG(cms.Price_d) OVER (PARTITION BY cms.CustId_i, cms.ItemId_i ORDER BY cms.Moq_d) - cms.Price_d, 6), ' per unit') END as SavingsVsPreviousTier FROM tbl_custmoq_setup cms JOIN tbl_customer c ON cms.CustId_i = c.CustId_i JOIN tbl_product_code pc ON cms.ItemId_i = pc.ItemId_i WHERE cms.CustId_i = ? AND cms.ItemId_i = ? AND cms.Status_c = 'A' ORDER BY cms.Moq_d",
+    "readable_description": "Find all MOQ pricing tiers for a specific customer and product, showing volume discounts and savings opportunities",
+    "business_question": "What are the optimal minimum order quantities for customer pricing tiers to maximize profitability?",
+    "query_intent": "moq_pricing_optimization",
+    "query_type": "customer_advisory"
+  },
+
+  "semantic_context": {
+    "business_domain": "manufacturing_sales",
+    "business_function": "pricing_optimization", 
+    "analysis_type": "tier_analysis",
+    "time_dimension": "current_pricing",
+    "metrics": ["minimum_order_quantity", "price_per_unit", "total_cost", "savings_percentage"],
+    "entities": ["customers", "products", "pricing_tiers", "finished_goods"],
+    "business_concepts": [
+      "volume discounts",
+      "MOQ optimization", 
+      "tier pricing",
+      "customer pricing",
+      "bulk order incentives",
+      "finished goods pricing"
+    ],
+    "keywords": [
+      "minimum order quantity",
+      "MOQ pricing",
+      "volume discounts",
+      "tier pricing",
+      "customer pricing optimization",
+      "bulk order savings",
+      "finished goods"
+    ]
+  },
+
+  "technical_metadata": {
+    "database": "mariadb",
+    "tables_used": ["tbl_custmoq_setup", "tbl_customer", "tbl_product_code"],
+    "join_count": 2,
+    "aggregation_functions": ["ROUND", "LAG", "PARTITION BY"],
+    "complexity_score": null,
+    "performance_tier": null,
+    "estimated_cost": null,
+    "query_pattern": "pricing_tier_analysis",
+    "has_subqueries": false,
+    "has_window_functions": true,
+    "estimated_execution_time_ms": null,
+    "estimated_row_count": null,
+    "requires_indexes": ["tbl_custmoq_setup.CustId_i", "tbl_custmoq_setup.ItemId_i", "tbl_custmoq_setup.Status_c"],
+    "sql_dialect": "mysql",
+    "optimization_hints": []
+  },
+
+  "user_context": {
+    "user_id": "management_user",
+    "user_role": "business_analyst",
+    "user_department": "sales_operations",
+    "user_skill_level": "advanced",
+    "organization_id": "manufacturing_company",
+    "industry": "precision_manufacturing",
+    "timezone": "Asia/Kuala_Lumpur",
+    "preferred_date_format": "YYYY-MM-DD"
+  },
+
+  "investigation_context": {
+    "investigation_phase": "customer_value_optimization",
+    "hypothesis": "Customers can achieve better pricing through MOQ optimization",
+    "confidence_level": "high",
+    "business_impact": "high",
+    "urgency": "medium",
+    "follows_pattern": "customer_advisory_pricing",
+    "related_questions": [
+      "Which customers are not utilizing optimal MOQ tiers?",
+      "What volume consolidation opportunities exist?",
+      "How do production capacities align with MOQ structures?",
+      "Which products have the most aggressive volume discounts?"
+    ]
+  },
+
+  "execution_results": {
+    "execution_status": "not_executed",
+    "is_validated": false,
+    "success": null,
+    "execution_time_ms": null,
+    "rows_returned": null,
+    "data_quality_score": null,
+    "business_relevance_score": null,
+    "user_satisfaction": null,
+    "was_modified": false,
+    "led_to_followup": null,
+    "execution_count": 0,
+    "last_executed_at": null,
+    "first_executed_at": null,
+    "execution_history": [],
+    "average_execution_time_ms": null,
+    "fastest_execution_ms": null,
+    "slowest_execution_ms": null,
+    "cache_hit_rate": null,
+    "error_history": []
+  },
+
+  "learning_metadata": {
+    "usage_frequency": 0,
+    "success_rate": null,
+    "average_user_rating": null,
+    "reuse_patterns": [],
+    "common_modifications": [],
+    "triggered_investigations": [],
+    "first_used_at": null,
+    "last_used_at": null,
+    "learning_updated_at": null,
+    "user_feedback": [],
+    "optimization_suggestions": [],
+    "similar_queries": [],
+    "performance_improvements": []
+  },
+
+  "business_intelligence": {
+    "kpi_category": "customer_pricing_optimization",
+    "decision_support_level": "operational",
+    "stakeholder_relevance": ["sales_team", "customer_service", "pricing_manager", "account_managers"],
+    "reporting_frequency": "on_demand",
+    "benchmark_comparison": "customer_tier_analysis",
+    "actionability_score": null,
+    "strategic_alignment": "customer_value_maximization",
+    "business_value": null,
+    "regulatory_compliance": [],
+    "data_governance_level": "standard"
+  },
+
+  "collaboration": {
+    "is_shared": false,
+    "shared_with": [],
+    "created_by_user_id": "darrick_leom",
+    "review_status": "pending",
+    "reviewers": [],
+    "comments": [],
+    "approval_required": false,
+    "collaboration_history": []
+  },
+
+  "version_control": {
+    "created_at": null,
+    "updated_at": null, 
+    "version": "1.0",
+    "created_by": "darrick_leom",
+    "validation_status": "pending_execution",
+    "peer_review_score": null,
+    "change_log": [],
+    "parent_query_id": null,
+    "child_query_ids": []
+  },
+
+  "caching": {
+    "is_cacheable": true,
+    "cache_key": null,
+    "cache_ttl_seconds": 3600,
+    "cache_strategy": "time_based",
+    "cache_dependencies": ["tbl_custmoq_setup", "tbl_customer", "tbl_product_code"],
+    "last_cache_update": null,
+    "cache_hit_count": 0,
+    "cache_miss_count": 0
+  },
+
+  "monitoring": {
+    "alert_thresholds": {
+      "execution_time_ms": null,
+      "row_count_variance": null,
+      "error_rate": null
+    },
+    "performance_baseline": {
+      "expected_execution_time_ms": null,
+      "expected_row_count_range": null,
+      "resource_usage": null
+    },
+    "health_check_frequency": null,
+    "last_health_check": null,
+    "health_status": "unknown"
+  },
+
+  "security": {
+    "access_level": "standard",
+    "contains_pii": false,
+    "contains_sensitive_data": null,
+    "data_classification": null,
+    "requires_audit_log": null,
+    "allowed_roles": [],
+    "data_retention_days": null
+  },
+
+  "automation": {
+    "auto_execute_schedule": null,
+    "auto_refresh_enabled": false,
+    "notification_rules": [],
+    "integration_webhooks": [],
+    "downstream_dependencies": [],
+    "upstream_dependencies": []
+  },
+
+  "embeddings": {
+    "query_embedding": null,
+    "description_embedding": null,
+    "business_context_embedding": null,
+    "embedding_model": "bge-m3",
+    "embedding_dimension": 1024,
+    "embedding_created_at": null,
+    "embedding_version": "1.0"
+  },
+
+  "tags": [
+    "moq_pricing",
+    "customer_advisory", 
+    "volume_discounts",
+    "tier_pricing",
+    "finished_goods",
+    "pricing_optimization",
+    "customer_value",
+    "bulk_orders",
+    "manufacturing_sales"
+  ],
+
+  "custom_fields": {
+    "business_unit": "manufacturing_sales",
+    "cost_center": "customer_operations",
+    "project_code": "MOQ_OPTIMIZATION_2024",
+    "priority_level": 1
+  },
+
+  "moq_specific_metadata": {
+    "moq_analysis_type": "customer_tier_optimization",
+    "pricing_model": "volume_discount_tiers",
+    "customer_segments": [],
+    "product_categories": [],
+    "discount_range": {
+      "min_discount_percent": 2.47,
+      "max_discount_percent": 96.40,
+      "average_discount_percent": 18.25
+    },
+    "moq_tiers": {
+      "typical_tier_count": 1,
+      "min_tier_count": 1,
+      "max_tier_count": 5,
+      "common_tier_multiples": []
+    },
+    "business_rules": [
+      "Active status required for pricing",
+      "Customer-specific pricing only"
+    ],
+    "optimization_opportunities": []
+  }
+}

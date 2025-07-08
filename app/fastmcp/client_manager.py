@@ -22,7 +22,6 @@ except ImportError:
     logger = logging.getLogger(__name__)
 from .mariadb_client import MariaDBClient
 from .postgres_client import PostgreSQLClient
-from .graphrag_client import GraphRAGClient
 
 
 class MCPClientManager:
@@ -38,7 +37,6 @@ class MCPClientManager:
         # Database client wrappers
         self.mariadb: Optional[MariaDBClient] = None
         self.postgres: Optional[PostgreSQLClient] = None
-        self.graphrag: Optional[GraphRAGClient] = None
     
     async def initialize(self):
         """Initialize all MCP client connections."""
@@ -80,15 +78,6 @@ class MCPClientManager:
                 "MARIADB_PASSWORD": settings.mariadb_password,
                 "MARIADB_DATABASE": settings.mariadb_database,
                 "POSTGRES_URL": settings.postgres_url,
-                "GRAPHRAG_DATA_PATH": getattr(settings, 'graphrag_data_path', './graphrag_data'),
-                "GRAPHRAG_SERVER_HOST": getattr(settings, 'graphrag_server_host', 'localhost'),
-                "GRAPHRAG_SERVER_PORT": str(getattr(settings, 'graphrag_server_port', 8001)),
-                "GRAPHRAG_TIMEOUT": str(getattr(settings, 'graphrag_timeout', 15)),
-                "GRAPHRAG_MAX_CONCURRENT": str(getattr(settings, 'graphrag_max_concurrent', 10)),
-                "GRAPHRAG_COST_LIMIT_PER_QUERY": str(getattr(settings, 'graphrag_cost_limit_per_query', 0.05)),
-                "GRAPHRAG_DAILY_BUDGET_LIMIT": str(getattr(settings, 'graphrag_daily_budget_limit', 100.0)),
-                "GRAPHRAG_CACHE_SIZE": str(getattr(settings, 'graphrag_cache_size', 10000)),
-                "GRAPHRAG_ENABLE_DETAILED_LOGGING": str(getattr(settings, 'graphrag_enable_detailed_logging', True)),
             }
             
             # Replace environment variable placeholders
@@ -144,6 +133,7 @@ class MCPClientManager:
             
         except Exception as e:
             logger.error(f"Failed to initialize MCP client '{server_name}': {e}")
+            # Re-raise to be handled by the caller
             raise
     
     async def _init_database_clients(self):
@@ -153,9 +143,6 @@ class MCPClientManager:
         
         if "postgres" in self.sessions:
             self.postgres = PostgreSQLClient(self.sessions["postgres"])
-        
-        if "graphrag" in self.sessions:
-            self.graphrag = GraphRAGClient(self.sessions["graphrag"])
     
     @asynccontextmanager
     async def get_client_session(self, client_name: str):
@@ -178,8 +165,7 @@ class MCPClientManager:
         
         client_map = {
             "postgres": self.postgres,
-            "mariadb": self.mariadb,
-            "graphrag": self.graphrag
+            "mariadb": self.mariadb
         }
         
         return client_map.get(client_name)

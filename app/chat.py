@@ -1,189 +1,448 @@
 #!/usr/bin/env python3
 """
-Interactive Chat with 5-Phase Orchestrator
-Combines the model module with the 5-phase business analyst for comprehensive analysis.
+Enhanced Interactive Chat with Proper Error Handling
+Production-ready chat interface with comprehensive error handling and monitoring.
 """
 import asyncio
 import sys
 from pathlib import Path
 import logging
 import os
+import uuid
+from datetime import datetime
+from typing import Optional, AsyncGenerator
 
 # Add app directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-# Configure logging
-logging.basicConfig(
-    level=logging.WARNING,
-    format='%(message)s'
+# Import our new error handling system
+from core.error_handling import (
+    error_boundary, with_error_handling, validate_input,
+    ValidationError, ExternalServiceError, ResourceExhaustedError,
+    ErrorCategory, ErrorSeverity, error_tracker
 )
 
-async def chat_with_model():
-    """Simple chat using just the model module with streaming support."""
-    from model.runner import ModelManager
-    from model.config import get_prompt
-    from datetime import datetime
+# Configure structured logging with safe format
+class SafeFormatter(logging.Formatter):
+    """Custom formatter that safely handles extra fields"""
+    def format(self, record):
+        # Add correlation_id if not present
+        if not hasattr(record, 'correlation_id'):
+            record.correlation_id = 'N/A'
+        return super().format(record)
+
+# Create formatter and handlers
+formatter = SafeFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(correlation_id)s')
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+file_handler = logging.FileHandler('logs/chat.log')
+file_handler.setFormatter(formatter)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    handlers=[console_handler, file_handler]
+)
+
+logger = logging.getLogger(__name__)
+
+class EnhancedStreamingModelManager:
+    """Production-ready model manager with proper error handling."""
     
-    class StreamingModelManager(ModelManager):
-        """Extended ModelManager with streaming support for all models."""
-        
-        async def generate_response_stream(self, prompt, max_tokens=2048, temperature=0.7, use_system_prompt=True, schema_info=None):
-            """Generate streaming response from any model."""
-            model_name, model = self.current_model
+    def __init__(self):
+        self.correlation_id = None
+        self.model_manager = None
+        self._initialize_sync()
+    
+    def _initialize_sync(self):
+        """Initialize model manager with error handling"""
+        try:
+            from model.runner import ModelManager
+            self.model_manager = ModelManager()
+        except Exception as e:
+            logger.critical(
+                "Failed to initialize ModelManager",
+                extra={"error": str(e), "correlation_id": "init"}
+            )
+            raise ExternalServiceError(
+                "Model system initialization failed",
+                component="chat",
+                operation="initialize",
+                recoverable=False
+            )
+    
+    def validate_input_parameters(self, prompt: str, max_tokens: int, temperature: float) -> dict:
+        """Validate all input parameters"""
+        def validator(data):
+            prompt, max_tokens, temperature = data
             
-            try:
-                if model_name == "anthropic":
-                    # Anthropic streaming with extended thinking support
-                    messages = [{"role": "user", "content": prompt}]
-                    system_prompt = get_prompt("sql_agent") if use_system_prompt else None
+            # Validate prompt
+            if not prompt or not isinstance(prompt, str):
+                raise ValueError("Prompt must be a non-empty string")
+            if len(prompt.strip()) == 0:
+                raise ValueError("Prompt cannot be empty")
+            if len(prompt) > 50000:  # Reasonable limit
+                raise ValueError("Prompt too long (max 50,000 chars)")
+            
+            # Validate max_tokens
+            if not isinstance(max_tokens, int) or max_tokens <= 0:
+                raise ValueError("max_tokens must be a positive integer")
+            if max_tokens > 16000:
+                raise ValueError("max_tokens exceeds maximum limit (16,000)")
+            
+            # Validate temperature
+            if not isinstance(temperature, (int, float)):
+                raise ValueError("temperature must be a number")
+            if not 0.0 <= temperature <= 2.0:
+                raise ValueError("temperature must be between 0.0 and 2.0")
+            
+            return {
+                "prompt": prompt.strip(),
+                "max_tokens": min(max_tokens, 16000),
+                "temperature": max(0.0, min(temperature, 2.0))
+            }
+        
+        return validate_input(
+            (prompt, max_tokens, temperature),
+            validator,
+            operation="validate_chat_input",
+            component="chat",
+            correlation_id=self.correlation_id
+        )
+    
+    async def generate_response_stream(
+        self,
+        prompt: str,
+        max_tokens: int = 2048,
+        temperature: float = 0.7,
+        use_system_prompt: bool = True,
+        correlation_id: Optional[str] = None
+    ) -> AsyncGenerator[str, None]:
+        """Generate streaming response with comprehensive error handling."""
+        
+        self.correlation_id = correlation_id or str(uuid.uuid4())
+        
+        # Validate inputs
+        validated_params = self.validate_input_parameters(prompt, max_tokens, temperature)
+        
+        logger.info(
+            "Starting streaming response generation",
+            extra={
+                "correlation_id": correlation_id,
+                "prompt_length": len(validated_params["prompt"]),
+                "max_tokens": validated_params["max_tokens"],
+                "temperature": validated_params["temperature"]
+            }
+        )
+        
+        model_name, model = self.model_manager.current_model
+        fallback_attempted = False
+        
+        try:
+            async for chunk in self._stream_from_model(
+                model_name, model, validated_params, use_system_prompt
+            ):
+                yield chunk
+                
+        except ExternalServiceError as e:
+            if not fallback_attempted:
+                logger.warning(
+                    f"Primary model {model_name} failed, attempting fallback",
+                    extra={"correlation_id": correlation_id, "error": str(e)}
+                )
+                fallback_attempted = True
+                
+                # Try fallback models
+                async for chunk in self._attempt_fallback(validated_params, use_system_prompt, model_name):
+                    yield chunk
+            else:
+                # All models failed
+                error_msg = f"All models failed. Last error: {str(e)}"
+                logger.error(error_msg, extra={"correlation_id": correlation_id})
+                yield f"\n❌ Error: {error_msg}\n"
+    
+    async def _stream_from_model(
+        self, 
+        model_name: str, 
+        model, 
+        params: dict, 
+        use_system_prompt: bool
+    ) -> AsyncGenerator[str, None]:
+        """Stream from specific model with error handling."""
+        
+        try:
+            if model_name == "anthropic":
+                async for chunk in self._stream_anthropic(model, params, use_system_prompt):
+                    yield chunk
                     
-                    api_params = {
-                        "model": model.model,
-                        "max_tokens": max_tokens,
-                        "temperature": temperature,
-                        "messages": messages
-                    }
+            elif model_name in ["deepseek", "openai"]:
+                async for chunk in self._stream_openai_compatible(model_name, model, params, use_system_prompt):
+                    yield chunk
                     
-                    if system_prompt:
-                        api_params["system"] = [{"type": "text", "text": system_prompt}]
-                    
-                    # Add extended thinking if enabled
-                    supports_thinking = any(ver in model.model for ver in ["claude-opus-4", "claude-sonnet-4", "claude-sonnet-3.7"])
-                    if model.enable_thinking and supports_thinking:
-                        api_params["thinking"] = {
-                            "type": "enabled",
-                            "budget_tokens": model.thinking_budget
-                        }
-                        api_params["temperature"] = 1.0  # Required for extended thinking
-                        print("\n🧠 Extended thinking enabled...\n", flush=True)
-                    
-                    # Proper Anthropic async streaming implementation
-                    async with model.client.messages.stream(**api_params) as stream:
-                        async for text in stream.text_stream:
-                            yield text
-                            
-                elif model_name in ["deepseek", "openai"]:
-                    # DeepSeek and OpenAI streaming
-                    messages = []
-                    if use_system_prompt:
-                        system_prompt = get_prompt("sql_agent")
-                        messages.append({"role": "system", "content": system_prompt})
-                    messages.append({"role": "user", "content": prompt})
-                    
-                    stream = await model.client.chat.completions.create(
-                        model=model.model,
-                        messages=messages,
-                        max_tokens=max_tokens,
-                        temperature=temperature,
-                        stream=True
+            else:
+                # Fallback to non-streaming
+                response = await self.model_manager.generate_response(
+                    params["prompt"],
+                    params["max_tokens"],
+                    params["temperature"],
+                    use_system_prompt
+                )
+                yield response
+                
+        except Exception as e:
+            # Convert any error to our structured error type
+            if "401" in str(e) or "authentication" in str(e).lower():
+                raise ExternalServiceError(
+                    f"{model_name} authentication failed",
+                    service=model_name,
+                    correlation_id=self.correlation_id,
+                    component="chat",
+                    operation="stream_response"
+                )
+            elif "429" in str(e) or "rate limit" in str(e).lower():
+                raise ExternalServiceError(
+                    f"{model_name} rate limited",
+                    service=model_name,
+                    correlation_id=self.correlation_id,
+                    component="chat",
+                    operation="stream_response",
+                    retry_after=60
+                )
+            elif "timeout" in str(e).lower():
+                raise ExternalServiceError(
+                    f"{model_name} request timeout",
+                    service=model_name,
+                    correlation_id=self.correlation_id,
+                    component="chat",
+                    operation="stream_response",
+                    retry_after=30
+                )
+            else:
+                raise ExternalServiceError(
+                    f"{model_name} service error: {str(e)}",
+                    service=model_name,
+                    correlation_id=self.correlation_id,
+                    component="chat",
+                    operation="stream_response"
+                )
+    
+    async def _stream_anthropic(self, model, params: dict, use_system_prompt: bool):
+        """Stream from Anthropic with proper error handling."""
+        from model.config import get_prompt
+        
+        messages = [{"role": "user", "content": params["prompt"]}]
+        api_params = {
+            "model": model.model,
+            "max_tokens": params["max_tokens"],
+            "temperature": params["temperature"],
+            "messages": messages
+        }
+        
+        if use_system_prompt:
+            system_prompt = get_prompt("sql_agent")
+            api_params["system"] = [{"type": "text", "text": system_prompt}]
+        
+        # Add extended thinking if supported
+        supports_thinking = any(ver in model.model for ver in ["claude-opus-4", "claude-sonnet-4", "claude-sonnet-3.7"])
+        if model.enable_thinking and supports_thinking:
+            api_params["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": model.thinking_budget
+            }
+            api_params["temperature"] = 1.0
+        
+        async with model.client.messages.stream(**api_params) as stream:
+            async for text in stream.text_stream:
+                yield text
+    
+    async def _stream_openai_compatible(self, model_name: str, model, params: dict, use_system_prompt: bool):
+        """Stream from OpenAI-compatible models."""
+        from model.config import get_prompt
+        
+        messages = []
+        if use_system_prompt:
+            system_prompt = get_prompt("sql_agent")
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": params["prompt"]})
+        
+        stream = await model.client.chat.completions.create(
+            model=model.model,
+            messages=messages,
+            max_tokens=params["max_tokens"],
+            temperature=params["temperature"],
+            stream=True
+        )
+        
+        async for chunk in stream:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+    
+    async def _attempt_fallback(self, params: dict, use_system_prompt: bool, failed_model: str):
+        """Attempt fallback to other models."""
+        for fallback_name, fallback_model in self.model_manager.models:
+            if fallback_name != failed_model:
+                try:
+                    logger.info(
+                        f"Attempting fallback to {fallback_name}",
+                        extra={"correlation_id": self.correlation_id}
                     )
                     
-                    async for chunk in stream:
-                        if chunk.choices and chunk.choices[0].delta.content:
-                            yield chunk.choices[0].delta.content
-                            
-                else:
-                    # Fallback to non-streaming
-                    response = await self.generate_response(prompt, max_tokens, temperature, use_system_prompt, schema_info)
-                    yield response
+                    self.model_manager.current_model = (fallback_name, fallback_model)
                     
-            except Exception as e:
-                print(f"\n⚠️ {model_name} failed: {str(e)[:200]}...")
-                # Try all remaining models in order (avoid infinite recursion)
-                original_model = model_name
-                for fallback_name, fallback_model in self.models:
-                    if fallback_name != original_model:
-                        try:
-                            print(f"\n🔄 Falling back to {fallback_name}...")
-                            self.current_model = (fallback_name, fallback_model)
-                            
-                            # Use direct model call instead of recursive stream call
-                            if fallback_name == "anthropic":
-                                # Skip anthropic if it already failed
-                                continue
-                            elif fallback_name in ["deepseek", "openai"]:
-                                # Try OpenAI-compatible models directly
-                                messages = []
-                                if use_system_prompt:
-                                    system_prompt = get_prompt("sql_agent")
-                                    messages.append({"role": "system", "content": system_prompt})
-                                messages.append({"role": "user", "content": prompt})
-                                
-                                stream = await fallback_model.client.chat.completions.create(
-                                    model=fallback_model.model,
-                                    messages=messages,
-                                    max_tokens=max_tokens,
-                                    temperature=temperature,
-                                    stream=True
-                                )
-                                
-                                async for chunk in stream:
-                                    if chunk.choices and chunk.choices[0].delta.content:
-                                        yield chunk.choices[0].delta.content
-                                return
-                                
-                        except Exception as e2:
-                            print(f"\n⚠️ {fallback_name} also failed: {str(e2)[:100]}...")
-                            continue
-                            
-                # If we get here, all models failed
-                yield f"\n\nError: All models failed. Original error: {e}"
-    
-    print("Initializing Model-based Assistant...")
-    model_manager = StreamingModelManager()
-    print(f"✅ Using {model_manager.get_current_model()} model")
-    print(f"📋 Available models: {', '.join(model_manager.get_available_models())}\n")
-    
-    print("Hi! I am your Business Intelligence Assistant (Direct Mode).")
-    print("✨ Responses will stream in real-time")
-    print("(Type 'exit' to quit)\n")
-    
-    while True:
-        try:
-            user_query = input("User: ").strip()
-            if not user_query:
-                continue
-                
-            if user_query.lower() in ['exit', 'quit', 'bye']:
-                print("\nGoodbye!")
-                break
-            
-            initial_model = model_manager.get_current_model()
-            print(f"\n🤔 Processing with {initial_model}...")
-            start_time = datetime.now()
-            
-            prompt = f"""You are a business intelligence analyst. Answer this question concisely: "{user_query}"
-Provide key insights and actionable recommendations where relevant."""
-            
-            print("\nAssistant: ", end="", flush=True)
-            
-            char_count = 0
-            async for chunk in model_manager.generate_response_stream(
-                prompt=prompt,
-                max_tokens=16000,  # Must be > thinking_budget (10000)
-                temperature=0.7,
-                use_system_prompt=True
-            ):
-                print(chunk, end="", flush=True)
-                char_count += len(chunk)
-            
-            total_time = (datetime.now() - start_time).total_seconds()
-            final_model = model_manager.get_current_model()
-            
-            if final_model != initial_model:
-                print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model} model (⚠️ fell back from {initial_model})")
-            else:
-                print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model} model")
-            print()
-            
-        except KeyboardInterrupt:
-            print("\n\nExiting...")
-            break
-        except Exception as e:
-            print(f"\n❌ Error: {e}\n")
+                    async for chunk in self._stream_from_model(
+                        fallback_name, fallback_model, params, use_system_prompt
+                    ):
+                        yield chunk
+                    return  # Success, exit fallback loop
+                    
+                except Exception as e:
+                    logger.warning(
+                        f"Fallback to {fallback_name} also failed: {str(e)}",
+                        extra={"correlation_id": self.correlation_id}
+                    )
+                    continue
+        
+        # All models failed
+        raise ExternalServiceError(
+            "All models failed after fallback attempts",
+            correlation_id=self.correlation_id,
+            component="chat",
+            operation="fallback_attempt",
+            recoverable=False
+        )
 
-async def chat_with_phases():
-    """Chat using the full 5-phase orchestrator."""
+@with_error_handling(
+    operation="chat_with_model",
+    component="chat",
+    timeout_seconds=300.0  # 5 minute timeout for full chat session
+)
+async def chat_with_model(correlation_id: Optional[str] = None):
+    """Enhanced chat with proper error handling and monitoring."""
+    
+    logger.info("Starting chat session", extra={"correlation_id": correlation_id})
+    
+    try:
+        model_manager = EnhancedStreamingModelManager()
+        print("Initializing Enhanced Business Intelligence Assistant...")
+        print(f"✅ Using {model_manager.model_manager.get_current_model()} model")
+        print(f"📋 Available models: {', '.join(model_manager.model_manager.get_available_models())}")
+        print("✨ Enhanced error handling and monitoring enabled")
+        print("(Type 'exit' to quit)\n")
+        
+        session_stats = {
+            "queries_processed": 0,
+            "errors_encountered": 0,
+            "total_chars_generated": 0
+        }
+        
+        while True:
+            try:
+                user_query = input("User: ").strip()
+                if not user_query:
+                    continue
+                    
+                if user_query.lower() in ['exit', 'quit', 'bye']:
+                    break
+                
+                # Generate new correlation ID for each query
+                query_correlation_id = correlation_id + f"_q{session_stats['queries_processed']}"
+                
+                async with error_boundary(
+                    operation="process_user_query",
+                    component="chat",
+                    correlation_id=query_correlation_id,
+                    timeout_seconds=60.0
+                ) as ctx:
+                    
+                    initial_model = model_manager.model_manager.get_current_model()
+                    start_time = datetime.now()
+                    
+                    # Enhanced prompt with business focus
+                    enhanced_prompt = f"""You are a business intelligence analyst. Answer this question concisely: "{user_query}"
+Provide key insights and actionable recommendations where relevant."""
+                    
+                    print(f"\n🤔 Processing with {initial_model}...")
+                    print("Assistant: ", end="", flush=True)
+                    
+                    char_count = 0
+                    async for chunk in model_manager.generate_response_stream(
+                        prompt=enhanced_prompt,
+                        max_tokens=16000,
+                        temperature=0.7,
+                        use_system_prompt=True,
+                        correlation_id=query_correlation_id
+                    ):
+                        print(chunk, end="", flush=True)
+                        char_count += len(chunk)
+                    
+                    total_time = (datetime.now() - start_time).total_seconds()
+                    final_model = model_manager.model_manager.get_current_model()
+                    
+                    # Update statistics
+                    session_stats["queries_processed"] += 1
+                    session_stats["total_chars_generated"] += char_count
+                    
+                    # Display metrics
+                    if final_model != initial_model:
+                        print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model} (⚠️ fell back from {initial_model})")
+                    else:
+                        print(f"\n\n📊 {char_count} chars in {total_time:.1f}s | {final_model}")
+                    
+                    logger.info(
+                        "Query processed successfully",
+                        extra={
+                            "correlation_id": query_correlation_id,
+                            "response_chars": char_count,
+                            "processing_time_seconds": total_time,
+                            "model_used": final_model
+                        }
+                    )
+                    print()
+            
+            except KeyboardInterrupt:
+                print("\n\nChat interrupted by user")
+                break
+                
+            except Exception as e:
+                session_stats["errors_encountered"] += 1
+                logger.error(
+                    "Error processing query",
+                    extra={
+                        "correlation_id": correlation_id,
+                        "error": str(e),
+                        "error_type": type(e).__name__
+                    }
+                )
+                print(f"\n❌ Error: {str(e)}\n")
+    
+    except Exception as e:
+        logger.critical(
+            "Critical error in chat session",
+            extra={"correlation_id": correlation_id, "error": str(e)}
+        )
+        print(f"\n💥 Critical error: {str(e)}")
+        raise
+    
+    finally:
+        # Log session statistics
+        logger.info(
+            "Chat session ended",
+            extra={
+                "correlation_id": correlation_id,
+                "session_stats": session_stats,
+                "error_stats": error_tracker.get_error_stats()
+            }
+        )
+        
+        print(f"\n📈 Session Stats:")
+        print(f"   Queries processed: {session_stats['queries_processed']}")
+        print(f"   Errors encountered: {session_stats['errors_encountered']}")
+        print(f"   Total chars generated: {session_stats['total_chars_generated']}")
+        print("\nGoodbye!")
+
+async def chat_with_phases(correlation_id: Optional[str] = None):
+    """Chat using the full 5-phase orchestrator with database connections."""
     # Set required environment variables if not present
     if not os.getenv("ANTHROPIC_API_KEY"):
         # Try to load from model settings
@@ -200,6 +459,7 @@ async def chat_with_phases():
         from core.business_analyst import AutonomousBusinessAnalyst
         
         print("Initializing 5-Phase Business Intelligence System...")
+        print("✨ Enhanced error handling and monitoring enabled")
         analyst = AutonomousBusinessAnalyst()
         await analyst.initialize()
         
@@ -207,10 +467,17 @@ async def chat_with_phases():
         print("I will analyze your questions through:")
         print("  1. Query Understanding")
         print("  2. Strategic Planning")
-        print("  3. Service Orchestration")
-        print("  4. Investigation Execution")
-        print("  5. Insight Synthesis")
-        print("\n(Type 'exit' to quit)\n")
+        print("  3. Service Orchestration (Database Connections)")
+        print("  4. Investigation Execution (SQL Queries)")
+        print("  5. Insight Synthesis (Vector Search)")
+        print("\n✅ Connected to MariaDB and LanceDB")
+        print("(Type 'exit' to quit)\n")
+        
+        session_stats = {
+            "queries_processed": 0,
+            "errors_encountered": 0,
+            "databases_queried": 0
+        }
         
         while True:
             try:
@@ -222,80 +489,110 @@ async def chat_with_phases():
                     print("\nGoodbye!")
                     break
                 
-                print("\nAnalyzing through 5 phases...")
+                print("\n🔍 Analyzing through 5 phases...")
+                start_time = datetime.now()
                 
-                result = await analyst.conduct_investigation(
+                # Conduct 5-phase investigation
+                async for progress in analyst.conduct_investigation(
                     business_question=user_query,
-                    user_context={},
-                    stream_progress=False
-                )
+                    user_context={
+                        "correlation_id": correlation_id,
+                        "session_id": correlation_id
+                    },
+                    organization_context={},
+                    stream_progress=True
+                ):
+                    if progress.get("type") == "progress_update":
+                        print(f"   Phase {progress['phase_number']}/5: {progress['message']}")
+                    elif progress.get("type") == "investigation_completed":
+                        # Display results
+                        print("\nAssistant:")
+                        
+                        insights = progress.get("insights", {})
+                        if insights.get("executive_summary"):
+                            print(f"\n📊 Executive Summary:\n{insights['executive_summary']}")
+                        
+                        if insights.get("strategic_insights"):
+                            print("\n💡 Key Insights:")
+                            for i, insight in enumerate(insights["strategic_insights"][:3], 1):
+                                print(f"  {i}. {insight['title']}")
+                                print(f"     {insight['description']}")
+                                print(f"     Confidence: {insight['confidence']:.0%}")
+                        
+                        if insights.get("recommendations"):
+                            print("\n🎯 Recommendations:")
+                            for i, rec in enumerate(insights["recommendations"][:3], 1):
+                                print(f"  {i}. {rec['title']} (Priority: {rec['priority']})")
+                                print(f"     {rec['description']}")
                 
-                print("\nAssistant:")
+                total_time = (datetime.now() - start_time).total_seconds()
+                session_stats["queries_processed"] += 1
                 
-                if "executive_summary" in result:
-                    print(f"\n{result['executive_summary']}")
-                
-                if "key_findings" in result and result["key_findings"]:
-                    print("\nKey Findings:")
-                    for i, finding in enumerate(result["key_findings"], 1):
-                        print(f"  {i}. {finding}")
-                
-                if "strategic_recommendations" in result and result["strategic_recommendations"]:
-                    print("\nRecommendations:")
-                    for i, rec in enumerate(result["strategic_recommendations"], 1):
-                        if isinstance(rec, dict):
-                            print(f"  {i}. {rec.get('recommendation', rec)}")
-                        else:
-                            print(f"  {i}. {rec}")
-                
+                print(f"\n📊 Analysis completed in {total_time:.1f}s | 5-phase investigation with database queries")
                 print()
                 
             except KeyboardInterrupt:
                 print("\n\nExiting...")
                 break
             except Exception as e:
+                session_stats["errors_encountered"] += 1
+                logger.error(
+                    "Error in 5-phase analysis",
+                    extra={"correlation_id": correlation_id, "error": str(e)}
+                )
                 print(f"\nError in 5-phase analysis: {e}")
-                print("Falling back to direct model mode...\n")
-                await chat_with_model()
-                break
+                print("Continuing with next query...\n")
                 
         await analyst.cleanup()
+        
+        # Log session statistics
+        logger.info(
+            "5-Phase chat session ended",
+            extra={
+                "correlation_id": correlation_id,
+                "session_stats": session_stats
+            }
+        )
+        
+        print(f"\n📈 Session Stats:")
+        print(f"   Queries processed: {session_stats['queries_processed']}")
+        print(f"   Errors encountered: {session_stats['errors_encountered']}")
         
     except ImportError as e:
         print(f"Cannot load 5-phase orchestrator: {e}")
         print("Falling back to direct model mode...\n")
-        await chat_with_model()
+        await chat_with_model(correlation_id=correlation_id)
     except Exception as e:
         print(f"Error initializing 5-phase system: {e}")
         print("Falling back to direct model mode...\n")
-        await chat_with_model()
+        await chat_with_model(correlation_id=correlation_id)
 
 async def main():
-    """Main entry point with mode selection."""
-    print("Business Intelligence Chat Interface")
-    print("=" * 50)
-    print("\nSelect mode:")
-    print("1. Direct Model (Simple Q&A)")
-    print("2. 5-Phase Analysis (Comprehensive investigation)")
-    print("3. Exit")
+    """Main entry point - direct to 5-phase analysis."""
+    import uuid
+    correlation_id = str(uuid.uuid4())
     
-    choice = input("\nEnter choice (1-3): ").strip()
+    logger.info("Starting chat session", extra={"correlation_id": correlation_id})
     
-    if choice == "1":
-        await chat_with_model()
-    elif choice == "2":
-        await chat_with_phases()
-    elif choice == "3":
-        print("Goodbye!")
-    else:
-        print("Invalid choice. Starting direct mode...")
-        await chat_with_model()
+    try:
+        # Go straight to 5-phase analysis mode
+        await chat_with_phases(correlation_id=correlation_id)
+    except KeyboardInterrupt:
+        print("\nChat terminated by user.")
+    except Exception as e:
+        logger.critical(
+            "Fatal error in chat application",
+            extra={"correlation_id": correlation_id, "error": str(e)}
+        )
+        print(f"Fatal error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
+    # Ensure logs directory exists
+    os.makedirs('logs', exist_ok=True)
+    
     try:
         asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nChat terminated.")
     except Exception as e:
-        print(f"Fatal error: {e}")
+        print(f"Failed to start chat: {e}")
         sys.exit(1)

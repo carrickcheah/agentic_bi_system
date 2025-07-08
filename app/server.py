@@ -10,13 +10,13 @@ from contextlib import asynccontextmanager
 try:
     # Try relative imports first (when used as module)
     from .config import settings
-    from .utils.logging import setup_logging, logger
+    from .utils.logging import setup_logger, logger
     from .fastmcp.client_manager import MCPClientManager
     from .fastmcp.service import BusinessService
 except ImportError:
     # Fall back to absolute imports (when run directly)
     from config import settings
-    from utils.logging import setup_logging, logger
+    from utils.logging import setup_logger, logger
     from fastmcp.client_manager import MCPClientManager
     from fastmcp.service import BusinessService
 

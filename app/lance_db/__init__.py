@@ -69,11 +69,11 @@ Configuration:
 
 from .runner import SQLEmbeddingService
 from .src.embedding_component import EmbeddingGenerator
-from .search_component import VectorSearcher
-from .pattern_ingestion import BusinessPatternIngestion
-from .pattern_search_component import BusinessPatternSearcher
+from .src.search_component import VectorSearcher
+from .src.pattern_ingestion import BusinessPatternIngestion
+from .src.pattern_search_component import BusinessPatternSearcher
 from .config import LanceDBSettings, settings
-from .lance_logging import get_logger
+from .src.lance_logging import get_logger
 
 __all__ = [
     "SQLEmbeddingService",          # Primary entry point - recommended for both SQL and patterns

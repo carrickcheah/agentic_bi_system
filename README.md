@@ -180,12 +180,6 @@ Production Deployment Stack:
 ├── MCP Integration → 4-database specialists via Model Context Protocol
 └── Infrastructure → Distributed, resilient storage clusters
 
-Operational Excellence:
-├── Monitoring: Prometheus + Grafana with business KPI tracking
-├── Security: WAF, RBAC, encryption, complete audit trails
-├── Deployment: Kubernetes auto-scaling with zero downtime
-├── CI/CD: Automated testing, security scanning, canary releases
-└── Disaster Recovery: Multi-region backup with point-in-time recovery
 ```
 
 ### Investigation Workflow Architecture
@@ -229,7 +223,6 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
 | Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
 | Database 3 | LanceDB (via MCP) | Vector search, embeddings, semantic analysis |
-| Database 4 | GraphRAG (via MCP) | Knowledge graphs, entity search, comprehensive analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
 | Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
@@ -481,38 +474,7 @@ The interface follows Claude.ai's elegant two-panel design:
 └─────────────────┴─────────────────┘
 ```
 
-### Features:
-- Real-time investigation progress
-- Interactive data visualizations
-- SQL query inspection
-- Export to CSV/Excel/PDF
-- Dark/light mode
 
-
-## 📂 **Project Root Files (Alphabetical)**
-
-```
-agentic_sql/
-├── .env                                   ✅ KEEP (Configure)
-├── .env.template                          ✅ KEEP (Good)
-├── .gitignore                            ✅ KEEP (Good)
-├── .pre-commit-config.yaml               🆕 CREATE
-├── docker-compose.yml                    🆕 CREATE (Development)
-├── mcp.json                              ✅ KEEP (Moved to app/mcp.json)
-├── package.json                          🆕 CREATE (Root-level coordination)
-├── pyproject.toml                        ✅ KEEP (Excellent)
-└── README.md                             🆕 CREATE (Project overview)
-```
-
----
-
-## 📂 **app/ Directory (Alphabetical)**
-
-```
-app/
-├── __init__.py                           ✅ KEEP
-├──
-```
 
 ---
 
@@ -544,75 +506,6 @@ deploy/
     ├── health_check.sh                   🆕 CREATE
     ├── rollback.sh                       🆕 CREATE
     └── setup.sh                          🆕 CREATE
-```
-
----
-
-## 📂 **docs/ Directory (Alphabetical)**
-
-```
-
----
-
-## 📂 **frontend/ Directory (Alphabetical)**
-
-```
-
-```
-
----
-
-## 📂 **scripts/ Directory (Alphabetical)**
-
-```
-scripts/
-├── cache_warmup.sh                       🆕 CREATE
-├── code_quality.sh                       🆕 CREATE
-├── data_migration.sh                     🆕 CREATE
-├── performance_benchmark.sh              🆕 CREATE
-├── run_tests.sh                          🆕 CREATE
-└── setup_dev.sh                          🆕 CREATE
-```
-
----
-
-## 📂 **testing/ Directory (Alphabetical)**
-
-```
-testing/
-├── e2e/
-│   ├── test_business_intelligence_workflow.py 🆕 CREATE
-│   ├── test_collaboration_scenarios.py       🆕 CREATE
-│   ├── test_production_scenarios.py          🆕 CREATE
-│   └── test_user_journey.py                  🆕 CREATE
-├── fixtures/
-│   ├── investigation_scenarios.py            🆕 CREATE
-│   ├── mock_responses.py                     🆕 CREATE
-│   ├── sample_business_data.py               🆕 CREATE
-│   └── test_configurations.py                📝 MIGRATE from mcp_test_results.md
-├── integration/
-│   ├── test_cache_performance.py             🆕 CREATE
-│   ├── test_full_investigation_flow.py       🆕 CREATE
-│   ├── test_organizational_learning.py       🆕 CREATE
-│   ├── test_real_time_collaboration.py       🆕 CREATE
-│   └── test_security_compliance.py           🆕 CREATE
-├── performance/
-│   ├── test_cache_performance.py             🆕 CREATE
-│   ├── test_concurrent_investigations.py     🆕 CREATE
-│   ├── test_memory_usage.py                  🆕 CREATE
-│   └── test_scalability.py                   🆕 CREATE
-├── scripts/
-│   ├── quick_mcp_test.py                     🔧 ENHANCE (exists)
-│   ├── test_end_to_end.py                    🆕 CREATE
-│   ├── test_four_mcp_servers.py              🔧 ENHANCE (exists)
-│   └── test_model_fallback.py                🆕 CREATE
-└── unit/
-    ├── test_business_analyst.py              🆕 CREATE
-    ├── test_cache_cascade.py                 🆕 CREATE
-    ├── test_collaboration.py                 🆕 CREATE
-    ├── test_intelligence_layer.py            🆕 CREATE
-    ├── test_investigation_engine.py          🆕 CREATE
-    └── test_mcp_clients.py                   📝 MIGRATE from existing MCP tests
 ```
 
 ---
@@ -794,46 +687,3 @@ Example: New product launch analysis synthesized:
          - Marketing budget optimization
          - 18-month ROI projection
 ```
-
-## 🙏 Acknowledgments
-
-This project leverages cutting-edge research and insights from:
-- **Claude Code's autonomous problem-solving approach** - Multi-step reasoning and tool orchestration
-- **Anthropic's autonomous reasoning research** - Advanced reasoning and problem-solving capabilities
-- **Cognition.ai's context preservation principles** - Solving fragmentation through natural service boundaries
-- **Business intelligence architecture insight** - Single autonomous analyst with specialized database services
-- **Model Context Protocol (MCP)** - Standardized tool communication and database integration
-- **BGE-M3 embeddings** - MIT-licensed dense + sparse + multi-vector embeddings
-- **LanceDB vector database** - Embedded vector database for semantic search and pattern matching
-
-### Research Foundation
-Our architecture synthesizes the best insights from Anthropic's autonomous reasoning capabilities and Cognition.ai's context preservation principles, creating a sophisticated yet reliable single-analyst system for production business intelligence workloads through natural service boundaries.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🌟 The Future of Organizational Intelligence
-
-This world-class production system represents more than just a sophisticated SQL tool - it's a comprehensive organizational intelligence platform that transforms how businesses understand and interact with their data. By combining autonomous AI reasoning with deep business intelligence capabilities, collaborative knowledge building, and enterprise-scale reliability, the system creates a new paradigm for data-driven decision making.
-
-The key innovation lies not in any single technology component, but in the intelligent orchestration of multiple sophisticated systems into a coherent whole that truly understands business context, learns from organizational patterns, and provides insights that multiply human intelligence rather than simply automating routine tasks.
-
-As organizations deploy this system, they move from:
-- **Reactive data analysis** → **Proactive business intelligence**
-- **Individual tools** → **Organizational learning systems**
-- **Data reporting** → **Strategic insight generation**
-
-The result is a fundamental transformation in how organizations leverage their data assets to drive business success.
-
----
-
-**Ready to transform your organization's relationship with data?**
-
-🚀 **Autonomous Business Intelligence** - Human-level reasoning at machine scale  
-🧠 **Organizational Learning** - Every question makes your company smarter  
-💡 **Strategic Insights** - From "what happened" to "what should we do"  
-
-Star ⭐ this repo and join us in building the future where every data question becomes an opportunity for deeper business understanding, and every investigation contributes to organizational wisdom that compounds over time.
