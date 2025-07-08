@@ -22,7 +22,7 @@ Every investigation improves the system for the entire organization. When one pe
 - **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
 - **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
 - **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
-- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), LanceDB (semantic search), GraphRAG (knowledge graphs)
+- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search), GraphRAG (knowledge graphs)
 - **Organizational Learning**: Every investigation improves future performance for the entire team
 - **Real-Time Collaboration**: Multiple stakeholders can participate in live investigations
 - **Proactive Pattern Recognition**: Automatic anomaly detection and predictive analytics
@@ -100,7 +100,7 @@ The diagram above illustrates the complete autonomous business intelligence work
 1. **User → System**: Query reception via FastAPI (REST/MCP endpoints)
 2. **System → Cache**: Multi-tier cache cascade (Anthropic + PostgreSQL hybrid)
 3. **Cache → Core Agent**: Intelligence planning with business methodology selection
-4. **Core Agent → Memory**: MCP service orchestration (GraphRAG + LanceDB coordination)
+4. **Core Agent → Memory**: MCP service orchestration (GraphRAG + Qdrant coordination)
 5. **Memory → Strategic Synthesis**: Role-specific formatting and organizational learning
 6. **Complete Task**: Return strategic insights to user
 
@@ -148,7 +148,7 @@ Key process characteristics:
 │ Business Data   │ │  Memory Cache   │ │ Vector Search   │ │ Knowledge Graph │
 │   Service       │ │    Service      │ │    Service      │ │    Service      │
 │                 │ │                 │ │                 │ │                 │
-│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ LanceDB MCP     │ │ GraphRAG MCP    │
+│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP     │ │ GraphRAG MCP    │
 │ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │ │ • Entity Search │
 │ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │ │ • Global Analysis│
 │ • Revenue Ops   │ │ • Learning      │ │   Matching      │ │ • Relationship  │
@@ -200,7 +200,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 3. Service Orchestration:
    ├── Business Data Service: MariaDB with business logic understanding
    ├── Memory Service: PostgreSQL for context and learning
-   ├── Vector Service: LanceDB for semantic pattern matching
+   ├── Vector Service: Qdrant for semantic pattern matching
    └── Knowledge Graph Service: GraphRAG for comprehensive investigations
 
 4. Autonomous Execution:
@@ -222,7 +222,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Single autonomous business analyst with five-phase workflow |
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
 | Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
-| Database 3 | LanceDB (via MCP) | Vector search, embeddings, semantic analysis |
+| Database 3 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
 | Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
 | Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
@@ -323,7 +323,7 @@ Service Preparation Process:
 │   → Organizational learning pattern access
 │   → Cross-investigation correlation preparation
 │
-├── Vector Service (LanceDB)
+├── Vector Service (Qdrant)
 │   → Semantic pattern matching configuration
 │   → Context-aware retrieval setup by role/department
 │   → Success pattern weighting preparation
@@ -413,7 +413,7 @@ Example Synthesis:
 - Python 3.11+
 - PostgreSQL 15+
 - MariaDB 10.6+ (or your existing database)
-- Docker (optional for LanceDB)
+- Docker (optional for Qdrant)
 - Node.js 18+ (for UI)
 
 ### Installation
@@ -431,9 +431,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Install LanceDB:
+3. Install Qdrant:
 ```bash
-pip install lancedb
+# Qdrant is cloud-based - configure API key in app/qdrant/settings.env
 ```
 
 4. Configure your databases:
@@ -516,7 +516,7 @@ deploy/
 1. `app/main.py` ✅ EXISTS
 2. `app/fastmcp/mariadb_client.py` ✅ EXISTS  
 3. `app/fastmcp/postgres_client.py` ✅ EXISTS
-4. `app/fastmcp/lancedb_client.py` ✅ EXISTS
+
 5. `app/fastmcp/graphrag_client.py` ✅ EXISTS
 6. `app/core/business_analyst.py` ✅ EXISTS
 
@@ -536,16 +536,16 @@ deploy/
 ## 🎯 **Recently Completed - GraphRAG Integration**
 
 ### **✅ GraphRAG Integration Complete**
-- **Removed Qdrant**: Clean 4-service architecture (MariaDB, PostgreSQL, LanceDB, GraphRAG)
+- **Removed Qdrant**: Clean 4-service architecture (MariaDB, PostgreSQL, Qdrant, GraphRAG)
 - **GraphRAG MCP Server**: Hybrid architecture solving stateful/stateless conflicts
 - **Smart Activation**: GraphRAG only for "comprehensive" complexity investigations
-- **Production Ready**: Cost controls, monitoring, graceful fallback to LanceDB
+- **Production Ready**: Cost controls, monitoring, graceful fallback to Qdrant
 - **FAANG Engineering Standards**: Operational safety, clear metrics, scalable boundaries
 
 ### **🔧 Architecture Highlights**
 - **MCP Protocol**: Standardized interface for all 4 database services
 - **Complexity-Based Activation**: Simple → Moderate → Complex → Comprehensive
-- **Fallback Strategy**: GraphRAG failures gracefully fall back to LanceDB vector search
+- **Fallback Strategy**: GraphRAG failures gracefully fall back to Qdrant vector search
 - **Cost Management**: Per-query and daily budget limits with monitoring
 - **Performance Monitoring**: Real-time metrics for all service operations
 
@@ -597,7 +597,7 @@ patterns:
 ### Phase 2: Intelligence Layer
 - [ ] Sonnet 4 integration
 - [ ] BGE-M3 embeddings setup
-- [ ] LanceDB knowledge base
+- [ ] Qdrant knowledge base
 - [ ] FAQ pattern matching
 
 ### Phase 3: User Interface

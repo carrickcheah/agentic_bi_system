@@ -36,7 +36,7 @@ PHASE 4 OUTPUT flows to PHASE 5 PROCESSING flows to PHASE 6 INPUT
   Business Intelligence Reasoning                           
 
      RECEIVES FROM PHASE 4:     
-     - Coordinated Services     -- MariaDB, PostgreSQL, LanceDB, GraphRAG
+     - Coordinated Services     -- MariaDB, PostgreSQL, Qdrant, GraphRAG
      - Optimized Connections    -- Ready database connections
      - Execution Context        -- Investigation parameters
      - Health Status            -- Service availability
@@ -174,7 +174,7 @@ PHASE 4 OUTPUT flows to PHASE 5 PROCESSING flows to PHASE 6 INPUT
 ### Service Integration
 - Uses Phase 3 coordinated database services
 - Leverages MCP connections for data access
-- Integrates with LanceDB for similarity search
+- Integrates with Qdrant for similarity search
 - Utilizes GraphRAG for relationship analysis
 
 ### Quality Assurance

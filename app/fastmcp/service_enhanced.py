@@ -66,13 +66,9 @@ def safe_import_dependencies():
     try:
         from ..utils.logging import logger as util_logger
         from ..utils.exceptions import BusinessLogicError as UtilBusinessLogicError, DatabaseOperationError
-        from ..lance_db.runner import SQLEmbeddingService
-        from ..lance_db.src.enhanced_schema import (
-            EnhancedSQLQuery, QueryContent, SemanticContext, TechnicalMetadata,
-            UserContext, InvestigationContext, ExecutionResults, LearningMetadata,
-            BusinessIntelligence, create_enhanced_query_from_simple, validate_enhanced_query,
-            QueryType, BusinessDomain, UserRole, ExecutionStatus, AnalysisType, ComplexityTier
-        )
+
+        SQLEmbeddingService = None
+        EnhancedSQLQuery = None
         return True, {
             'logger': util_logger,
             'sql_service': SQLEmbeddingService,

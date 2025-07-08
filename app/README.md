@@ -72,7 +72,7 @@ Query -> Semantic Hash -> Cache Lookup -> Hit? -> Instant Response (50-100ms)
 - **Intelligent Service Selection**:
   - Simple (< 0.3): MariaDB only
   - Analytical (< 0.6): MariaDB + PostgreSQL
-  - Computational (< 0.8): + LanceDB
+  - Computational (< 0.8): + Qdrant
   - Investigative (≥ 0.8): + GraphRAG (all services)
 - **MCP Tool Coordination**: Multiple Computer Protocol integration
 - **Connection Management**: Database connections and health monitoring
@@ -135,7 +135,7 @@ app/
 │   ├── config.py
 │   ├── runner.py
 │   └── README.md
-├── lance_db/               # Vector embeddings and similarity search
+├── qdrant/                 # Vector embeddings and similarity search
 │   ├── embedded_sql/           # SQL query embeddings
 │   ├── patterns/               # Business intelligence patterns
 │   ├── runner.py
@@ -182,7 +182,7 @@ module_name/
 ### Database Services
 - **MariaDB**: Primary operational database (MCP)
 - **PostgreSQL**: Analytics and caching (MCP + Supabase)
-- **LanceDB**: Vector embeddings and similarity search
+- **Qdrant**: Vector embeddings and similarity search
 - **GraphRAG**: Knowledge graph and relationship analysis
 
 ### AI and Intelligence
@@ -245,7 +245,7 @@ module_name/
 |------------|---------------|----------|------------|----------------|
 | Simple     | MariaDB       | 30s      | 95%+       | 80%+           |
 | Analytical | MariaDB+PG    | 2-5m     | 90%+       | 60%+           |
-| Complex    | +LanceDB      | 15-30m   | 80%+       | 40%+           |
+| Complex    | +Qdrant       | 15-30m   | 80%+       | 40%+           |
 | Strategic  | +GraphRAG     | 30-60m   | 75%+       | 20%+           |
 
 ## Getting Started
@@ -271,7 +271,7 @@ cp model/settings.env.example model/settings.env
 ```bash
 # Test individual modules
 cd app/model && python test_standalone.py
-cd app/lance_db && python test_standalone.py
+cd app/qdrant && python test_standalone.py
 cd app/investigation && python test_standalone.py
 
 # Run integration tests
@@ -287,7 +287,7 @@ uv run --frozen pyright
 
 # Run specific module
 cd app/model && python runner.py
-cd app/lance_db && python ingest_patterns.py
+cd app/qdrant && python ingest_patterns.py
 ```
 
 ## Key Innovations

@@ -223,12 +223,11 @@ search_db.sh
 # Agents
 agent_bi.json
 agent_fastapi.json
-agent_lancedb.json
 agent_mcp.json
 agent_rag.json
 agent_sql.json
 memory/
-
+z_TODO.md
 
 
 

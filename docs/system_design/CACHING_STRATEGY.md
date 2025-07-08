@@ -127,7 +127,7 @@ User Query: "What's last month's sales?"
      ↓ (if miss)
 ┌─────────────────────────────────────────────────────┐
 │  TIER 2: SEMANTIC CACHE (200ms target)              │
-│  • Vector similarity search (Lance)                │
+│  • Vector similarity search (Qdrant)                │
 │  • Pattern matching and learning                    │
 │  • SQL query optimization                           │
 └─────────────────────────────────────────────────────┘
@@ -309,7 +309,7 @@ The TTL matrix contains 100+ real-world business scenarios with intelligent cach
 - Track usage and increment access counters
 
 **STEP 4: Semantic Cache Check (Pattern matching)**
-- Vector similarity search in LanceDB
+- Vector similarity search in qdrant
 - Pattern recognition and learning capabilities
 - 200ms target response time
 - Indefinite storage for organizational learning
@@ -345,7 +345,7 @@ The TTL matrix contains 100+ real-world business scenarios with intelligent cach
 - Enable instant sidebar memory access for users
 
 **STEP 5: Semantic Cache Storage**
-- Store SQL patterns and query results in Lance
+- Store SQL patterns and query results in Qdrant
 - Enable pattern recognition and optimization learning
 - Indefinite storage for continuous improvement
 
@@ -664,7 +664,7 @@ WHERE query LIKE '%cache%';
 
 - [Anthropic Prompt Caching Documentation](https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching)
 - [PostgreSQL Performance Tuning](https://www.postgresql.org/docs/current/performance-tips.html)
-- [LanceDB Vector Database](https://lancedb.com/)
+- [Qdrant Vector Database](https://qdrant.tech/)
 
 ### **Monitoring Tools**
 

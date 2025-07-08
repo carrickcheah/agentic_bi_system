@@ -22,27 +22,30 @@ from core.error_handling import (
     ErrorCategory, ErrorSeverity, error_tracker
 )
 
-# Configure structured logging with safe format
+# Configure structured logging with smart format
 class SafeFormatter(logging.Formatter):
-    """Custom formatter that safely handles extra fields"""
+    """Custom formatter that conditionally shows correlation_id"""
     def format(self, record):
-        # Add correlation_id if not present
-        if not hasattr(record, 'correlation_id'):
-            record.correlation_id = 'N/A'
-        return super().format(record)
+        # Use different format based on whether correlation_id exists
+        if hasattr(record, 'correlation_id') and record.correlation_id:
+            # Format with correlation_id
+            format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(correlation_id)s'
+        else:
+            # Format without correlation_id
+            format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        
+        formatter = logging.Formatter(format_string)
+        return formatter.format(record)
 
 # Create formatter and handlers
-formatter = SafeFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(correlation_id)s')
+formatter = SafeFormatter()
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 
-file_handler = logging.FileHandler('logs/chat.log')
-file_handler.setFormatter(formatter)
-
-# Configure logging
+# Configure logging (console only)
 logging.basicConfig(
     level=logging.INFO,
-    handlers=[console_handler, file_handler]
+    handlers=[console_handler]
 )
 
 logger = logging.getLogger(__name__)
@@ -441,8 +444,15 @@ Provide key insights and actionable recommendations where relevant."""
         print(f"   Total chars generated: {session_stats['total_chars_generated']}")
         print("\nGoodbye!")
 
-async def chat_with_phases(correlation_id: Optional[str] = None):
-    """Chat using the full 5-phase orchestrator with database connections."""
+
+
+async def main():
+    """Main entry point - 5-phase analysis with Qdrant integration only."""
+    import uuid
+    correlation_id = str(uuid.uuid4())
+    
+    logger.info("Starting chat session", extra={"correlation_id": correlation_id})
+    
     # Set required environment variables if not present
     if not os.getenv("ANTHROPIC_API_KEY"):
         # Try to load from model settings
@@ -458,25 +468,27 @@ async def chat_with_phases(correlation_id: Optional[str] = None):
     try:
         from core.business_analyst import AutonomousBusinessAnalyst
         
-        print("Initializing 5-Phase Business Intelligence System...")
-        print("✨ Enhanced error handling and monitoring enabled")
+        print("Initializing 5-Phase Business Intelligence System with Qdrant...")
+        print("✨ Vector search and query learning enabled")
         analyst = AutonomousBusinessAnalyst()
         await analyst.initialize()
         
-        print("\nHi! I am your Business Intelligence Assistant (5-Phase Analysis).")
-        print("I will analyze your questions through:")
+        print("\nHi! I am your Business Intelligence Assistant.")
+        print("I will analyze your questions through 5 phases:")
         print("  1. Query Understanding")
-        print("  2. Strategic Planning")
+        print("  2. Strategic Planning") 
         print("  3. Service Orchestration (Database Connections)")
         print("  4. Investigation Execution (SQL Queries)")
         print("  5. Insight Synthesis (Vector Search)")
-        print("\n✅ Connected to MariaDB and LanceDB")
+        print("\n✅ Connected to MariaDB and Qdrant")
+        print("🔍 Similar query search enabled for faster responses")
         print("(Type 'exit' to quit)\n")
         
         session_stats = {
             "queries_processed": 0,
             "errors_encountered": 0,
-            "databases_queried": 0
+            "qdrant_hits": 0,
+            "qdrant_misses": 0
         }
         
         while True:
@@ -489,10 +501,11 @@ async def chat_with_phases(correlation_id: Optional[str] = None):
                     print("\nGoodbye!")
                     break
                 
-                print("\n🔍 Analyzing through 5 phases...")
+                print("\n🔍 Searching for similar queries in Qdrant...")
                 start_time = datetime.now()
                 
                 # Conduct 5-phase investigation
+                used_cache = False
                 async for progress in analyst.conduct_investigation(
                     business_question=user_query,
                     user_context={
@@ -502,7 +515,14 @@ async def chat_with_phases(correlation_id: Optional[str] = None):
                     organization_context={},
                     stream_progress=True
                 ):
-                    if progress.get("type") == "progress_update":
+                    if progress.get("type") == "cache_hit":
+                        print("✅ Found similar query in Qdrant! Using cached results.")
+                        used_cache = True
+                        session_stats["qdrant_hits"] += 1
+                    elif progress.get("type") == "cache_miss":
+                        print("❌ No similar query found. Running full investigation...")
+                        session_stats["qdrant_misses"] += 1
+                    elif progress.get("type") == "progress_update":
                         print(f"   Phase {progress['phase_number']}/5: {progress['message']}")
                     elif progress.get("type") == "investigation_completed":
                         # Display results
@@ -524,11 +544,15 @@ async def chat_with_phases(correlation_id: Optional[str] = None):
                             for i, rec in enumerate(insights["recommendations"][:3], 1):
                                 print(f"  {i}. {rec['title']} (Priority: {rec['priority']})")
                                 print(f"     {rec['description']}")
+                        
+                        if not used_cache:
+                            print("\n💾 Storing query pattern in Qdrant for future use...")
                 
                 total_time = (datetime.now() - start_time).total_seconds()
                 session_stats["queries_processed"] += 1
                 
-                print(f"\n📊 Analysis completed in {total_time:.1f}s | 5-phase investigation with database queries")
+                cache_status = "Qdrant cache hit" if used_cache else "Full investigation + stored in Qdrant"
+                print(f"\n📊 Analysis completed in {total_time:.1f}s | {cache_status}")
                 print()
                 
             except KeyboardInterrupt:
@@ -556,35 +580,23 @@ async def chat_with_phases(correlation_id: Optional[str] = None):
         
         print(f"\n📈 Session Stats:")
         print(f"   Queries processed: {session_stats['queries_processed']}")
+        print(f"   Qdrant cache hits: {session_stats['qdrant_hits']}")
+        print(f"   Qdrant cache misses: {session_stats['qdrant_misses']}")
+        if session_stats['queries_processed'] > 0:
+            hit_rate = session_stats['qdrant_hits'] / session_stats['queries_processed'] * 100
+            print(f"   Cache hit rate: {hit_rate:.1f}%")
         print(f"   Errors encountered: {session_stats['errors_encountered']}")
         
     except ImportError as e:
-        print(f"Cannot load 5-phase orchestrator: {e}")
-        print("Falling back to direct model mode...\n")
-        await chat_with_model(correlation_id=correlation_id)
-    except Exception as e:
-        print(f"Error initializing 5-phase system: {e}")
-        print("Falling back to direct model mode...\n")
-        await chat_with_model(correlation_id=correlation_id)
-
-async def main():
-    """Main entry point - direct to 5-phase analysis."""
-    import uuid
-    correlation_id = str(uuid.uuid4())
-    
-    logger.info("Starting chat session", extra={"correlation_id": correlation_id})
-    
-    try:
-        # Go straight to 5-phase analysis mode
-        await chat_with_phases(correlation_id=correlation_id)
-    except KeyboardInterrupt:
-        print("\nChat terminated by user.")
+        print(f"❌ Cannot load 5-phase orchestrator: {e}")
+        print("Please ensure all dependencies are installed.")
+        sys.exit(1)
     except Exception as e:
         logger.critical(
             "Fatal error in chat application",
             extra={"correlation_id": correlation_id, "error": str(e)}
         )
-        print(f"Fatal error: {e}")
+        print(f"❌ Fatal error: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

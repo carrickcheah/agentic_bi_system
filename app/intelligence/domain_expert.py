@@ -13,9 +13,13 @@ from pathlib import Path
 try:
     from .config import settings
     from .intelligence_logging import setup_logger, performance_monitor
+    from .query_intent_classifier import get_intent_classifier, QueryIntent
+    from .response_templates import get_response_template
 except ImportError:
     from config import settings
     from intelligence_logging import setup_logger, performance_monitor
+    from query_intent_classifier import get_intent_classifier, QueryIntent
+    from response_templates import get_response_template
 
 
 class BusinessDomain(Enum):
@@ -42,6 +46,15 @@ class AnalysisType(Enum):
     DIAGNOSTIC = "diagnostic"        # Why did it happen?
     PREDICTIVE = "predictive"        # What will happen?
     PRESCRIPTIVE = "prescriptive"    # What should we do?
+
+
+@dataclass
+class NonBusinessResponse:
+    """Response for non-business queries (greetings, help, casual)."""
+    intent_type: str
+    response_text: str
+    confidence: float
+    is_business: bool = False
 
 
 @dataclass
@@ -355,6 +368,43 @@ class DomainExpert:
                 "future", "planning", "research", "explore"
             ]
         }
+    
+    def classify_query_intent(self, query: str):
+        """
+        Pre-classify query intent before business domain analysis.
+        Returns either NonBusinessResponse or BusinessIntent.
+        
+        Args:
+            query: Natural language query
+            
+        Returns:
+            NonBusinessResponse for greetings/help/casual, BusinessIntent for business queries
+        """
+        # Use intent classifier for pre-classification
+        intent_classifier = get_intent_classifier()
+        intent_classification = intent_classifier.classify_intent(query)
+        
+        # Handle non-business intents
+        if intent_classification.intent != QueryIntent.BUSINESS:
+            response_template = get_response_template()
+            response_text = response_template.generate_response(
+                intent_classification.intent, 
+                query
+            )
+            
+            self.logger.info(
+                f"Non-business intent detected: {intent_classification.intent.value} "
+                f"(confidence: {intent_classification.confidence:.3f})"
+            )
+            
+            return NonBusinessResponse(
+                intent_type=intent_classification.intent.value,
+                response_text=response_text,
+                confidence=intent_classification.confidence
+            )
+        
+        # Business intent - proceed with domain classification
+        return self.classify_business_intent(query)
     
     @performance_monitor("domain_classification")
     def classify_business_intent(self, query: str) -> BusinessIntent:

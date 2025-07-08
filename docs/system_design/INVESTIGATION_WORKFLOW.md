@@ -109,7 +109,7 @@ User Question → API → AutonomousBusinessAnalyst → Five-Phase Investigation
 **Services Available**:
 - **Business Data Service**: MariaDB with sales, customers, products
 - **Memory Service**: PostgreSQL for organizational memory
-- **Vector Service**: LanceDB for semantic search
+- **Vector Service**: Qdrant for semantic search
 - **Analytics Service**: Advanced analytics and computation
 - **External Service**: Supabase for additional operations
 

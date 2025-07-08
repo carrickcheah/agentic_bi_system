@@ -27,13 +27,11 @@ import json
 try:
     from ..utils.logging import logger
     from ..utils.exceptions import BusinessLogicError, DatabaseOperationError
-    from ..lance_db.runner import SQLEmbeddingService
-    from ..lance_db.src.enhanced_schema import (
-        EnhancedSQLQuery, QueryContent, SemanticContext, TechnicalMetadata,
-        UserContext, InvestigationContext, ExecutionResults, LearningMetadata,
-        BusinessIntelligence, create_enhanced_query_from_simple, validate_enhanced_query,
-        QueryType, BusinessDomain, UserRole, ExecutionStatus, AnalysisType, ComplexityTier
-    )
+
+    SQLEmbeddingService = None
+    EnhancedSQLQuery = None
+    create_enhanced_query_from_simple = None
+    validate_enhanced_query = None
 except ImportError:
     import logging
     logger = logging.getLogger(__name__)
@@ -106,7 +104,7 @@ class BusinessService:
             try:
                 self.sql_embedding_service = SQLEmbeddingService()
                 await self.sql_embedding_service.initialize()
-                logger.info("SQL query learning enabled with LanceDB integration")
+                logger.info("SQL query learning enabled with Qdrant integration")
             except Exception as e:
                 logger.warning(f"SQL query learning disabled due to initialization error: {e}")
                 self.sql_embedding_service = None
@@ -315,7 +313,7 @@ class BusinessService:
             logger.error(f"Table listing failed for {database}: {e}")
             raise DatabaseOperationError(f"Failed to list tables: {e}")
     
-    # Vector Operations (LanceDB)
+    # Vector Operations (Qdrant)
     
     async def store_query_pattern(
         self,
@@ -328,7 +326,7 @@ class BusinessService:
         business_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        Store SQL query pattern for semantic search using LanceDB.
+        Store SQL query pattern for semantic search using Qdrant.
         
         Args:
             sql_query: The SQL query
@@ -347,7 +345,7 @@ class BusinessService:
                 logger.warning("SQL embedding service not available for pattern storage")
                 return {"status": "skipped", "reason": "SQL embedding service not available"}
             
-            # Prepare query data for LanceDB storage
+            # Prepare query data for Qdrant storage
             query_data = {
                 "sql_query": sql_query,
                 "database": "mariadb",  # Default for business queries
@@ -364,7 +362,7 @@ class BusinessService:
                 }
             }
             
-            # Store in LanceDB
+            # Store in Qdrant
             query_id = await self.sql_embedding_service.store_sql_query(query_data)
             
             result = {
@@ -374,7 +372,7 @@ class BusinessService:
                 "stored_at": datetime.utcnow().isoformat()
             }
             
-            logger.info(f"Stored query pattern in LanceDB: {description}")
+            logger.info(f"Stored query pattern in Qdrant: {description}")
             return result
             
         except Exception as e:
@@ -388,7 +386,7 @@ class BusinessService:
         threshold: Optional[float] = None
     ) -> List[Dict[str, Any]]:
         """
-        Find similar SQL queries based on description using LanceDB.
+        Find similar SQL queries based on description using Qdrant.
         
         Args:
             description: Query description to search for
@@ -403,7 +401,7 @@ class BusinessService:
                 logger.warning("SQL embedding service not available for similarity search")
                 return []
             
-            # Use LanceDB for similarity search
+            # Use Qdrant for similarity search
             results = await self.sql_embedding_service.find_similar_queries(
                 query=description,
                 threshold=threshold,
@@ -705,7 +703,7 @@ class BusinessService:
                 error=error
             )
             
-            # Store enhanced query in LanceDB
+            # Store enhanced query in Qdrant
             query_id = await self.sql_embedding_service.store_enhanced_query(enhanced_query)
             
             logger.debug(
@@ -1106,7 +1104,7 @@ class BusinessService:
             "databases": {
                 "mariadb": bool(self.client_manager.mariadb),
                 "postgres": bool(self.client_manager.postgres),
-                "lancedb": "pending_integration",
+                "qdrant": "pending_integration",
                 "graphrag": bool(self.client_manager.graphrag)
             },
             "client_manager": {

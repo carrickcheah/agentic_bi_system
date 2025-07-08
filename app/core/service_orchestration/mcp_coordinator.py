@@ -41,8 +41,8 @@ class MCPServiceCoordinator:
                 "capabilities": ["memory_cache", "investigation_storage", "session_management"],
                 "optimization_priority": 2
             },
-            "lancedb": {
-                "service_name": settings.lancedb_service_name,
+            "qdrant": {
+                "service_name": settings.qdrant_service_name,
                 "capabilities": ["vector_search", "embeddings", "similarity_queries"],
                 "optimization_priority": 3
             },
@@ -96,7 +96,7 @@ class MCPServiceCoordinator:
         required_services = [
             settings.mariadb_service_name,
             settings.postgres_service_name,
-            settings.lancedb_service_name,
+            settings.qdrant_service_name,
             settings.graphrag_service_name
         ]
         
@@ -116,7 +116,7 @@ class MCPServiceCoordinator:
         Prepare a specific service for investigation execution.
         
         Args:
-            service_type: Type of service to prepare (mariadb, postgresql, lancedb, graphrag)
+            service_type: Type of service to prepare (mariadb, postgresql, Qdrant, graphrag)
             optimization_settings: Service-specific optimization parameters
             
         Returns:
@@ -136,8 +136,8 @@ class MCPServiceCoordinator:
                 connection_context = await self._prepare_mariadb_service(optimization_settings)
             elif service_type == "postgresql":
                 connection_context = await self._prepare_postgresql_service(optimization_settings)
-            elif service_type == "lancedb":
-                connection_context = await self._prepare_lancedb_service(optimization_settings)
+            elif service_type == "qdrant":
+                connection_context = await self._prepare_qdrant_service(optimization_settings)
             elif service_type == "graphrag":
                 connection_context = await self._prepare_graphrag_service(optimization_settings)
             else:
@@ -210,11 +210,11 @@ class MCPServiceCoordinator:
         
         return connection_context
     
-    async def _prepare_lancedb_service(self, optimization_settings: Dict[str, Any]) -> Dict[str, Any]:
-        """Prepare LanceDB service for vector search operations."""
+    async def _prepare_qdrant_service(self, optimization_settings: Dict[str, Any]) -> Dict[str, Any]:
+        """Prepare Qdrant service for vector search operations."""
         
         connection_context = {
-            "service_type": "lancedb",
+            "service_type": "qdrant",
             "vector_index_optimization": optimization_settings.get("vector_index_optimization", True),
             "similarity_threshold": optimization_settings.get("similarity_threshold", 0.8),
             "embedding_optimizations": {

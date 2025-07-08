@@ -112,7 +112,7 @@ __description__ = "Self-contained service orchestration module with intelligent 
 __author__ = "Agentic SQL Intelligence System"
 __status__ = "Production"
 __complexity_levels__ = ["simple", "analytical", "computational", "investigative"]
-__supported_services__ = ["mariadb", "postgresql", "lancedb", "graphrag"]
+__supported_services__ = ["mariadb", "postgresql", "qdrant", "graphrag"]
 
 # Quick health check function
 async def health_check() -> dict:

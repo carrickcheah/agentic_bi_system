@@ -39,7 +39,7 @@ def _record_query_for_learning_enhanced(
             error=error
         )
         
-        # Store enhanced query in LanceDB
+        # Store enhanced query in Qdrant
         query_id = await self.sql_embedding_service.store_enhanced_query(enhanced_query)
         
         logger.debug(

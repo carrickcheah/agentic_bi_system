@@ -2,7 +2,7 @@
 
 ## Abstract
 
-**Service Orchestration Engine** - Intelligent database service coordinator that prepares and optimizes the right combination of database services (MariaDB, PostgreSQL, LanceDB, GraphRAG) based on Phase 2's investigation strategy.
+**Service Orchestration Engine** - Intelligent database service coordinator that prepares and optimizes the right combination of database services (MariaDB, PostgreSQL, Qdrant, GraphRAG) based on Phase 2's investigation strategy.
 
 ## Introduction
 
@@ -48,7 +48,7 @@ PHASE 2 OUTPUT -> PHASE 3 PROCESSING -> PHASE 4 INPUT
     │   Service Selection       │
     │ Simple    -> MariaDB only │ -- Use complexity to choose
     │ Analytical-> +PostgreSQL  │ -- Add services as needed
-    │ Complex   -> +LanceDB     │ -- Scale service selection
+    │ Complex   -> +Qdrant      │ -- Scale service selection
     │ Investigat-> +GraphRAG    │ -- Full service activation
     └─────────────┬─────────────┘
                   │
@@ -85,12 +85,12 @@ PHASE 2 OUTPUT -> PHASE 3 PROCESSING -> PHASE 4 INPUT
    - **Output**: Coordinated business data + memory services
 
 3. **Complex Query**: "Why efficiency dropped?"
-   - **Service Selection**: MariaDB + PostgreSQL + LanceDB
+   - **Service Selection**: MariaDB + PostgreSQL + Qdrant
    - **Preparation**: Pattern matching setup, vector search optimization
    - **Output**: Full analytical service mesh with semantic search
 
 4. **Investigative Query**: "Root cause analysis"
-   - **Service Selection**: All 4 services (MariaDB + PostgreSQL + LanceDB + GraphRAG)
+   - **Service Selection**: All 4 services (MariaDB + PostgreSQL + Qdrant )
    - **Preparation**: Knowledge graph activation, cross-domain analysis setup
    - **Output**: Complete investigation service orchestration
 
@@ -115,6 +115,6 @@ The coordinator doesn't cook the food (that's Phase 4), but ensures the right ki
 
 ## Summary
 
-Phase 3 Service Orchestration acts as an intelligent database coordinator that transforms Phase 2's investigation strategy into optimally prepared database services. It ensures the right combination of MariaDB, PostgreSQL, LanceDB, and GraphRAG services are ready for Phase 4 execution, with proper resource allocation, health validation, and performance optimization.
+Phase 3 Service Orchestration acts as an intelligent database coordinator that transforms Phase 2's investigation strategy into optimally prepared database services. It ensures the right combination of MariaDB, PostgreSQL, Qdrant, and GraphRAG services are ready for Phase 4 execution, with proper resource allocation, health validation, and performance optimization.
 
 **Key Responsibility**: Bridge the gap between strategic planning (Phase 2) and tactical execution (Phase 4) through intelligent service coordination.

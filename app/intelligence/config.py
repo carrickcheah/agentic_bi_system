@@ -32,6 +32,24 @@ class IntelligenceSettings(BaseSettings):
         description="Minimum confidence for domain classification"
     )
     
+    # Intent Classification Settings
+    enable_intent_pre_classification: bool = Field(
+        default=True,
+        description="Enable intent pre-classification for greetings vs business queries"
+    )
+    intent_confidence_threshold: float = Field(
+        default=0.3,
+        description="Minimum confidence for intent classification"
+    )
+    business_intent_threshold: float = Field(
+        default=0.2,
+        description="Threshold for defaulting to business intent when uncertain"
+    )
+    max_greeting_words: int = Field(
+        default=10,
+        description="Maximum words in query to consider for greeting classification"
+    )
+    
     # Complexity Analysis Settings
     complexity_scoring_weights: dict = Field(
         default={

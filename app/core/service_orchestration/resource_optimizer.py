@@ -167,8 +167,8 @@ class ResourceOptimizer:
             optimized_config = await self._optimize_postgresql_connection(
                 optimized_config, optimization_profile, complexity_score
             )
-        elif service_name == "lancedb":
-            optimized_config = await self._optimize_lancedb_connection(
+        elif service_name == "qdrant":
+            optimized_config = await self._optimize_qdrant_connection(
                 optimized_config, optimization_profile, complexity_score
             )
         elif service_name == "graphrag":
@@ -245,13 +245,13 @@ class ResourceOptimizer:
         
         return config
     
-    async def _optimize_lancedb_connection(
+    async def _optimize_qdrant_connection(
         self,
         config: Dict[str, Any],
         profile: OptimizationProfile,
         complexity_score: Any
     ) -> Dict[str, Any]:
-        """Optimize LanceDB connection for vector search operations."""
+        """Optimize Qdrant connection for vector search operations."""
         
         # Vector search optimization based on complexity
         if profile.resource_multiplier >= 2.0:
@@ -363,7 +363,7 @@ class ResourceOptimizer:
             base_memory = {
                 "mariadb": 512,
                 "postgresql": 256,
-                "lancedb": 1024,
+                "qdrant": 1024,
                 "graphrag": 2048
             }.get(service_type, 256)
             
@@ -373,7 +373,7 @@ class ResourceOptimizer:
             base_pool = {
                 "mariadb": 10,
                 "postgresql": 5,
-                "lancedb": 3,
+                "qdrant": 3,
                 "graphrag": 2
             }.get(service_type, 5)
             
@@ -383,7 +383,7 @@ class ResourceOptimizer:
             base_timeout = {
                 "mariadb": 30,
                 "postgresql": 45,
-                "lancedb": 60,
+                "qdrant": 60,
                 "graphrag": 120
             }.get(service_type, 30)
             

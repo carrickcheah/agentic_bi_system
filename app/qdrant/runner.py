@@ -347,24 +347,31 @@ class QdrantService:
                 self.monitor.record_query(duration_ms, True, cached=True)
                 return cached_results
             
-            # Get embedding for query
-            # Use local embedding generation for standalone operation
-            import hashlib
-            hash_obj = hashlib.sha384(query.encode())
-            hash_bytes = hash_obj.digest()
-            query_embedding = []
-            for i in range(0, len(hash_bytes), 4):
-                if len(query_embedding) >= settings.embedding_dim:
-                    break
-                chunk = hash_bytes[i:i+4]
-                if len(chunk) == 4:
-                    value = int.from_bytes(chunk, 'big') / (2**32)
-                    normalized = (value * 2) - 1
-                    query_embedding.append(normalized)
-            while len(query_embedding) < settings.embedding_dim:
-                pad_value = (len(query_embedding) % 100) / 100.0 - 0.5
-                query_embedding.append(pad_value)
-            query_embedding = query_embedding[:settings.embedding_dim]
+            # Get embedding for query using BGE-M3
+            try:
+                from embedded_model.runner import embed_text_async
+                query_embedding = await embed_text_async(query)
+                query_embedding = query_embedding.tolist()  # Convert numpy array to list
+                logger.debug(f"Generated BGE-M3 embedding for query, dim: {len(query_embedding)}")
+            except Exception as e:
+                logger.warning(f"Failed to use BGE-M3 embeddings: {e}, falling back to local generation")
+                # Fallback to local embedding generation
+                import hashlib
+                hash_obj = hashlib.sha384(query.encode())
+                hash_bytes = hash_obj.digest()
+                query_embedding = []
+                for i in range(0, len(hash_bytes), 4):
+                    if len(query_embedding) >= settings.embedding_dim:
+                        break
+                    chunk = hash_bytes[i:i+4]
+                    if len(chunk) == 4:
+                        value = int.from_bytes(chunk, 'big') / (2**32)
+                        normalized = (value * 2) - 1
+                        query_embedding.append(normalized)
+                while len(query_embedding) < settings.embedding_dim:
+                    pad_value = (len(query_embedding) % 100) / 100.0 - 0.5
+                    query_embedding.append(pad_value)
+                query_embedding = query_embedding[:settings.embedding_dim]
             
             # Search with circuit breaker
             results = await self.circuit_breaker.call(
@@ -434,25 +441,32 @@ class QdrantService:
         start_time = time.time()
         
         try:
-            # Get embeddings
-            # Use local embedding generation for standalone operation
-            import hashlib
+            # Get embeddings using BGE-M3
             combined_text = f"{business_question} {sql_query}"
-            hash_obj = hashlib.sha384(combined_text.encode())
-            hash_bytes = hash_obj.digest()
-            embedding = []
-            for i in range(0, len(hash_bytes), 4):
-                if len(embedding) >= settings.embedding_dim:
-                    break
-                chunk = hash_bytes[i:i+4]
-                if len(chunk) == 4:
-                    value = int.from_bytes(chunk, 'big') / (2**32)
-                    normalized = (value * 2) - 1
-                    embedding.append(normalized)
-            while len(embedding) < settings.embedding_dim:
-                pad_value = (len(embedding) % 100) / 100.0 - 0.5
-                embedding.append(pad_value)
-            embedding = embedding[:settings.embedding_dim]
+            try:
+                from embedded_model.runner import embed_text_async
+                embedding = await embed_text_async(combined_text)
+                embedding = embedding.tolist()  # Convert numpy array to list
+                logger.debug(f"Generated BGE-M3 embedding for ingestion, dim: {len(embedding)}")
+            except Exception as e:
+                logger.warning(f"Failed to use BGE-M3 embeddings: {e}, falling back to local generation")
+                # Fallback to local embedding generation
+                import hashlib
+                hash_obj = hashlib.sha384(combined_text.encode())
+                hash_bytes = hash_obj.digest()
+                embedding = []
+                for i in range(0, len(hash_bytes), 4):
+                    if len(embedding) >= settings.embedding_dim:
+                        break
+                    chunk = hash_bytes[i:i+4]
+                    if len(chunk) == 4:
+                        value = int.from_bytes(chunk, 'big') / (2**32)
+                        normalized = (value * 2) - 1
+                        embedding.append(normalized)
+                while len(embedding) < settings.embedding_dim:
+                    pad_value = (len(embedding) % 100) / 100.0 - 0.5
+                    embedding.append(pad_value)
+                embedding = embedding[:settings.embedding_dim]
             
             # Prepare payload
             payload = {
@@ -550,6 +564,144 @@ class QdrantService:
         
         return metrics
     
+    async def ingest_from_directory(self, directory_path: Optional[str] = None) -> Dict[str, int]:
+        """Ingest all JSON pattern files from directory.
+        
+        Args:
+            directory_path: Path to directory with JSON files. Uses settings.file_path if not provided.
+            
+        Returns:
+            Dictionary with ingestion statistics
+        """
+        import json
+        from pathlib import Path
+        from datetime import datetime
+        
+        path = Path(directory_path or settings.file_path)
+        if not path.exists():
+            raise ValueError(f"Directory not found: {path}")
+        
+        stats = {
+            "total_files": 0,
+            "total_entries": 0,
+            "success": 0,
+            "failed": 0,
+            "files_processed": []
+        }
+        
+        # Find all JSON files
+        json_files = list(path.glob("*.json"))
+        stats["total_files"] = len(json_files)
+        
+        logger.info(f"Found {len(json_files)} JSON files in {path}")
+        
+        for json_file in json_files:
+            try:
+                logger.info(f"Processing: {json_file.name}")
+                
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+                
+                # Handle single object or array
+                entries = [data] if isinstance(data, dict) else data
+                
+                for entry in entries:
+                    stats["total_entries"] += 1
+                    
+                    # Extract query components
+                    query_content = entry.get("query_content", {})
+                    sql_query = query_content.get("sql_query")
+                    business_question = query_content.get("business_question")
+                    
+                    if not sql_query or not business_question:
+                        logger.warning(f"Skipping entry - missing required fields")
+                        stats["failed"] += 1
+                        continue
+                    
+                    # Generate ID - use deterministic hash
+                    if entry.get("_id"):
+                        query_id = entry.get("_id")
+                    else:
+                        # Use MD5 hash for deterministic ID generation
+                        id_string = f"{json_file.stem}_{sql_query}"
+                        query_id = hashlib.md5(id_string.encode()).hexdigest()[:16]
+                    
+                    # Extract metadata
+                    metadata = self._extract_metadata(entry)
+                    metadata["source_file"] = json_file.name
+                    metadata["ingested_at"] = datetime.utcnow().isoformat()
+                    
+                    # Store query
+                    success = await self.store_query(
+                        query_id=str(query_id),
+                        sql_query=sql_query,
+                        business_question=business_question,
+                        metadata=metadata
+                    )
+                    
+                    if success:
+                        stats["success"] += 1
+                    else:
+                        stats["failed"] += 1
+                
+                stats["files_processed"].append(json_file.name)
+                
+            except Exception as e:
+                logger.error(f"Error processing {json_file.name}: {e}")
+                stats["failed"] += 1
+        
+        logger.info(f"Ingestion complete: {stats['success']}/{stats['total_entries']} successful")
+        return stats
+    
+    def _extract_metadata(self, entry: Dict[str, Any]) -> Dict[str, Any]:
+        """Extract metadata from pattern entry."""
+        metadata = {}
+        
+        # Semantic context
+        semantic = entry.get("semantic_context", {})
+        metadata.update({
+            "query_intent": entry.get("query_content", {}).get("query_intent"),
+            "query_type": entry.get("query_content", {}).get("query_type"),
+            "business_domain": semantic.get("business_domain"),
+            "business_function": semantic.get("business_function"),
+            "analysis_type": semantic.get("analysis_type"),
+            "metrics": semantic.get("metrics", []),
+            "entities": semantic.get("entities", []),
+            "keywords": semantic.get("keywords", []),
+            "business_concepts": semantic.get("business_concepts", [])
+        })
+        
+        # Technical metadata
+        technical = entry.get("technical_metadata", {})
+        metadata.update({
+            "database": technical.get("database"),
+            "tables_used": technical.get("tables_used", []),
+            "has_window_functions": technical.get("has_window_functions"),
+            "query_pattern": technical.get("query_pattern")
+        })
+        
+        # Business intelligence
+        bi = entry.get("business_intelligence", {})
+        metadata.update({
+            "kpi_category": bi.get("kpi_category"),
+            "decision_support_level": bi.get("decision_support_level")
+        })
+        
+        # MOQ specific metadata if present
+        moq = entry.get("moq_specific_metadata", {})
+        if moq:
+            metadata.update({
+                "moq_analysis_type": moq.get("moq_analysis_type"),
+                "pricing_model": moq.get("pricing_model"),
+                "discount_range": moq.get("discount_range")
+            })
+        
+        # Tags
+        metadata["tags"] = entry.get("tags", [])
+        
+        # Remove None values
+        return {k: v for k, v in metadata.items() if v is not None}
+    
     async def close(self):
         """Clean shutdown."""
         if self.client:
@@ -571,34 +723,33 @@ async def get_qdrant_service() -> QdrantService:
     return _instance
 
 
-# Main execution for testing
+# Main execution for batch ingestion
 if __name__ == "__main__":
     async def main():
-        """Test Qdrant service."""
+        """Perform batch ingestion from configured directory."""
         service = await get_qdrant_service()
         
-        # Health check
-        health = await service.health_check()
-        print(f"Health: {json.dumps(health, indent=2)}")
+        print(f"\nStarting batch ingestion from: {settings.file_path}")
+        print("=" * 60)
         
-        # Test store
-        success = await service.store_query(
-            "test_001",
-            "SELECT * FROM users WHERE active = true",
-            "Show all active users"
-        )
-        print(f"Store test: {'SUCCESS' if success else 'FAILED'}")
-        
-        # Test search
-        results = await service.search_similar_queries(
-            "SELECT * FROM customers WHERE status = 'active'"
-        )
-        print(f"Search results: {len(results)} found")
-        
-        # Metrics
-        metrics = service.get_metrics()
-        print(f"Metrics: {json.dumps(metrics, indent=2)}")
-        
-        await service.close()
+        try:
+            stats = await service.ingest_from_directory()
+            
+            print("\nIngestion Results:")
+            print(f"  Total files: {stats['total_files']}")
+            print(f"  Total entries: {stats['total_entries']}")
+            print(f"  Successful: {stats['success']}")
+            print(f"  Failed: {stats['failed']}")
+            if stats['total_entries'] > 0:
+                print(f"  Success rate: {stats['success']/stats['total_entries']*100:.1f}%")
+            print(f"\nFiles processed: {', '.join(stats['files_processed'])}")
+            
+            return 0 if stats['failed'] == 0 else 1
+            
+        except Exception as e:
+            logger.error(f"Ingestion failed: {e}")
+            return 1
+        finally:
+            await service.close()
     
     asyncio.run(main())

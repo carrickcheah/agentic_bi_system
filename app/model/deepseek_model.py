@@ -33,7 +33,8 @@ class DeepSeekModel:
         prompt: str, 
         max_tokens: int = 2048,
         temperature: float = 0.7,
-        use_system_prompt: bool = True
+        use_system_prompt: bool = True,
+        schema_info: Optional[str] = None
     ) -> str:
         """
         Generate a response from DeepSeek with SQL agent system prompt.
@@ -43,6 +44,7 @@ class DeepSeekModel:
             max_tokens: Maximum tokens in response
             temperature: Response creativity (0-1)
             use_system_prompt: Whether to include SQL agent system prompt
+            schema_info: Optional database schema information
             
         Returns:
             DeepSeek's response text

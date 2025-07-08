@@ -119,6 +119,12 @@ class QdrantSettings(BaseSettings):
         default=100,
         description="Slow query threshold in milliseconds"
     )
+    
+    # Data ingestion settings
+    file_path: str = Field(
+        default="/Users/carrickcheah/Project/agentic_sql/app/qdrant/patterns",
+        description="Path to pattern files for ingestion"
+    )
 
 
 # Create singleton instance

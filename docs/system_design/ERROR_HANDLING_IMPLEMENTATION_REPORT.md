@@ -55,7 +55,7 @@ Implemented comprehensive error handling system to prevent silent failures under
 - **Input Validation**: Validate prompts and parameters
 - **Timeout Protection**: 2-minute timeout for generation, 5-minute for session
 
-### 3. Investigation Intelligence (`lance_db/src/investigation_insight_intelligence_enhanced.py`)
+### 3. Investigation Intelligence (`qdrant/src/investigation_insight_intelligence_enhanced.py`)
 **Issues Fixed**:
 - File was 1409 lines (god class)
 - Broad exception handling
@@ -85,7 +85,7 @@ Implemented comprehensive error handling system to prevent silent failures under
 - **Resource Management**: Memory-safe processing
 - **Performance Metrics**: Track synthesis time and success rates
 
-### 5. Pattern Recognizer (`intelligence/lancedb_pattern_recognizer_enhanced.py`)
+### 5. Pattern Recognizer (`intelligence/qdrant_pattern_recognizer_enhanced.py`)
 **Issues Fixed**:
 - File was 1158 lines
 - Numpy dependency failures

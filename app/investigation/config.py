@@ -29,7 +29,7 @@ class InvestigationSettings(BaseSettings):
     # MCP Service Integration - Database service endpoints
     mariadb_mcp_endpoint: str = Field(description="MariaDB MCP service endpoint")
     postgres_mcp_endpoint: str = Field(description="PostgreSQL MCP service endpoint") 
-    lancedb_mcp_endpoint: str = Field(description="LanceDB MCP service endpoint")
+    qdrant_endpoint: str = Field(description="Qdrant service endpoint")
     graphrag_mcp_endpoint: str = Field(description="GraphRAG MCP service endpoint")
     
     # Performance Configuration - Operational parameters
@@ -76,7 +76,7 @@ class InvestigationSettings(BaseSettings):
         return {
             'mariadb': self.mariadb_mcp_endpoint,
             'postgresql': self.postgres_mcp_endpoint,
-            'lancedb': self.lancedb_mcp_endpoint,
+            'qdrant': self.qdrant_endpoint,
             'graphrag': self.graphrag_mcp_endpoint
         }
     

@@ -142,7 +142,7 @@ class ServiceOrchestrationRunner:
         elif complexity_score < settings.computational_complexity_threshold:
             return 2  # MariaDB + PostgreSQL
         elif complexity_score < settings.investigative_complexity_threshold:
-            return 3  # MariaDB + PostgreSQL + LanceDB
+            return 3  # MariaDB + PostgreSQL + Qdrant
         else:
             return 4  # All services
     

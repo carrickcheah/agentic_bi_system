@@ -51,7 +51,7 @@ class ServiceOrchestrationTester:
             required_services = [
                 settings.mariadb_service_name,
                 settings.postgres_service_name,
-                settings.lancedb_service_name,
+                settings.qdrant_service_name,
                 settings.graphrag_service_name
             ]
             
@@ -427,8 +427,8 @@ class ServiceOrchestrationTester:
             complexity_tests = [
                 ("simple", 0.1, ["mariadb"]),
                 ("analytical", 0.4, ["mariadb", "postgresql"]),
-                ("computational", 0.7, ["mariadb", "postgresql", "lancedb"]),
-                ("investigative", 0.9, ["mariadb", "postgresql", "lancedb", "graphrag"])
+                ("computational", 0.7, ["mariadb", "postgresql", "qdrant"]),
+                ("investigative", 0.9, ["mariadb", "postgresql", "qdrant", "graphrag"])
             ]
             
             for complexity_level, score, expected_services in complexity_tests:

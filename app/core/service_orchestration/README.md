@@ -2,7 +2,7 @@
 
 ## Abstract
 
-**Service Orchestration Engine** - Intelligent database service coordinator that bridges Phase 2 intelligence planning with Phase 4 execution. Implements complexity-driven service selection, resource optimization, and health monitoring for optimal database performance across MariaDB, PostgreSQL, LanceDB, and GraphRAG services.
+**Service Orchestration Engine** - Intelligent database service coordinator that bridges Phase 2 intelligence planning with Phase 4 execution. Implements complexity-driven service selection, resource optimization, and health monitoring for optimal database performance across MariaDB, PostgreSQL, Qdrant, and GraphRAG services.
 
 ## Introduction
 
@@ -22,7 +22,7 @@ The module implements intelligent service selection based on investigation compl
 **Service Selection Logic**
 - **SIMPLE** (score < 0.3): MariaDB only - Basic business data queries
 - **ANALYTICAL** (score < 0.6): MariaDB + PostgreSQL - Memory/cache operations
-- **COMPUTATIONAL** (score < 0.8): + LanceDB - Vector search capabilities
+- **COMPUTATIONAL** (score < 0.8): + Qdrant - Vector search capabilities
 - **INVESTIGATIVE** (score >= 0.8): + GraphRAG - Full knowledge graph analysis
 
 **Resource Optimization Process**
@@ -138,14 +138,14 @@ Phase 4: Execution Engine
 ### Predictive Analytics
 **Scenario**: Customer behavior prediction with embeddings
 **Complexity**: COMPUTATIONAL (score: 0.7)
-**Services**: MariaDB + PostgreSQL + LanceDB
+**Services**: MariaDB + PostgreSQL + Qdrant
 **Optimization**: Vector index optimization, parallel processing
 **Duration**: 15-45 minutes
 
 ### Knowledge Discovery
 **Scenario**: Complex entity relationship analysis
 **Complexity**: INVESTIGATIVE (score: 0.9)
-**Services**: All four services (MariaDB + PostgreSQL + LanceDB + GraphRAG)
+**Services**: All four services (MariaDB + PostgreSQL + Qdrant + GraphRAG)
 **Optimization**: Maximum resource allocation, graph cache optimization
 **Duration**: 30-120 minutes
 
@@ -163,7 +163,7 @@ Imagine a sophisticated restaurant where different stations handle different typ
 
 - **MariaDB Station**: Basic grill - handles simple, everyday dishes (burgers, steaks)
 - **PostgreSQL Station**: Prep kitchen - manages ingredients and food storage
-- **LanceDB Station**: Specialty cooking - handles complex flavor matching and fusion
+- **Qdrant Station**: Specialty cooking - handles complex flavor matching and fusion
 - **GraphRAG Station**: Master chef - creates elaborate multi-course experiences
 
 The **Service Orchestrator** is like the head chef who:

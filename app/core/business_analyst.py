@@ -15,7 +15,7 @@ from intelligence.runner import IntelligenceModuleRunner
 from fastmcp.client_manager import MCPClientManager
 from investigation.runner import conduct_autonomous_investigation
 from insight_synthesis.runner import InsightSynthesizer, OutputFormat
-from ..config import settings
+from config import settings
 
 # Set up logger
 logger = logging.getLogger("business_analyst")
@@ -60,14 +60,24 @@ class AutonomousBusinessAnalyst:
             self.mcp_manager = MCPClientManager()
             await self.mcp_manager.initialize()
             
-            # Initialize vector service based on configuration
+            # Get vector service from main if available
             if settings.use_qdrant:
                 try:
-                    from ..qdrant.runner import get_qdrant_service
-                    self.vector_service = await get_qdrant_service()
-                    logger.info("✅ Qdrant vector search initialized")
+                    from main import qdrant_service, initialize_async_services
+                    
+                    # Initialize if not already done
+                    if qdrant_service is None:
+                        await initialize_async_services()
+                    
+                    from main import qdrant_service
+                    self.vector_service = qdrant_service
+                    
+                    if self.vector_service:
+                        logger.info("✅ Using Qdrant vector search from main")
+                    else:
+                        logger.warning("Qdrant service not available")
                 except Exception as e:
-                    logger.warning(f"Qdrant initialization failed (optional): {e}")
+                    logger.warning(f"Could not get Qdrant from main: {e}")
                     logger.info("System will continue without vector search capabilities")
             
             # Initialize phase runners
@@ -114,7 +124,47 @@ class AutonomousBusinessAnalyst:
             # Phase results accumulator
             phase_results = {}
             
-            # Check LanceDB cache for similar queries (optional optimization)
+            # INTENT PRE-CLASSIFICATION: Check if this is a greeting/help/casual query
+            # Only proceed with full 5-phase investigation for business questions
+            try:
+                from intelligence.domain_expert import DomainExpert
+                domain_expert = DomainExpert()
+                intent_result = domain_expert.classify_query_intent(business_question)
+                
+                # Handle non-business intents immediately
+                if hasattr(intent_result, 'is_business') and not intent_result.is_business:
+                    if stream_progress:
+                        yield {
+                            "type": "non_business_response",
+                            "investigation_id": investigation_id,
+                            "intent_type": intent_result.intent_type,
+                            "response": intent_result.response_text,
+                            "confidence": intent_result.confidence
+                        }
+                    
+                    # Complete the investigation with the response
+                    yield {
+                        "type": "investigation_completed",
+                        "investigation_id": investigation_id,
+                        "insights": {
+                            "executive_summary": intent_result.response_text,
+                            "strategic_insights": [],
+                            "recommendations": [],
+                            "is_non_business_response": True,
+                            "intent_type": intent_result.intent_type
+                        },
+                        "metadata": {
+                            "processing_time_seconds": 0.1,
+                            "intent_classification": intent_result.intent_type,
+                            "bypassed_investigation": True
+                        }
+                    }
+                    return
+                    
+            except Exception as e:
+                logger.warning(f"Intent pre-classification failed, proceeding with business analysis: {e}")
+            
+            # Check Qdrant cache for similar queries (optional optimization)
             if self.vector_service:
                 try:
                     similar_queries = await self.vector_service.search_similar_queries(
@@ -275,7 +325,7 @@ class AutonomousBusinessAnalyst:
                         )
                     logger.info(f"Stored {len(investigation_result.get('sql_queries', []))} queries in vector database")
                 except Exception as e:
-                    logger.debug(f"Failed to store investigation in LanceDB (non-critical): {e}")
+                    logger.debug(f"Failed to store investigation in vector database (non-critical): {e}")
             
             if stream_progress:
                 yield self._create_progress_update(
@@ -346,7 +396,7 @@ class AutonomousBusinessAnalyst:
             coordinated_services = {
                 "mariadb": {"enabled": True, "priority": 1},
                 "postgres": {"enabled": True, "priority": 2},
-                "lancedb": {"enabled": True, "priority": 3}
+                "qdrant": {"enabled": True, "priority": 3}
             }
             
             # Prepare execution context

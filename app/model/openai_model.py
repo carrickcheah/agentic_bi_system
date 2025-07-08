@@ -5,7 +5,7 @@ Provides async OpenAI API access using Pydantic settings.
 Fallback option #3 for the SQL investigation agent.
 """
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import json
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletion
@@ -34,7 +34,8 @@ class OpenAIModel:
         prompt: str, 
         max_tokens: int = 2048,
         temperature: float = 0.7,
-        use_system_prompt: bool = True
+        use_system_prompt: bool = True,
+        schema_info: Optional[str] = None
     ) -> str:
         """
         Generate a response from OpenAI with SQL agent system prompt.
@@ -44,6 +45,7 @@ class OpenAIModel:
             max_tokens: Maximum tokens in response
             temperature: Response creativity (0-1)
             use_system_prompt: Whether to include SQL agent system prompt
+            schema_info: Optional database schema information
             
         Returns:
             OpenAI's response text

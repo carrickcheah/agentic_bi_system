@@ -23,7 +23,7 @@ class ServiceOrchestrationSettings(BaseSettings):
     mcp_config_path: str = Field(description="Path to MCP configuration file")
     mariadb_service_name: str = Field(description="MariaDB MCP service name")
     postgres_service_name: str = Field(description="PostgreSQL MCP service name")
-    lancedb_service_name: str = Field(description="LanceDB MCP service name")
+    qdrant_service_name: str = Field(description="Qdrant MCP service name")
     graphrag_service_name: str = Field(description="GraphRAG MCP service name")
     
     # Service Selection Thresholds
@@ -31,7 +31,7 @@ class ServiceOrchestrationSettings(BaseSettings):
         default=0.3, description="Threshold for PostgreSQL activation"
     )
     computational_complexity_threshold: float = Field(
-        default=0.6, description="Threshold for LanceDB activation"
+        default=0.6, description="Threshold for Qdrant activation"
     )
     investigative_complexity_threshold: float = Field(
         default=0.8, description="Threshold for GraphRAG activation"

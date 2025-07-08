@@ -150,7 +150,7 @@ class HealthMonitor:
             service_names = [
                 settings.mariadb_service_name,
                 settings.postgres_service_name,
-                settings.lancedb_service_name,
+                settings.qdrant_service_name,
                 settings.graphrag_service_name
             ]
             
@@ -418,7 +418,7 @@ class HealthMonitor:
         expected_services = [
             settings.mariadb_service_name,
             settings.postgres_service_name,
-            settings.lancedb_service_name,
+            settings.qdrant_service_name,
             settings.graphrag_service_name
         ]
         

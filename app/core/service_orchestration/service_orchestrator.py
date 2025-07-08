@@ -35,7 +35,7 @@ class ServiceType(Enum):
     """Database service types for orchestration."""
     MARIADB = "mariadb"           # Business data operations
     POSTGRESQL = "postgresql"     # Memory and caching
-    LANCEDB = "lancedb"          # Vector search and embeddings
+    QDRANT = "qdrant"            # Vector search and embeddings
     GRAPHRAG = "graphrag"        # Knowledge graph analysis
 
 
@@ -230,10 +230,10 @@ class ServiceOrchestrator:
                 }
             ))
         
-        # LanceDB - Required for COMPUTATIONAL and above
+        # Qdrant - Required for COMPUTATIONAL and above
         if complexity_score.score >= settings.computational_complexity_threshold:
             services.append(ServiceConfiguration(
-                service_type=ServiceType.LANCEDB,
+                service_type=ServiceType.QDRANT,
                 enabled=True,
                 priority=3,
                 estimated_load=0.6,
@@ -366,7 +366,7 @@ class ServiceOrchestrator:
         elif service_count == 2:  # Analytical - MariaDB + PostgreSQL
             performance_estimates["expected_response_time_seconds"] = base_response_time * 0.5
             performance_estimates["estimated_throughput_qps"] = 7.0
-        elif service_count == 3:  # Computational - + LanceDB
+        elif service_count == 3:  # Computational - + Qdrant
             performance_estimates["expected_response_time_seconds"] = base_response_time * 0.7
             performance_estimates["estimated_throughput_qps"] = 4.0
         else:  # Investigative - All services
@@ -420,8 +420,8 @@ class ServiceOrchestrator:
         enabled_services = [s.service_type for s in service_selection if s.enabled]
         
         if ServiceType.GRAPHRAG in enabled_services:
-            return "fallback_to_lancedb_only"
-        elif ServiceType.LANCEDB in enabled_services:
+            return "fallback_to_qdrant_only"
+        elif ServiceType.QDRANT in enabled_services:
             return "fallback_to_postgresql_only"
         elif ServiceType.POSTGRESQL in enabled_services:
             return "fallback_to_mariadb_only"

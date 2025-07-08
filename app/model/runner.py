@@ -1,11 +1,13 @@
 """
-Model Manager with Fallback Logic
-
-Manages the fallback system between Anthropic, DeepSeek, and OpenAI models.
-Priority: Anthropic -> DeepSeek -> OpenAI
+Enhanced Model Manager with Comprehensive Error Handling
+Production-ready model management with proper error handling, monitoring, and resilience.
 """
 
-from typing import Dict, Any, List, Optional, Union
+from typing import Dict, Any, List, Optional, Union, Tuple
+import uuid
+import time
+import asyncio
+from datetime import datetime
 from .config import settings
 from .model_logging import logger
 
@@ -13,173 +15,465 @@ from .anthropic_model import AnthropicModel
 from .deepseek_model import DeepSeekModel  
 from .openai_model import OpenAIModel
 
-
-class ModelManager:
-    """
-    Manages AI model fallback system with automatic failover.
+# Import our error handling system
+try:
+    from ..core.error_handling import (
+        error_boundary, with_error_handling, ExternalServiceError,
+        ValidationError, ResourceExhaustedError, ErrorCategory, ErrorSeverity,
+        validate_input, safe_execute
+    )
+except ImportError:
+    # Fallback for standalone mode
+    from contextlib import nullcontext
     
-    Priority order:
-    1. AnthropicModel (primary)
-    2. DeepSeekModel (fallback #2)
-    3. OpenAIModel (fallback #3)
-    """
+    def error_boundary(*args, **kwargs):
+        return nullcontext()
+    
+    def with_error_handling(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    def validate_input(data, validator, operation, component, correlation_id=None):
+        return validator(data)
+    
+    def safe_execute(func, operation, component, correlation_id=None, default_return=None, raise_on_failure=True):
+        try:
+            return func()
+        except Exception as e:
+            if raise_on_failure:
+                raise
+            return default_return
+    
+    class ExternalServiceError(Exception):
+        pass
+
+class ModelHealthMonitor:
+    """Monitor model health and performance"""
     
     def __init__(self):
-        self.models = []
-        self.current_model = None
-        self._initialize_models()
+        self.model_stats = {}
+        self.failure_counts = {}
+        self.last_success = {}
+        self.circuit_breaker_state = {}  # open, closed, half-open
     
-    def _initialize_models(self):
-        """Initialize models in priority order."""
+    def record_success(self, model_name: str, response_time_ms: float):
+        """Record successful model operation"""
+        if model_name not in self.model_stats:
+            self.model_stats[model_name] = {"success_count": 0, "total_time_ms": 0}
         
-        # Priority 1: Anthropic (primary)
-        try:
-            if settings.anthropic_api_key:
-                anthropic_model = AnthropicModel()
-                self.models.append(("anthropic", anthropic_model))
-                logger.info("Anthropic model added to fallback chain")
-        except Exception as e:
-            logger.warning(f"Failed to initialize Anthropic model: {e}")
+        self.model_stats[model_name]["success_count"] += 1
+        self.model_stats[model_name]["total_time_ms"] += response_time_ms
+        self.last_success[model_name] = datetime.utcnow()
+        self.failure_counts[model_name] = 0  # Reset failure count
+        self.circuit_breaker_state[model_name] = "closed"
+    
+    def record_failure(self, model_name: str, error: str):
+        """Record model failure"""
+        if model_name not in self.failure_counts:
+            self.failure_counts[model_name] = 0
         
-        # Priority 2: DeepSeek (fallback #2)  
-        try:
-            if settings.deepseek_api_key:
-                deepseek_model = DeepSeekModel()
-                self.models.append(("deepseek", deepseek_model))
-                logger.info("DeepSeek model added to fallback chain")
-        except Exception as e:
-            logger.warning(f"Failed to initialize DeepSeek model: {e}")
+        self.failure_counts[model_name] += 1
         
-        # Priority 3: OpenAI (fallback #3)
-        try:
-            if settings.openai_api_key:
-                openai_model = OpenAIModel()
-                self.models.append(("openai", openai_model))
-                logger.info("OpenAI model added to fallback chain")
-        except Exception as e:
-            logger.warning(f"Failed to initialize OpenAI model: {e}")
+        # Circuit breaker logic
+        if self.failure_counts[model_name] >= 5:
+            self.circuit_breaker_state[model_name] = "open"
+            logger.warning(
+                f"Circuit breaker opened for {model_name} due to repeated failures",
+                extra={"model": model_name, "failure_count": self.failure_counts[model_name]}
+            )
+    
+    def is_model_available(self, model_name: str) -> bool:
+        """Check if model is available (circuit breaker check)"""
+        state = self.circuit_breaker_state.get(model_name, "closed")
+        if state == "open":
+            # Check if we should try half-open
+            last_failure_time = getattr(self, f"last_failure_{model_name}", datetime.utcnow())
+            if (datetime.utcnow() - last_failure_time).seconds > 300:  # 5 minutes
+                self.circuit_breaker_state[model_name] = "half-open"
+                return True
+            return False
+        return True
+    
+    def get_model_stats(self) -> Dict[str, Any]:
+        """Get model performance statistics"""
+        stats = {}
+        for model_name, data in self.model_stats.items():
+            if data["success_count"] > 0:
+                avg_response_time = data["total_time_ms"] / data["success_count"]
+            else:
+                avg_response_time = 0
+            
+            stats[model_name] = {
+                "success_count": data["success_count"],
+                "failure_count": self.failure_counts.get(model_name, 0),
+                "avg_response_time_ms": avg_response_time,
+                "circuit_breaker_state": self.circuit_breaker_state.get(model_name, "closed"),
+                "last_success": self.last_success.get(model_name)
+            }
         
-        if not self.models:
-            raise RuntimeError("No AI models available! Check your API keys.")
+        return stats
+
+class EnhancedModelManager:
+    """
+    Production-ready model manager with comprehensive error handling.
+    
+    Features:
+    - Structured error handling
+    - Circuit breaker pattern
+    - Performance monitoring
+    - Correlation tracking
+    - Input validation
+    - Resource management
+    """
+    
+    def __init__(self, validate_on_init: bool = True):
+        self.models: List[Tuple[str, Any]] = []
+        self.current_model: Optional[Tuple[str, Any]] = None
+        self.health_monitor = ModelHealthMonitor()
+        self.initialization_correlation_id = str(uuid.uuid4())
+        self.validate_on_init = validate_on_init
+        
+        # Initialize models synchronously for now
+        self._initialize_models_safely()
+    
+    def _initialize_models_safely(self):
+        """Initialize models with comprehensive error handling."""
+        
+        logger.info(
+            "Initializing model manager",
+            extra={"correlation_id": self.initialization_correlation_id}
+        )
+        
+        models_to_try = [
+            ("anthropic", self._init_anthropic),
+            ("deepseek", self._init_deepseek),
+            ("openai", self._init_openai)
+        ]
+        
+        for model_name, init_func in models_to_try:
+            try:
+                model_instance = safe_execute(
+                    init_func,
+                    operation=f"initialize_{model_name}",
+                    component="model_manager",
+                    correlation_id=self.initialization_correlation_id,
+                    default_return=None,
+                    raise_on_failure=False
+                )
+                
+                if model_instance:
+                    self.models.append((model_name, model_instance))
+                    logger.info(
+                        f"{model_name.title()} model added to fallback chain",
+                        extra={
+                            "correlation_id": self.initialization_correlation_id,
+                            "model": model_name
+                        }
+                    )
+                    
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize {model_name} model",
+                    extra={
+                        "correlation_id": self.initialization_correlation_id,
+                        "model": model_name,
+                        "error": str(e)
+                    }
+                )
         
         # Set primary model
-        self.current_model = self.models[0]
-        logger.info(f"Primary model set to: {self.current_model[0]}")
+        if self.models:
+            self.current_model = self.models[0]
+            logger.info(
+                f"Primary model set to: {self.current_model[0]}",
+                extra={
+                    "correlation_id": self.initialization_correlation_id,
+                    "primary_model": self.current_model[0]
+                }
+            )
+        else:
+            raise ExternalServiceError("No models could be initialized")
     
-    async def _try_with_fallback(self, method_name: str, *args, **kwargs):
-        """
-        Try method with automatic fallback to next available model.
+    def _init_anthropic(self) -> Optional[AnthropicModel]:
+        """Initialize Anthropic model with validation"""
+        if not settings.anthropic_api_key:
+            logger.info("Anthropic API key not provided, skipping")
+            return None
         
-        Args:
-            method_name: Name of method to call
-            *args, **kwargs: Arguments to pass to method
-            
-        Returns:
-            Result from successful model call
-            
-        Raises:
-            RuntimeError: If all models fail
-        """
-        last_error = None
+        if len(settings.anthropic_api_key) < 10:
+            raise ValidationError("Anthropic API key appears invalid (too short)")
         
-        for model_name, model in self.models:
-            try:
-                logger.info(f"Trying {method_name} with {model_name} model")
-                
-                # Get the method from the model
-                method = getattr(model, method_name)
-                
-                # Filter kwargs for models that don't support caching
-                filtered_kwargs = kwargs.copy()
-                if model_name != "anthropic" and "schema_info" in filtered_kwargs:
-                    # Remove schema_info for non-Anthropic models (fallbacks)
-                    filtered_kwargs.pop("schema_info")
-                    logger.debug(f"Removed schema_info for {model_name} model (caching not supported)")
-                
-                # Call the method
-                result = await method(*args, **filtered_kwargs)
-                
-                # Update current model if successful and different
-                if self.current_model[0] != model_name:
-                    logger.info(f"Switched to {model_name} model")
-                    self.current_model = (model_name, model)
-                
-                return result
-                
-            except Exception as e:
-                last_error = e
-                logger.warning(f"{model_name} model failed for {method_name}: {e}")
-                continue
-        
-        # All models failed
-        raise RuntimeError(f"All models failed for {method_name}. Last error: {last_error}")
+        return AnthropicModel()
     
+    def _init_deepseek(self) -> Optional[DeepSeekModel]:
+        """Initialize DeepSeek model with validation"""
+        if not settings.deepseek_api_key:
+            logger.info("DeepSeek API key not provided, skipping")
+            return None
+        
+        if len(settings.deepseek_api_key) < 10:
+            raise ValidationError("DeepSeek API key appears invalid (too short)")
+        
+        return DeepSeekModel()
+    
+    def _init_openai(self) -> Optional[OpenAIModel]:
+        """Initialize OpenAI model with validation"""
+        if not settings.openai_api_key:
+            logger.info("OpenAI API key not provided, skipping")
+            return None
+        
+        if len(settings.openai_api_key) < 10:
+            raise ValidationError("OpenAI API key appears invalid (too short)")
+        
+        return OpenAIModel()
+    
+    def validate_generate_params(self, prompt: str, max_tokens: int, temperature: float) -> dict:
+        """Validate generation parameters"""
+        def validator(data):
+            prompt, max_tokens, temperature = data
+            
+            if not isinstance(prompt, str) or len(prompt.strip()) == 0:
+                raise ValueError("Prompt must be a non-empty string")
+            
+            if len(prompt) > 100000:
+                raise ValueError("Prompt exceeds maximum length (100,000 chars)")
+            
+            if not isinstance(max_tokens, int) or max_tokens <= 0:
+                raise ValueError("max_tokens must be a positive integer")
+            
+            if max_tokens > 32000:
+                raise ValueError("max_tokens exceeds maximum (32,000)")
+            
+            if not isinstance(temperature, (int, float)):
+                raise ValueError("temperature must be a number")
+            
+            if not 0.0 <= temperature <= 2.0:
+                raise ValueError("temperature must be between 0.0 and 2.0")
+            
+            return {
+                "prompt": prompt.strip(),
+                "max_tokens": min(max_tokens, 32000),
+                "temperature": max(0.0, min(temperature, 2.0))
+            }
+        
+        return validate_input(
+            (prompt, max_tokens, temperature),
+            validator,
+            operation="validate_generation_params",
+            component="model_manager"
+        )
+    
+    @with_error_handling(
+        operation="generate_response",
+        component="model_manager",
+        timeout_seconds=120.0
+    )
     async def generate_response(
         self,
         prompt: str,
         max_tokens: int = 2048,
         temperature: float = 0.7,
         use_system_prompt: bool = True,
-        schema_info: Optional[Dict] = None
+        schema_info: Optional[str] = None,
+        correlation_id: Optional[str] = None
     ) -> str:
-        """Generate response with fallback support and optional caching."""
-        return await self._try_with_fallback(
-            "generate_response",
-            prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            use_system_prompt=use_system_prompt,
-            schema_info=schema_info
-        )
-    
-    async def analyze_sql_query(self, query: str, schema_info: Dict) -> Dict[str, Any]:
-        """Analyze SQL query with fallback support."""
-        return await self._try_with_fallback(
-            "analyze_sql_query",
-            query,
-            schema_info
-        )
-    
-    async def synthesize_investigation_results(
-        self,
-        original_query: str,
-        findings: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
-        """Synthesize results with fallback support."""
-        return await self._try_with_fallback(
-            "synthesize_investigation_results",
-            original_query,
-            findings
-        )
-    
-    async def health_check(self) -> Dict[str, bool]:
-        """Check health of all available models."""
-        health_status = {}
+        """Generate response with comprehensive error handling and fallback."""
         
+        correlation_id = correlation_id or str(uuid.uuid4())
+        
+        # Validate inputs
+        validated_params = self.validate_generate_params(prompt, max_tokens, temperature)
+        
+        logger.info(
+            "Starting response generation",
+            extra={
+                "correlation_id": correlation_id,
+                "prompt_length": len(validated_params["prompt"]),
+                "max_tokens": validated_params["max_tokens"],
+                "temperature": validated_params["temperature"]
+            }
+        )
+        
+        # Try current model first
+        if self.current_model:
+            model_name, model = self.current_model
+            
+            if self.health_monitor.is_model_available(model_name):
+                try:
+                    response = await self._generate_with_model(
+                        model_name, model, validated_params, use_system_prompt, schema_info, correlation_id
+                    )
+                    return response
+                    
+                except ExternalServiceError as e:
+                    logger.warning(
+                        f"Primary model {model_name} failed, attempting fallback",
+                        extra={"correlation_id": correlation_id, "error": str(e), "model": model_name}
+                    )
+                    self.health_monitor.record_failure(model_name, str(e))
+            else:
+                logger.warning(
+                    f"Model {model_name} unavailable (circuit breaker open)",
+                    extra={"correlation_id": correlation_id, "model": model_name}
+                )
+        
+        # Try fallback models
         for model_name, model in self.models:
+            if (model_name, model) == self.current_model:
+                continue  # Already tried
+            
+            if not self.health_monitor.is_model_available(model_name):
+                continue
+            
             try:
-                is_healthy = await model.health_check()
-                health_status[model_name] = is_healthy
-                logger.info(f"{model_name} model health: {'✅' if is_healthy else '❌'}")
+                logger.info(
+                    f"Attempting fallback to {model_name}",
+                    extra={"correlation_id": correlation_id, "model": model_name}
+                )
+                
+                response = await self._generate_with_model(
+                    model_name, model, validated_params, use_system_prompt, schema_info, correlation_id
+                )
+                
+                # Update current model to successful one
+                self.current_model = (model_name, model)
+                logger.info(
+                    f"Switched to {model_name} model",
+                    extra={"correlation_id": correlation_id, "model": model_name}
+                )
+                
+                return response
+                
             except Exception as e:
-                health_status[model_name] = False
-                logger.error(f"{model_name} model health check failed: {e}")
+                logger.warning(
+                    f"Fallback to {model_name} failed: {str(e)}",
+                    extra={"correlation_id": correlation_id, "error": str(e), "model": model_name}
+                )
+                self.health_monitor.record_failure(model_name, str(e))
+                continue
         
-        return health_status
+        # All models failed
+        raise ExternalServiceError("All models failed to generate response")
+    
+    async def _generate_with_model(
+        self,
+        model_name: str,
+        model: Any,
+        params: dict,
+        use_system_prompt: bool,
+        schema_info: Optional[str],
+        correlation_id: str
+    ) -> str:
+        """Generate response with specific model and proper error handling."""
+        
+        start_time = time.time()
+        
+        try:
+            logger.info(
+                f"Trying generate_response with {model_name} model",
+                extra={"correlation_id": correlation_id, "model": model_name}
+            )
+            
+            response = await model.generate_response(
+                params["prompt"],
+                params["max_tokens"],
+                params["temperature"],
+                use_system_prompt,
+                schema_info
+            )
+            
+            if not response or len(response.strip()) == 0:
+                raise ExternalServiceError(f"{model_name} returned empty response")
+            
+            response_time_ms = (time.time() - start_time) * 1000
+            self.health_monitor.record_success(model_name, response_time_ms)
+            
+            logger.info(
+                f"Response generated successfully with {model_name}",
+                extra={
+                    "correlation_id": correlation_id,
+                    "model": model_name,
+                    "response_length": len(response),
+                    "response_time_ms": response_time_ms
+                }
+            )
+            
+            return response
+            
+        except Exception as e:
+            response_time_ms = (time.time() - start_time) * 1000
+            
+            # Classify the error
+            error_msg = str(e).lower()
+            
+            if "401" in error_msg or "authentication" in error_msg or "api key" in error_msg:
+                raise ExternalServiceError(f"{model_name} authentication failed")
+            elif "429" in error_msg or "rate limit" in error_msg:
+                raise ExternalServiceError(f"{model_name} rate limited")
+            elif "timeout" in error_msg:
+                raise ExternalServiceError(f"{model_name} request timeout")
+            else:
+                raise ExternalServiceError(f"{model_name} API error: {str(e)}")
     
     def get_current_model(self) -> str:
-        """Get name of currently active model."""
-        return self.current_model[0] if self.current_model else "none"
+        """Get current model name."""
+        if self.current_model:
+            return self.current_model[0]
+        return "none"
     
     def get_available_models(self) -> List[str]:
         """Get list of available model names."""
-        return [model_name for model_name, _ in self.models]
+        return [name for name, _ in self.models]
     
+    def get_health_stats(self) -> Dict[str, Any]:
+        """Get comprehensive health statistics."""
+        return {
+            "current_model": self.get_current_model(),
+            "available_models": self.get_available_models(),
+            "model_stats": self.health_monitor.get_model_stats(),
+            "total_models": len(self.models)
+        }
+    
+    def force_model_switch(self, model_name: str) -> bool:
+        """Force switch to specific model if available."""
+        for name, model in self.models:
+            if name == model_name:
+                self.current_model = (name, model)
+                logger.info(
+                    f"Manually switched to {model_name} model",
+                    extra={"model": model_name}
+                )
+                return True
+        return False
+    
+    async def validate_models(self):
+        """Validate API keys for all initialized models."""
+        validated_models = []
+        
+        for model_name, model in self.models:
+            try:
+                logger.info(f"Validating {model_name} API key...")
+                # Quick test to validate API key
+                # Use higher max_tokens for models with thinking budgets
+                test_max_tokens = 15000 if model_name == "anthropic" else 10
+                await model.generate_response(
+                    "Hi", max_tokens=test_max_tokens, temperature=0, use_system_prompt=False
+                )
+                logger.info(f"✅ {model_name} API key validated successfully")
+                validated_models.append((model_name, model))
+                
+            except Exception as e:
+                logger.warning(f"❌ {model_name} API key validation failed: {str(e)}")
+                self.health_monitor.record_failure(model_name, str(e))
+        
+        # Update models list with only validated ones
+        if validated_models:
+            self.models = validated_models
+            self.current_model = self.models[0]
+            logger.info(f"Models after validation: {[name for name, _ in self.models]}")
+        else:
+            raise ExternalServiceError("No models passed API key validation")
 
-if __name__ == "__main__":
-    async def main():
-        manager = ModelManager()
-        print(await manager.health_check())
-
-    import asyncio
-    asyncio.run(main())
+# Maintain compatibility with existing code
+ModelManager = EnhancedModelManager

@@ -67,7 +67,7 @@ Our Application (MCP HOST + CLIENTS)
 └── 4 External MCP Servers:
     ├── MariaDB MCP Server    (Business Data)
     ├── PostgreSQL MCP Server (Memory/Cache)
-    ├── LanceDB MCP Server    (Vector Search)
+    ├── Qdrant MCP Server    (Vector Search)
     └── GraphRAG MCP Server   (Knowledge Graph)
 ```
 
@@ -126,7 +126,7 @@ Internet/Users
                     │                  │                  │
                     ▼                  ▼                  ▼
             ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
-            │   MariaDB   │   │ PostgreSQL  │   │   LanceDB   │
+            │   MariaDB   │   │ PostgreSQL  │   │   Qdrant   │
             │ MCP Server  │   │ MCP Server  │   │ MCP Server  │
             │             │   │             │   │             │
             │ (Business   │   │ (Memory/    │   │ (Vector     │
@@ -177,7 +177,7 @@ Internet/Users
         │          ┌──────────▼──────────┐          │
         │          │                     │          │
         │     ┌────▼────┐ ┌────▼────┐ ┌──▼────┐ ┌───▼───┐
-        │     │MariaDB  │ │PostGre  │ │LanceDB│ │GraphRAG│
+        │     │MariaDB  │ │PostGre  │ │Qdrant│ │GraphRAG│
         │     │MCP SVR  │ │MCP SVR  │ │MCP SVR│ │base   │
         │     └─────────┘ └─────────┘ └───────┘ └───────┘
         │           │         │         │         │
@@ -231,9 +231,9 @@ Step 4: Individual MCP Server Connections
 ║                    MCP SERVER STARTUP                         ║
 ╚═══════════════════════════════════════════════════════════════╝
 
-┌─ MariaDB ─┐  ┌─PostgreSQL─┐  ┌─ LanceDB ─┐  ┌─GraphRAG─┐
+┌─ MariaDB ─┐  ┌─PostgreSQL─┐  ┌─ Qdrant ─┐  ┌─GraphRAG─┐
 │ npx       │  │ npx        │  │ npx      │  │ uvx      │
-│ mariadb-  │  │ @model...  │  │ lance-   │  │ graphrag │
+│ mariadb-  │  │ @model...  │  │ qdrant-   │  │ graphrag │
 │ mcp-      │  │ postgres   │  │ mcp      │  │ mcp-     │
 │ server    │  │            │  │          │  │ server   │
 └───────────┘  └────────────┘  └──────────┘  └──────────┘
@@ -396,7 +396,7 @@ Scenario A: Standalone MCP Backend
 │ │             │    │             │    │             │      │
 │ │ BackendSrv  │    │ MariaDB     │    │ External    │      │
 │ │ Runs Forever│    │ PostgreSQL  │    │ Processes   │      │
-│ │ No HTTP     │    │ LanceDB     │    │             │      │
+│ │ No HTTP     │    │ Qdrant     │    │             │      │
 │ └─────────────┘    │ Supabase    │    │             │      │
 │                    └─────────────┘    └─────────────┘      │
 └─────────────────────────────────────────────────────────────┘
@@ -421,7 +421,7 @@ Scenario B: Full Web Application (Embedded)
 │ │ │Bridge   │ │    │             │    │             │      │
 │ │ │(Embedded│ │    │ BackendSrv  │    │ MariaDB     │      │
 │ │ │ Mode)   │ │    │ (Embedded)  │    │ PostgreSQL  │      │
-│ │ └─────────┘ │    └─────────────┘    │ LanceDB     │      │
+│ │ └─────────┘ │    └─────────────┘    │ Qdrant     │      │
 │ │             │                       │ Supabase    │      │
 │ └─────────────┘                       └─────────────┘      │
 └─────────────────────────────────────────────────────────────┘
@@ -457,7 +457,7 @@ Cloud Deployment Process:
 │ ├─ Main Process: FastAPI (main.py)                         │
 │ ├─ Child Process: MariaDB MCP Server                       │
 │ ├─ Child Process: PostgreSQL MCP Server                    │
-│ ├─ Child Process: LanceDB MCP Server                       │
+│ ├─ Child Process: Qdrant MCP Server                       │
 │ ├─ Child Process: Supabase MCP Server                      │
 │ └─ All connected via stdio/JSON-RPC                        │
 │                                                             │
