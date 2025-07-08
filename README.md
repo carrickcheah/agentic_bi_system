@@ -22,7 +22,7 @@ Every investigation improves the system for the entire organization. When one pe
 - **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
 - **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
 - **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
-- **4-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search), GraphRAG (knowledge graphs)
+- **3-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search)
 - **Organizational Learning**: Every investigation improves future performance for the entire team
 - **Real-Time Collaboration**: Multiple stakeholders can participate in live investigations
 - **Proactive Pattern Recognition**: Automatic anomaly detection and predictive analytics
@@ -93,14 +93,12 @@ Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
 
 ### **Agentic BI Process Flow**
 
-![Agentic BI Process Diagram](docs/images/agentic-bi-process-diagram.png)
-
-The diagram above illustrates the complete autonomous business intelligence workflow:
+The system implements a complete autonomous business intelligence workflow:
 
 1. **User → System**: Query reception via FastAPI (REST/MCP endpoints)
 2. **System → Cache**: Multi-tier cache cascade (Anthropic + PostgreSQL hybrid)
 3. **Cache → Core Agent**: Intelligence planning with business methodology selection
-4. **Core Agent → Memory**: MCP service orchestration (GraphRAG + Qdrant coordination)
+4. **Core Agent → Memory**: MCP service orchestration (Qdrant coordination)
 5. **Memory → Strategic Synthesis**: Role-specific formatting and organizational learning
 6. **Complete Task**: Return strategic insights to user
 
@@ -143,17 +141,17 @@ Key process characteristics:
                   │
 ┌─────────────────┼─────────────────────────────────────────┐
 │                 │                 │                       │
-▼                 ▼                 ▼                       ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ Business Data   │ │  Memory Cache   │ │ Vector Search   │ │ Knowledge Graph │
-│   Service       │ │    Service      │ │    Service      │ │    Service      │
-│                 │ │                 │ │                 │ │                 │
-│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP     │ │ GraphRAG MCP    │
-│ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │ │ • Entity Search │
-│ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │ │ • Global Analysis│
-│ • Revenue Ops   │ │ • Learning      │ │   Matching      │ │ • Relationship  │
-│ • Product Data  │ │ • Patterns      │ │ • FAQ Search    │ │   Discovery     │
-└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
+▼                 ▼                 ▼                       │
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│ Business Data   │ │  Memory Cache   │ │ Vector Search   │
+│   Service       │ │    Service      │ │    Service      │
+│                 │ │                 │ │                 │
+│ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP     │
+│ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │
+│ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │
+│ • Revenue Ops   │ │ • Learning      │ │   Matching      │
+│ • Product Data  │ │ • Patterns      │ │ • FAQ Search    │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
 ### Multi-Tier Cache Cascade Strategy
@@ -200,8 +198,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 3. Service Orchestration:
    ├── Business Data Service: MariaDB with business logic understanding
    ├── Memory Service: PostgreSQL for context and learning
-   ├── Vector Service: Qdrant for semantic pattern matching
-   └── Knowledge Graph Service: GraphRAG for comprehensive investigations
+   └── Vector Service: Qdrant for semantic pattern matching
 
 4. Autonomous Execution:
    ├── Dynamic investigation adapting to findings
@@ -223,7 +220,7 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
 | Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
 | Database 3 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
-| Embeddings | BGE-M3 (MIT License) | Dense + sparse + multi-vector embeddings |
+| Embeddings | text-embedding-3-small (OpenAI) | Semantic embeddings for pattern matching |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
 | Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
 | UI Framework | React + TypeScript | Claude.ai-style autonomous investigation interface |
@@ -323,15 +320,10 @@ Service Preparation Process:
 │   → Organizational learning pattern access
 │   → Cross-investigation correlation preparation
 │
-├── Vector Service (Qdrant)
-│   → Semantic pattern matching configuration
-│   → Context-aware retrieval setup by role/department
-│   → Success pattern weighting preparation
-│
-└── Knowledge Graph Service (GraphRAG)
-    → Activated only for "comprehensive" complexity investigations
-    → Entity relationship discovery preparation
-    → Cross-domain analysis tool coordination
+└── Vector Service (Qdrant)
+    → Semantic pattern matching configuration
+    → Context-aware retrieval setup by role/department
+    → Success pattern weighting preparation
 ```
 
 **Phase 3 Output**: Coordinated database services ready for Phase 4 to execute the investigation plan
@@ -413,7 +405,7 @@ Example Synthesis:
 - Python 3.11+
 - PostgreSQL 15+
 - MariaDB 10.6+ (or your existing database)
-- Docker (optional for Qdrant)
+- Qdrant Cloud API key
 - Node.js 18+ (for UI)
 
 ### Installation
@@ -426,14 +418,17 @@ cd agentic_sql
 
 2. Set up the Python environment:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
+cd app/
+uv init  # If not already initialized
+uv sync  # Install dependencies from pyproject.toml
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-3. Install Qdrant:
+3. Configure Qdrant Cloud:
 ```bash
-# Qdrant is cloud-based - configure API key in app/qdrant/settings.env
+# Set up Qdrant Cloud API key in app/qdrant/settings.env
+QDRANT_API_KEY=your-api-key-here
+QDRANT_URL=your-qdrant-cloud-url
 ```
 
 4. Configure your databases:
@@ -443,14 +438,15 @@ cp .env.example .env
 ```
 
 
-6. Start the MCP server:
+6. Start the FastAPI server:
 ```bash
-python -m agentic_sql.mcp_server
+cd app/
+uv run python main.py
 ```
 
 7. Launch the UI:
 ```bash
-cd ui/web_app
+cd frontend/  # To be implemented
 npm install
 npm run dev
 ```
@@ -533,23 +529,21 @@ deploy/
 14. `frontend/` 📝 MIGRATE from ui/web_app/
 15. `testing/integration/` 🆕 CREATE
 
-## 🎯 **Recently Completed - GraphRAG Integration**
+## 🎯 **Current Architecture Status**
 
-### **✅ GraphRAG Integration Complete**
-- **Removed Qdrant**: Clean 4-service architecture (MariaDB, PostgreSQL, Qdrant, GraphRAG)
-- **GraphRAG MCP Server**: Hybrid architecture solving stateful/stateless conflicts
-- **Smart Activation**: GraphRAG only for "comprehensive" complexity investigations
-- **Production Ready**: Cost controls, monitoring, graceful fallback to Qdrant
-- **FAANG Engineering Standards**: Operational safety, clear metrics, scalable boundaries
+### **✅ Core Services Active**
+- **3-Service Architecture**: MariaDB, PostgreSQL, Qdrant
+- **MCP Integration**: FastMCP framework for service communication
+- **Model Orchestration**: Multi-model support with automatic fallback (Anthropic → DeepSeek → OpenAI)
+- **Self-Contained Modules**: Each module runs independently with local configuration
+- **Production Standards**: FAANG-level engineering practices
 
 ### **🔧 Architecture Highlights**
-- **MCP Protocol**: Standardized interface for all 4 database services
-- **Complexity-Based Activation**: Simple → Moderate → Complex → Comprehensive
-- **Fallback Strategy**: GraphRAG failures gracefully fall back to Qdrant vector search
-- **Cost Management**: Per-query and daily budget limits with monitoring
-- **Performance Monitoring**: Real-time metrics for all service operations
-
-Perfect alphabetical organization with 4-service production architecture! 🔤
+- **MCP Protocol**: Standardized interface for all database services
+- **Complexity-Based Routing**: Simple → Analytical → Computational → Investigative
+- **Fallback Strategy**: Automatic model switching on errors or rate limits
+- **Cost Management**: Efficient caching reduces API costs by 90%
+- **Performance Monitoring**: Built-in health checks and metrics
 
 ## 🔧 Configuration
 
@@ -595,9 +589,9 @@ patterns:
 - [ ] PostgreSQL memory system
 
 ### Phase 2: Intelligence Layer
-- [ ] Sonnet 4 integration
-- [ ] BGE-M3 embeddings setup
-- [ ] Qdrant knowledge base
+- [x] Claude Sonnet 4.0 integration
+- [x] OpenAI embeddings setup
+- [x] Qdrant cloud integration
 - [ ] FAQ pattern matching
 
 ### Phase 3: User Interface

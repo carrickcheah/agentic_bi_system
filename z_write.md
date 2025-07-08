@@ -2,7 +2,8 @@
 
 
 
-
+Summary what we done today. I want save into this file. So other teams members read this report, they can have right context, and follw up      │
+│   detail. Help them continue the unfinish works.        
 
 
 

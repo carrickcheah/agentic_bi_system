@@ -16,12 +16,14 @@ Features:
 
 import asyncio
 import json
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from datetime import datetime, timedelta
 
-from ..utils.logging import logger
-from ..fastmcp.postgres_client import PostgreSQLClient
+from .cache_logging import logger
 from .ttl_manager import TTLManager, DataVolatility, CachePriority
+
+if TYPE_CHECKING:
+    from ..fastmcp.postgres_client import PostgreSQLClient
 
 
 class PostgreSQLCacheClient:
@@ -33,7 +35,7 @@ class PostgreSQLCacheClient:
     """
     
     def __init__(self):
-        self.postgres_client: Optional[PostgreSQLClient] = None
+        self.postgres_client: Optional['PostgreSQLClient'] = None
         self.ttl_manager = TTLManager()
         self.similarity_threshold = 0.8
         
@@ -48,7 +50,7 @@ class PostgreSQLCacheClient:
             logger.error(f"Failed to initialize PostgreSQL cache: {e}")
             raise
     
-    def set_postgres_client(self, client: PostgreSQLClient):
+    def set_postgres_client(self, client: 'PostgreSQLClient'):
         """Set the PostgreSQL client instance."""
         self.postgres_client = client
     

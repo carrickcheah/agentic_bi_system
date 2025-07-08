@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 from enum import Enum
 
-from ..utils.logging import logger
+from .cache_logging import logger
 from .ttl_manager import TTLManager, DataVolatility, CachePriority
 from .anthropic_cache import AnthropicCacheClient
 from .postgresql_cache import PostgreSQLCacheClient

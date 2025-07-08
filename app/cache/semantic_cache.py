@@ -14,12 +14,14 @@ Features:
 import asyncio
 import hashlib
 import json
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 from datetime import datetime
 
-from ..utils.logging import logger
-from ..fastmcp.postgres_client import PostgreSQLClient
+from .cache_logging import logger
 from .ttl_manager import TTLManager
+
+if TYPE_CHECKING:
+    from ..fastmcp.postgres_client import PostgreSQLClient
 
 
 class SemanticCacheClient:
@@ -31,7 +33,7 @@ class SemanticCacheClient:
     """
     
     def __init__(self):
-        self.postgres_client: Optional[PostgreSQLClient] = None
+        self.postgres_client: Optional['PostgreSQLClient'] = None
         self.ttl_manager = TTLManager()
         self.table_name = "semantic_cache"
         self.similarity_threshold = 0.75
@@ -48,7 +50,7 @@ class SemanticCacheClient:
             logger.error(f"Failed to initialize semantic cache: {e}")
             raise
     
-    def set_postgres_client(self, client: PostgreSQLClient):
+    def set_postgres_client(self, client: 'PostgreSQLClient'):
         """Set the PostgreSQL client instance."""
         self.postgres_client = client
         logger.info("PostgreSQL client set for semantic cache")

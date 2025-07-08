@@ -17,7 +17,7 @@ import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
-from ..utils.utils_logging import logger
+from .cache_logging import logger
 from .ttl_manager import TTLManager, CachePriority
 
 

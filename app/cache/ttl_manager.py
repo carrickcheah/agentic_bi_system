@@ -17,7 +17,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta
 from enum import Enum
 
-from ..utils.logging import logger
+from .cache_logging import logger
 
 
 class DataVolatility(Enum):
