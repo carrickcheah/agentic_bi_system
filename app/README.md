@@ -67,19 +67,19 @@ Query -> Semantic Hash -> Cache Lookup -> Hit? -> Instant Response (50-100ms)
 **Output**: Complete investigation strategy with execution plan
 
 ### Phase 4: Service Orchestration
-**Coordinate database services and MCP tools**
+**Coordinate database services via MCP clients**
 
 - **Intelligent Service Selection**:
   - Simple (< 0.3): MariaDB only
   - Analytical (< 0.6): MariaDB + PostgreSQL
   - Computational (< 0.8): + Qdrant
   - Investigative (≥ 0.8): + GraphRAG (all services)
-- **MCP Tool Coordination**: Multiple Computer Protocol integration
-- **Connection Management**: Database connections and health monitoring
-- **Schema Analysis**: Understand tables and relationships
-- **Business Logic Integration**: Apply domain knowledge
+- **MCP Client Coordination**: FastMCP manages database connections
+- **Connection Management**: MCP client sessions and health monitoring
+- **Schema Analysis**: Understand tables and relationships via MCP
+- **Business Logic Integration**: Apply domain knowledge through service layer
 
-**Output**: Configured services ready for investigation
+**Output**: Configured MCP clients ready for investigation
 
 ### Phase 5: Investigation Execution
 **Autonomous multi-step analysis with adaptive methodology**
@@ -126,7 +126,15 @@ app/
 │   └── ttl_manager.py          # Dynamic TTL management
 ├── core/                    # Core business logic and orchestration
 │   ├── service_orchestration/   # Phase 4: Service coordination
+│   │   ├── mcp_coordinator.py  # MCP client coordination
+│   │   └── service_orchestrator.py # Intelligent service selection
 │   └── test_integration.py     # Integration testing
+├── fastmcp/                # MCP client management and business services
+│   ├── client_manager.py       # MCP client connections
+│   ├── mariadb_client.py       # MariaDB MCP client wrapper
+│   ├── postgres_client.py      # PostgreSQL MCP client wrapper
+│   ├── service.py              # Business service layer
+│   └── enhanced_service_methods.py # Query learning capabilities
 ├── investigation/           # Phase 5: Investigation execution
 │   ├── config.py
 │   ├── runner.py
@@ -144,10 +152,11 @@ app/
 │   ├── config.py
 │   ├── runner.py
 │   └── settings.env
-└── config/                 # Global configuration (databases, infrastructure)
-    ├── cfg_databases.py
-    ├── cfg_infrastructure.py
-    └── __init__.py
+├── config/                 # Global configuration (databases, infrastructure)
+│   ├── cfg_databases.py
+│   ├── cfg_infrastructure.py
+│   └── __init__.py
+└── mcp.json               # MCP server configuration (external databases)
 ```
 
 ## Self-Contained Module Pattern
@@ -180,15 +189,16 @@ module_name/
 - **uv**: Fast Python package management
 
 ### Database Services
-- **MariaDB**: Primary operational database (MCP)
-- **PostgreSQL**: Analytics and caching (MCP + Supabase)
+- **MariaDB**: Primary operational database (via MCP client)
+- **PostgreSQL**: Analytics and caching (via MCP client + Supabase)
 - **Qdrant**: Vector embeddings and similarity search
 - **GraphRAG**: Knowledge graph and relationship analysis
 
 ### AI and Intelligence
 - **Claude Models**: Advanced reasoning and analysis
 - **OpenAI Embeddings**: text-embedding-3-small for semantic search
-- **MCP (Model Context Protocol)**: AI tool integration
+- **MCP (Model Context Protocol)**: Database access via MCP clients
+- **FastMCP**: Business service layer coordinating MCP clients
 
 ### Infrastructure
 - **React Frontend**: Modern UI with TypeScript
@@ -305,6 +315,29 @@ cd app/qdrant && python ingest_patterns.py
 
 7. **Business Intelligence Focus**: Domain knowledge integrated throughout the investigation process
 
+## MCP Architecture
+
+### Current Implementation
+The system uses a **client-only MCP architecture**:
+- **MCP Clients**: Connect to external database servers (MariaDB, PostgreSQL)
+- **FastMCP**: Manages client connections and provides business service layer
+- **No MCP Servers**: The system does not expose its own MCP servers
+
+### LLM Integration
+LLMs access the system's capabilities through:
+1. **FastAPI Endpoints**: REST API for business intelligence requests
+2. **WebSocket Streaming**: Real-time investigation updates
+3. **Internal Module Integration**: Direct code-level integration
+
+### Future MCP Server Potential
+The architecture could be extended to expose MCP servers for:
+- Business Intelligence Service (natural language query processing)
+- Investigation Service (autonomous 7-step investigations)
+- SQL Intelligence Service (query generation and optimization)
+- Insight Synthesis Service (strategic recommendations)
+
+See `mcp_server_proposal.md` for implementation details.
+
 ## Contributing
 
 1. **Follow Standards**: Use uv, ruff, pyright, and no-emoji documentation
@@ -315,6 +348,6 @@ cd app/qdrant && python ingest_patterns.py
 
 ## Summary
 
-The Agentic SQL Backend represents a paradigm shift from traditional BI tools to autonomous business intelligence. By combining advanced AI reasoning with sophisticated database orchestration, it delivers strategic insights that help organizations make data-driven decisions with confidence.
+The Agentic SQL Backend represents a paradigm shift from traditional BI tools to autonomous business intelligence. By combining advanced AI reasoning with sophisticated database orchestration through MCP clients, it delivers strategic insights that help organizations make data-driven decisions with confidence.
 
 The 6-phase architecture ensures optimal resource utilization while maintaining the flexibility to handle everything from simple operational queries to complex strategic investigations.

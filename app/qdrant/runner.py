@@ -533,7 +533,7 @@ class QdrantService:
         return metrics
     
     async def ingest_from_directory(self, directory_path: Optional[str] = None) -> Dict[str, int]:
-        """Ingest all JSON pattern files from directory.
+        """Ingest all JSON pattern files from directory with auto-enrichment.
         
         Args:
             directory_path: Path to directory with JSON files. Uses settings.file_path if not provided.
@@ -544,6 +544,7 @@ class QdrantService:
         import json
         from pathlib import Path
         from datetime import datetime
+        from .auto_enrich import PatternEnricher
         
         path = Path(directory_path or settings.file_path)
         if not path.exists():
@@ -556,6 +557,9 @@ class QdrantService:
             "failed": 0,
             "files_processed": []
         }
+        
+        # Initialize enricher
+        enricher = PatternEnricher()
         
         # Find all JSON files
         json_files = list(path.glob("*.json"))
@@ -576,8 +580,11 @@ class QdrantService:
                 for entry in entries:
                     stats["total_entries"] += 1
                     
-                    # Extract query components
-                    query_content = entry.get("query_content", {})
+                    # AUTO-ENRICH the pattern data
+                    enriched_entry = enricher.enrich_pattern(entry, json_file.name)
+                    
+                    # Extract query components from enriched data
+                    query_content = enriched_entry.get("query_content", {})
                     sql_query = query_content.get("sql_query")
                     business_question = query_content.get("business_question")
                     
@@ -586,20 +593,15 @@ class QdrantService:
                         stats["failed"] += 1
                         continue
                     
-                    # Generate ID - use deterministic hash
-                    if entry.get("_id"):
-                        query_id = entry.get("_id")
-                    else:
-                        # Use MD5 hash for deterministic ID generation
-                        id_string = f"{json_file.stem}_{sql_query}"
-                        query_id = hashlib.md5(id_string.encode()).hexdigest()[:16]
+                    # Use enriched ID
+                    query_id = enriched_entry.get("_id")
                     
-                    # Extract metadata
-                    metadata = self._extract_metadata(entry)
+                    # Extract metadata from enriched entry
+                    metadata = self._extract_metadata(enriched_entry)
                     metadata["source_file"] = json_file.name
                     metadata["ingested_at"] = datetime.utcnow().isoformat()
                     
-                    # Store query
+                    # Store query with enriched data
                     success = await self.store_query(
                         query_id=str(query_id),
                         sql_query=sql_query,
@@ -609,6 +611,7 @@ class QdrantService:
                     
                     if success:
                         stats["success"] += 1
+                        logger.info(f"Successfully ingested enriched pattern: {query_id}")
                     else:
                         stats["failed"] += 1
                 
@@ -622,53 +625,24 @@ class QdrantService:
         return stats
     
     def _extract_metadata(self, entry: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract metadata from pattern entry."""
+        """Extract ALL metadata from pattern entry - including nulls and zeros."""
         metadata = {}
         
-        # Semantic context
-        semantic = entry.get("semantic_context", {})
-        metadata.update({
-            "query_intent": entry.get("query_content", {}).get("query_intent"),
-            "query_type": entry.get("query_content", {}).get("query_type"),
-            "business_domain": semantic.get("business_domain"),
-            "business_function": semantic.get("business_function"),
-            "analysis_type": semantic.get("analysis_type"),
-            "metrics": semantic.get("metrics", []),
-            "entities": semantic.get("entities", []),
-            "keywords": semantic.get("keywords", []),
-            "business_concepts": semantic.get("business_concepts", [])
-        })
+        # Copy ALL fields except the ones we handle separately
+        exclude_keys = {"_id", "query_content", "sql_query", "business_question"}
         
-        # Technical metadata
-        technical = entry.get("technical_metadata", {})
-        metadata.update({
-            "database": technical.get("database"),
-            "tables_used": technical.get("tables_used", []),
-            "has_window_functions": technical.get("has_window_functions"),
-            "query_pattern": technical.get("query_pattern")
-        })
+        for key, value in entry.items():
+            if key not in exclude_keys:
+                metadata[key] = value
         
-        # Business intelligence
-        bi = entry.get("business_intelligence", {})
-        metadata.update({
-            "kpi_category": bi.get("kpi_category"),
-            "decision_support_level": bi.get("decision_support_level")
-        })
+        # Add query_intent and query_type from query_content
+        query_content = entry.get("query_content", {})
+        if query_content:
+            metadata["query_intent"] = query_content.get("query_intent")
+            metadata["query_type"] = query_content.get("query_type")
         
-        # MOQ specific metadata if present
-        moq = entry.get("moq_specific_metadata", {})
-        if moq:
-            metadata.update({
-                "moq_analysis_type": moq.get("moq_analysis_type"),
-                "pricing_model": moq.get("pricing_model"),
-                "discount_range": moq.get("discount_range")
-            })
-        
-        # Tags
-        metadata["tags"] = entry.get("tags", [])
-        
-        # Remove None values
-        return {k: v for k, v in metadata.items() if v is not None}
+        # Return ALL values including None and 0
+        return metadata
     
     async def close(self):
         """Clean shutdown."""
