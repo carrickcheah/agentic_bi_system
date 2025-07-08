@@ -32,8 +32,8 @@ class QdrantSettings(BaseSettings):
         description="Collection name for SQL query patterns"
     )
     embedding_dim: int = Field(
-        default=1024,
-        description="BGE-M3 embedding dimensions"
+        default=1536,
+        description="OpenAI text-embedding-3-small dimensions"
     )
     
     # Performance settings

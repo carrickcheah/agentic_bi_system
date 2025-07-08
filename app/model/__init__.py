@@ -41,15 +41,18 @@ from .runner import ModelManager
 from .anthropic_model import AnthropicModel
 from .deepseek_model import DeepSeekModel
 from .openai_model import OpenAIModel
+from .openai_embedding import OpenAIEmbeddingModel, create_embedding_model
 from .config import ModelSettings, settings
 
 __all__ = [
-    "ModelManager",      # Main orchestrator - recommended entry point
-    "AnthropicModel",    # Primary AI provider
-    "DeepSeekModel",     # Fast fallback provider
-    "OpenAIModel",       # Secondary fallback provider
-    "ModelSettings",     # Configuration class
-    "settings",          # Configured settings instance
+    "ModelManager",          # Main orchestrator - recommended entry point
+    "AnthropicModel",        # Primary AI provider
+    "DeepSeekModel",         # Fast fallback provider
+    "OpenAIModel",           # Secondary fallback provider
+    "OpenAIEmbeddingModel",  # OpenAI embedding model
+    "create_embedding_model",# Embedding model factory
+    "ModelSettings",         # Configuration class
+    "settings",              # Configured settings instance
 ]
 
 __version__ = "1.0.0"

@@ -1,19 +1,12 @@
 from model import ModelManager
 from utils import QuestionChecker
-from embedded_model import get_embedding_manager
 from qdrant import get_qdrant_service
 
 # Initialize core services synchronously
 model_manager = ModelManager()
 question_checker = QuestionChecker(model_manager)
 
-# Initialize embedding manager (may download large model on first run)
-try:
-    embedding_manager = get_embedding_manager()
-except Exception as e:
-    print(f"⚠️  Embedding model initialization failed: {e}")
-    print("   (This may be due to model download on first run)")
-    embedding_manager = None
+# OpenAI embeddings are now handled within the model package
 
 # Initialize Qdrant (async initialization handled lazily)
 qdrant_service = None
@@ -31,7 +24,6 @@ async def initialize_async_services():
 __all__ = [
     "model_manager", 
     "question_checker", 
-    "embedding_manager",
     "qdrant_service",
     "initialize_async_services"
 ]
@@ -64,7 +56,6 @@ if __name__ == "__main__":
         print("\n📦 Available Services:")
         print(f"  - model_manager: {model_manager}")
         print(f"  - question_checker: {question_checker}")
-        print(f"  - embedding_manager: {embedding_manager}")
         print(f"  - qdrant_service: {qdrant_service}")
         
         print("\n✅ All services ready!")

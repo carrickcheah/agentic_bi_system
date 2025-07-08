@@ -347,31 +347,15 @@ class QdrantService:
                 self.monitor.record_query(duration_ms, True, cached=True)
                 return cached_results
             
-            # Get embedding for query using BGE-M3
+            # Get embedding for query using OpenAI embeddings
             try:
-                from embedded_model.runner import embed_text_async
-                query_embedding = await embed_text_async(query)
-                query_embedding = query_embedding.tolist()  # Convert numpy array to list
-                logger.debug(f"Generated BGE-M3 embedding for query, dim: {len(query_embedding)}")
+                from model import create_embedding_model
+                embedding_model = create_embedding_model()
+                query_embedding = await embedding_model.embed_text_async(query)
+                logger.debug(f"Generated OpenAI embedding for query, dim: {len(query_embedding)}")
             except Exception as e:
-                logger.warning(f"Failed to use BGE-M3 embeddings: {e}, falling back to local generation")
-                # Fallback to local embedding generation
-                import hashlib
-                hash_obj = hashlib.sha384(query.encode())
-                hash_bytes = hash_obj.digest()
-                query_embedding = []
-                for i in range(0, len(hash_bytes), 4):
-                    if len(query_embedding) >= settings.embedding_dim:
-                        break
-                    chunk = hash_bytes[i:i+4]
-                    if len(chunk) == 4:
-                        value = int.from_bytes(chunk, 'big') / (2**32)
-                        normalized = (value * 2) - 1
-                        query_embedding.append(normalized)
-                while len(query_embedding) < settings.embedding_dim:
-                    pad_value = (len(query_embedding) % 100) / 100.0 - 0.5
-                    query_embedding.append(pad_value)
-                query_embedding = query_embedding[:settings.embedding_dim]
+                logger.error(f"Failed to generate OpenAI embeddings: {e}")
+                raise RuntimeError(f"Embedding generation failed: {e}")
             
             # Search with circuit breaker
             results = await self.circuit_breaker.call(
@@ -441,32 +425,16 @@ class QdrantService:
         start_time = time.time()
         
         try:
-            # Get embeddings using BGE-M3
+            # Get embeddings using OpenAI embeddings
             combined_text = f"{business_question} {sql_query}"
             try:
-                from embedded_model.runner import embed_text_async
-                embedding = await embed_text_async(combined_text)
-                embedding = embedding.tolist()  # Convert numpy array to list
-                logger.debug(f"Generated BGE-M3 embedding for ingestion, dim: {len(embedding)}")
+                from model import create_embedding_model
+                embedding_model = create_embedding_model()
+                embedding = await embedding_model.embed_text_async(combined_text)
+                logger.debug(f"Generated OpenAI embedding for ingestion, dim: {len(embedding)}")
             except Exception as e:
-                logger.warning(f"Failed to use BGE-M3 embeddings: {e}, falling back to local generation")
-                # Fallback to local embedding generation
-                import hashlib
-                hash_obj = hashlib.sha384(combined_text.encode())
-                hash_bytes = hash_obj.digest()
-                embedding = []
-                for i in range(0, len(hash_bytes), 4):
-                    if len(embedding) >= settings.embedding_dim:
-                        break
-                    chunk = hash_bytes[i:i+4]
-                    if len(chunk) == 4:
-                        value = int.from_bytes(chunk, 'big') / (2**32)
-                        normalized = (value * 2) - 1
-                        embedding.append(normalized)
-                while len(embedding) < settings.embedding_dim:
-                    pad_value = (len(embedding) % 100) / 100.0 - 0.5
-                    embedding.append(pad_value)
-                embedding = embedding[:settings.embedding_dim]
+                logger.error(f"Failed to generate OpenAI embeddings: {e}")
+                raise RuntimeError(f"Embedding generation failed: {e}")
             
             # Prepare payload
             payload = {

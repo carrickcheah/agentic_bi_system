@@ -66,6 +66,11 @@ class ModelSettings(BaseSettings):
         default="https://api.openai.com/v1",
         description="OpenAI API base URL"
     )
+    
+    # Embedding Configuration
+    embedding_model: str = Field(
+        description="OpenAI embedding model (text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002)"
+    )
 
 
 # Create singleton instance

@@ -187,8 +187,7 @@ module_name/
 
 ### AI and Intelligence
 - **Claude Models**: Advanced reasoning and analysis
-- **BGE-M3**: Multilingual embedding model
-- **Sentence Transformers**: Text embedding generation
+- **OpenAI Embeddings**: text-embedding-3-small for semantic search
 - **MCP (Model Context Protocol)**: AI tool integration
 
 ### Infrastructure
