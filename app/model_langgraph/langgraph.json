@@ -1,0 +1,16 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "model": "./graph.py:create_model_graph",
+    "simple_model": "./graph.py:create_simple_model_graph"
+  },
+  "python_version": "3.11",
+  "env": "./settings.env",
+  "checkpointer": {
+    "ttl": {
+      "strategy": "delete",
+      "sweep_interval_minutes": 10,
+      "default_ttl": 43200
+    }
+  }
+}

@@ -12,13 +12,11 @@ try:
     from .config import settings
     from .utils.logging import setup_logger, logger
     from .fastmcp.client_manager import MCPClientManager
-    from .fastmcp.service import BusinessService
 except ImportError:
     # Fall back to absolute imports (when run directly)
     from config import settings
     from utils.logging import setup_logger, logger
     from fastmcp.client_manager import MCPClientManager
-    from fastmcp.service import BusinessService
 
 
 class BackendService:
@@ -31,7 +29,6 @@ class BackendService:
     
     def __init__(self):
         self.client_manager: Optional[MCPClientManager] = None
-        self.service: Optional[BusinessService] = None
         self._running = False
         self._shutdown_event = asyncio.Event()
     
@@ -44,11 +41,6 @@ class BackendService:
             logger.info("Initializing MCP client connections...")
             self.client_manager = MCPClientManager()
             await self.client_manager.initialize()
-            
-            # Initialize business logic service layer
-            logger.info("Initializing FastMCP service layer...")
-            self.service = BusinessService(self.client_manager)
-            await self.service.initialize()
             
             logger.info("FastMCP Backend Service initialized successfully!")
             self._running = True
@@ -65,10 +57,6 @@ class BackendService:
         self._running = False
         
         try:
-            if self.service:
-                await self.service.cleanup()
-                logger.info("FastMCP service layer cleaned up")
-            
             if self.client_manager:
                 await self.client_manager.close()
                 logger.info("MCP client connections closed")
@@ -106,14 +94,8 @@ class BackendService:
         return (
             self._running and 
             self.client_manager and 
-            self.client_manager.is_healthy() and
-            self.service and
-            self.service.is_healthy()
+            self.client_manager.is_healthy()
         )
-    
-    def get_service(self) -> Optional[BusinessService]:
-        """Get the business logic service instance."""
-        return self.service
     
     def get_client_manager(self) -> Optional[MCPClientManager]:
         """Get the MCP client manager instance."""
@@ -145,15 +127,15 @@ async def get_fastmcp_server():
         pass
 
 
-async def get_embedded_service() -> Optional[BusinessService]:
+async def get_embedded_client_manager() -> Optional[MCPClientManager]:
     """
-    Get the embedded business service for use within FastAPI.
+    Get the embedded MCP client manager for use within FastAPI.
     
     Returns None if not initialized.
     """
     global _global_server
     if _global_server and _global_server.is_healthy():
-        return _global_server.get_service()
+        return _global_server.get_client_manager()
     return None
 
 

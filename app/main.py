@@ -14,31 +14,34 @@ qdrant_service = None
 
 # Initialize FastMCP (async initialization handled lazily)
 mcp_client_manager = None
+_mcp_initialized = False
 
 async def initialize_async_services():
     """Initialize services that require async setup."""
-    global qdrant_service, mcp_client_manager, business_service
+    global qdrant_service
     
     # Initialize Qdrant with vector search
     qdrant_service = await get_qdrant_service()
     
-    # Initialize FastMCP
-    mcp_client_manager = MCPClientManager()
-    await mcp_client_manager.initialize()
+    return qdrant_service
+
+async def get_mcp_client_manager():
+    """Get or initialize MCP client manager on demand."""
+    global mcp_client_manager, _mcp_initialized
     
-    # Initialize Business Service
-    business_service = BusinessService(mcp_client_manager)
-    await business_service.initialize()
+    if not _mcp_initialized:
+        mcp_client_manager = MCPClientManager()
+        await mcp_client_manager.initialize()
+        _mcp_initialized = True
     
-    return qdrant_service, mcp_client_manager, business_service
+    return mcp_client_manager
 
 # Export all services for other modules
 __all__ = [
     "model_manager", 
     "question_checker", 
     "qdrant_service",
-    "mcp_client_manager",
-    "business_service",
+    "get_mcp_client_manager",
     "initialize_async_services"
 ]
 
@@ -61,22 +64,25 @@ if __name__ == "__main__":
         else:
             print("⏭️  Skipping model validation")
         
-        # Initialize async services
-        print("🔌 Initializing async services...")
+        # Initialize only essential services
+        print("🔌 Initializing services...")
         await initialize_async_services()
         print("✅ Qdrant initialized")
-        print("✅ FastMCP initialized")
         
-        # Show all available services
+        # Show available services
         print("\n📦 Available Services:")
         print(f"  - model_manager: {model_manager}")
         print(f"  - question_checker: {question_checker}")
         print(f"  - qdrant_service: {qdrant_service}")
-        print(f"  - mcp_client_manager: {mcp_client_manager}")
-        print(f"  - business_service: {business_service}")
+        print(f"  - get_mcp_client_manager: <lazy initialization>")
         
         print("\n✅ All services ready!")
+        print("💡 MCP will be initialized on first use")
     
     # Check for --skip-validation flag
     skip_validation = "--skip-validation" in sys.argv
-    asyncio.run(startup(skip_validation))
+    
+    try:
+        asyncio.run(startup(skip_validation))
+    except KeyboardInterrupt:
+        print("\n\nShutting down gracefully...")

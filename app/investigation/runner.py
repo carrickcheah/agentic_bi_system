@@ -15,14 +15,10 @@ try:
     from .config import settings
     from .investigation_logging import InvestigationLogger
     from .prompts import InvestigationPrompts, PromptTemplates
-    from ..fastmcp.service import BusinessService
 except ImportError:
     from config import settings
     from investigation.investigation_logging import InvestigationLogger
     from investigation.prompts import InvestigationPrompts, PromptTemplates
-    # Placeholder for BusinessService in standalone mode
-    class BusinessService:
-        async def execute_sql(self, *args, **kwargs): return None
 
 
 @dataclass
@@ -115,15 +111,6 @@ class AutonomousInvestigationEngine:
         self.execution_context = execution_context
         self.start_time = datetime.now()
         self.mcp_client_manager = mcp_client_manager
-        
-        # Initialize BusinessService for query learning
-        self.business_service = None
-        if mcp_client_manager:
-            try:
-                self.business_service = BusinessService(mcp_client_manager, enable_query_learning=True)
-                asyncio.create_task(self.business_service.initialize())
-            except Exception as e:
-                self.logger.logger.warning(f"Failed to initialize BusinessService for query learning: {e}")
         
         # Register investigation in runtime config
         # runtime_config.register_investigation(self.investigation_id, {
@@ -487,7 +474,7 @@ class AutonomousInvestigationEngine:
                             database="mariadb",
                             business_context={**business_context, "table": table, "operation": "count"}
                         )
-                        count = count_result.data[0]["total_rows"] if count_result.success and count_result.data else 0
+                        count = count_result["data"][0]["total_rows"] if count_result.get("success") and count_result.get("data") else 0
                         
                         # Sample data with query learning
                         sample_query = f"SELECT * FROM {table} LIMIT 5"
@@ -499,9 +486,8 @@ class AutonomousInvestigationEngine:
                         
                         exploration_results["mariadb"][table] = {
                             "row_count": count,
-                            "sample_rows": len(sample_result.data) if sample_result.success else 0,
-                            "columns": sample_result.columns if sample_result.success else [],
-                            "execution_time": sample_result.execution_time
+                            "sample_rows": len(sample_result.get("data", [])) if sample_result.get("success") else 0,
+                            "columns": sample_result.get("columns", []) if sample_result.get("success") else []
                         }
                         
                     except Exception as e:
@@ -546,59 +532,40 @@ class AutonomousInvestigationEngine:
         user_id: str = "investigation_engine"
     ):
         """
-        Execute query using BusinessService for automatic learning.
-        Falls back to direct MCP client if BusinessService unavailable.
+        Execute query using MCP client directly.
         """
-        # Try to use BusinessService for query learning
-        if self.business_service:
-            try:
-                return await self.business_service.execute_sql(
-                    query=query,
-                    database=database,
-                    user_id=user_id,
-                    business_context=business_context
-                )
-            except Exception as e:
-                self.logger.logger.warning(f"BusinessService query failed, falling back to direct MCP: {e}")
-        
-        # Fallback to direct MCP client execution
+        # Direct MCP client execution
         client = self.mcp_client_manager.get_client(database)
         if client:
             try:
                 result = await client.execute_query(query)
-                # Convert to QueryResult format for compatibility
-                from ..fastmcp.service import QueryResult
-                return QueryResult(
-                    data=result.rows if hasattr(result, 'rows') else result.get("data", []),
-                    columns=result.columns if hasattr(result, 'columns') else result.get("columns", []),
-                    row_count=len(result.rows) if hasattr(result, 'rows') else result.get("row_count", 0),
-                    execution_time=result.execution_time if hasattr(result, 'execution_time') else 0.0,
-                    database=database,
-                    success=True
-                )
+                # Return result in standardized format
+                return {
+                    "data": result.rows if hasattr(result, 'rows') else result.get("data", []),
+                    "columns": result.columns if hasattr(result, 'columns') else result.get("columns", []),
+                    "row_count": len(result.rows) if hasattr(result, 'rows') else result.get("row_count", 0),
+                    "database": database,
+                    "success": True
+                }
             except Exception as e:
-                from ..fastmcp.service import QueryResult
-                return QueryResult(
-                    data=[],
-                    columns=[],
-                    row_count=0,
-                    execution_time=0.0,
-                    database=database,
-                    success=False,
-                    error=str(e)
-                )
+                return {
+                    "data": [],
+                    "columns": [],
+                    "row_count": 0,
+                    "database": database,
+                    "success": False,
+                    "error": str(e)
+                }
         
         # No client available
-        from ..fastmcp.service import QueryResult
-        return QueryResult(
-            data=[],
-            columns=[],
-            row_count=0,
-            execution_time=0.0,
-            database=database,
-            success=False,
-            error=f"No {database} client available"
-        )
+        return {
+            "data": [],
+            "columns": [],
+            "row_count": 0,
+            "database": database,
+            "success": False,
+            "error": f"No {database} client available"
+        }
     
     def _extract_business_domain(self, investigation_request: str) -> str:
         """
@@ -667,9 +634,8 @@ class AutonomousInvestigationEngine:
                             testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
                                 "hypothesis": hypothesis_name,
                                 "query": query,
-                                "results": result.data if result.success else [],
-                                "execution_time": result.execution_time,
-                                "success": result.success
+                                "results": result.get("data", []) if result.get("success") else [],
+                                "success": result.get("success", False)
                             }
                         except Exception as e:
                             testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
@@ -694,9 +660,8 @@ class AutonomousInvestigationEngine:
                             testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {
                                 "hypothesis": hypothesis_name,
                                 "query": query,
-                                "results": result.data if result.success else [],
-                                "execution_time": result.execution_time,
-                                "success": result.success
+                                "results": result.get("data", []) if result.get("success") else [],
+                                "success": result.get("success", False)
                             }
                         except Exception as e:
                             testing_results["mariadb"][f"hypothesis_test_{i+1}"] = {

@@ -129,12 +129,10 @@ app/
 │   │   ├── mcp_coordinator.py  # MCP client coordination
 │   │   └── service_orchestrator.py # Intelligent service selection
 │   └── test_integration.py     # Integration testing
-├── fastmcp/                # MCP client management and business services
+├── fastmcp/                # MCP client management
 │   ├── client_manager.py       # MCP client connections
 │   ├── mariadb_client.py       # MariaDB MCP client wrapper
-│   ├── postgres_client.py      # PostgreSQL MCP client wrapper
-│   ├── service.py              # Business service layer
-│   └── enhanced_service_methods.py # Query learning capabilities
+│   └── postgres_client.py      # PostgreSQL MCP client wrapper
 ├── investigation/           # Phase 5: Investigation execution
 │   ├── config.py
 │   ├── runner.py

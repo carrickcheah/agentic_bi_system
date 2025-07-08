@@ -177,17 +177,30 @@ class MCPClientManager:
     async def close(self):
         """Close all MCP client connections."""
         try:
-            for client_name, client in self.clients.items():
-                if hasattr(client, 'close'):
-                    await client.close()
-                logger.info(f"MCP client '{client_name}' closed")
+            # First close all sessions properly
+            for session_name, session in list(self.sessions.items()):
+                try:
+                    if session and hasattr(session, 'close'):
+                        await session.close()
+                    logger.info(f"MCP session '{session_name}' closed")
+                except Exception as e:
+                    logger.warning(f"Error closing session '{session_name}': {e}")
+            
+            # Then close clients
+            for client_name, client in list(self.clients.items()):
+                try:
+                    if client and hasattr(client, 'close'):
+                        await client.close()
+                    logger.info(f"MCP client '{client_name}' closed")
+                except Exception as e:
+                    logger.warning(f"Error closing client '{client_name}': {e}")
             
             self.sessions.clear()
             self.clients.clear()
             self._initialized = False
             
         except Exception as e:
-            logger.error(f"Error closing MCP clients: {e}")
+            logger.error(f"Error during MCP cleanup: {e}")
     
     # Investigation management methods (to be implemented)
     async def save_investigation(self, investigation):
