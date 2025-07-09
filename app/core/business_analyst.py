@@ -3,7 +3,7 @@ Autonomous Business Analyst - 5-Phase Investigation Orchestrator
 Central coordinator that integrates all phases of the autonomous business intelligence workflow.
 """
 
-from typing import Dict, List, Any, Optional, AsyncGenerator
+from typing import Dict, List, Any, Optional, AsyncGenerator, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import asyncio
@@ -16,6 +16,11 @@ from fastmcp.client_manager import MCPClientManager
 from investigation.runner import conduct_autonomous_investigation
 from insight_synthesis.runner import InsightSynthesizer, OutputFormat
 from config import settings
+
+# Import components for parallel processing
+from intelligence.query_intent_classifier import QueryIntentClassifier
+from intelligence.domain_expert import DomainExpert
+from intelligence.complexity_analyzer import ComplexityAnalyzer
 
 # Set up logger
 logger = logging.getLogger("business_analyst")
@@ -50,6 +55,11 @@ class AutonomousBusinessAnalyst:
         self.synthesizer = None
         self.mcp_manager = None
         self.vector_service = None
+        
+        # Components for parallel processing
+        self.intent_classifier = None
+        self.domain_expert = None
+        self.complexity_analyzer = None
         
         logger.info("AutonomousBusinessAnalyst initialized")
     
@@ -90,6 +100,111 @@ class AutonomousBusinessAnalyst:
             logger.error(f"Failed to initialize business analyst: {e}")
             raise
     
+    async def _parallel_query_analysis(
+        self, 
+        business_question: str
+    ) -> Tuple[Any, Optional[List[Dict[str, Any]]], Any, Any]:
+        """
+        Run intent classification, Qdrant search, and complexity analysis in parallel.
+        
+        Args:
+            business_question: Natural language business question
+            
+        Returns:
+            Tuple of (intent_classification, qdrant_results, complexity_score, business_intent)
+        """
+        # Initialize components if not already done
+        if self.intent_classifier is None:
+            self.intent_classifier = QueryIntentClassifier()
+        
+        if self.domain_expert is None:
+            self.domain_expert = DomainExpert()
+            
+        if self.complexity_analyzer is None:
+            self.complexity_analyzer = ComplexityAnalyzer()
+        
+        logger.info("Starting parallel query analysis...")
+        start_time = asyncio.get_event_loop().time()
+        
+        # Create parallel tasks
+        tasks = []
+        
+        # 1. Extract Intent (sync function, needs asyncio.to_thread)
+        intent_task = asyncio.create_task(
+            asyncio.to_thread(
+                self.intent_classifier.classify_intent, 
+                business_question
+            ),
+            name="intent_classification"
+        )
+        tasks.append(intent_task)
+        
+        # 2. Search Qdrant (already async)
+        qdrant_task = None
+        if self.vector_service:
+            qdrant_task = asyncio.create_task(
+                self.vector_service.search_similar_queries(
+                    business_question, 
+                    limit=5, 
+                    threshold=0.85
+                ),
+                name="qdrant_search"
+            )
+            tasks.append(qdrant_task)
+        
+        # 3. Business Intent Classification (needed for complexity analysis)
+        business_intent_task = asyncio.create_task(
+            asyncio.to_thread(
+                self.domain_expert.classify_business_intent,
+                business_question
+            ),
+            name="business_intent"
+        )
+        
+        # First, get business intent as complexity analysis depends on it
+        business_intent = await business_intent_task
+        
+        # 4. Analyze Complexity (depends on business intent)
+        complexity_task = asyncio.create_task(
+            asyncio.to_thread(
+                self.complexity_analyzer.analyze_complexity,
+                business_intent,
+                business_question
+            ),
+            name="complexity_analysis"
+        )
+        tasks.append(complexity_task)
+        
+        # Wait for remaining tasks to complete
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Handle results and errors
+        intent_classification = results[0] if not isinstance(results[0], Exception) else None
+        qdrant_results = None
+        complexity_score = None
+        
+        # Extract Qdrant results if task was created
+        if qdrant_task:
+            qdrant_idx = 1  # Qdrant is second in tasks list
+            qdrant_results = results[qdrant_idx] if not isinstance(results[qdrant_idx], Exception) else None
+            complexity_score = results[-1] if not isinstance(results[-1], Exception) else None
+        else:
+            complexity_score = results[-1] if not isinstance(results[-1], Exception) else None
+        
+        # Log performance
+        elapsed_time = asyncio.get_event_loop().time() - start_time
+        logger.info(f"Parallel query analysis completed in {elapsed_time:.3f}s")
+        
+        # Log individual results
+        if intent_classification:
+            logger.debug(f"Intent: {intent_classification.intent.value} (confidence: {intent_classification.confidence:.2f})")
+        if qdrant_results:
+            logger.debug(f"Qdrant found {len(qdrant_results)} similar queries")
+        if complexity_score:
+            logger.debug(f"Complexity: {complexity_score.level.value} (score: {complexity_score.score:.2f})")
+        
+        return intent_classification, qdrant_results, complexity_score, business_intent
+    
     async def conduct_investigation(
         self,
         business_question: str,
@@ -124,60 +239,69 @@ class AutonomousBusinessAnalyst:
             # Phase results accumulator
             phase_results = {}
             
-            # INTENT PRE-CLASSIFICATION: Check if this is a greeting/help/casual query
-            # Only proceed with full 5-phase investigation for business questions
+            # PARALLEL QUERY ANALYSIS: Run intent, Qdrant, and complexity analysis simultaneously
+            # This replaces the sequential processing for better performance
             try:
-                from intelligence.domain_expert import DomainExpert
-                domain_expert = DomainExpert()
-                intent_result = domain_expert.classify_query_intent(business_question)
+                intent_classification, qdrant_results, complexity_score, business_intent = \
+                    await self._parallel_query_analysis(business_question)
                 
-                # Handle non-business intents immediately
-                if hasattr(intent_result, 'is_business') and not intent_result.is_business:
-                    if stream_progress:
+                # Handle non-business intents immediately (greetings, help, etc.)
+                if intent_classification and hasattr(intent_classification, 'intent'):
+                    # Check if it's a non-business query using QueryIntent enum
+                    from intelligence.query_intent_classifier import QueryIntent
+                    if intent_classification.intent in [QueryIntent.GREETING, QueryIntent.HELP, QueryIntent.CASUAL]:
+                        # Generate appropriate response based on intent type
+                        response_text = self._generate_non_business_response(
+                            intent_classification.intent,
+                            business_question
+                        )
+                        
+                        if stream_progress:
+                            yield {
+                                "type": "non_business_response",
+                                "investigation_id": investigation_id,
+                                "intent_type": intent_classification.intent.value,
+                                "response": response_text,
+                                "confidence": intent_classification.confidence
+                            }
+                        
+                        # Complete the investigation with the response
                         yield {
-                            "type": "non_business_response",
+                            "type": "investigation_completed",
                             "investigation_id": investigation_id,
-                            "intent_type": intent_result.intent_type,
-                            "response": intent_result.response_text,
-                            "confidence": intent_result.confidence
+                            "insights": {
+                                "executive_summary": response_text,
+                                "strategic_insights": [],
+                                "recommendations": [],
+                                "is_non_business_response": True,
+                                "intent_type": intent_classification.intent.value
+                            },
+                            "metadata": {
+                                "processing_time_seconds": 0.1,
+                                "intent_classification": intent_classification.intent.value,
+                                "bypassed_investigation": True
+                            }
                         }
-                    
-                    # Complete the investigation with the response
-                    yield {
-                        "type": "investigation_completed",
-                        "investigation_id": investigation_id,
-                        "insights": {
-                            "executive_summary": intent_result.response_text,
-                            "strategic_insights": [],
-                            "recommendations": [],
-                            "is_non_business_response": True,
-                            "intent_type": intent_result.intent_type
-                        },
-                        "metadata": {
-                            "processing_time_seconds": 0.1,
-                            "intent_classification": intent_result.intent_type,
-                            "bypassed_investigation": True
-                        }
-                    }
-                    return
-                    
+                        return
+                
+                # Log Qdrant results if found
+                if qdrant_results:
+                    logger.info(f"Found {len(qdrant_results)} similar queries in Qdrant")
+                    # Could potentially use these for fast response in future iterations
+                
+                # Store parallel analysis results for use in phases
+                phase_results["parallel_analysis"] = {
+                    "intent_classification": intent_classification,
+                    "qdrant_results": qdrant_results,
+                    "complexity_score": complexity_score,
+                    "business_intent": business_intent
+                }
+                
             except Exception as e:
-                logger.warning(f"Intent pre-classification failed, proceeding with business analysis: {e}")
-            
-            # Check Qdrant cache for similar queries (optional optimization)
-            if self.vector_service:
-                try:
-                    similar_queries = await self.vector_service.search_similar_queries(
-                        query=business_question,
-                        limit=5,
-                        threshold=0.85
-                    )
-                    if similar_queries:
-                        logger.info(f"Found {len(similar_queries)} similar queries in cache")
-                        # Could potentially return cached results for very similar queries
-                        # For now, just log and continue with full investigation
-                except Exception as e:
-                    logger.debug(f"Cache check failed (non-critical): {e}")
+                logger.warning(f"Parallel query analysis failed, proceeding with fallback: {e}")
+                # Fallback to basic analysis if parallel processing fails
+                complexity_score = None
+                business_intent = None
             
             # Phase 1 & 2: Intelligence Planning (Query Processing + Strategy Planning)
             if stream_progress:
@@ -476,6 +600,30 @@ class AutonomousBusinessAnalyst:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "phase_results": phase_results
         }
+    
+    def _generate_non_business_response(self, intent_type: Any, question: str) -> str:
+        """Generate appropriate response for non-business queries."""
+        from intelligence.query_intent_classifier import QueryIntent
+        
+        if intent_type == QueryIntent.GREETING:
+            return "Hello! I'm your Autonomous Business Analyst. I'm here to help you analyze business data and generate strategic insights. What business question can I help you investigate today?"
+        
+        elif intent_type == QueryIntent.HELP:
+            return """I can help you with business intelligence and data analysis. Here are some examples:
+            
+• Sales Analysis: "What were last quarter's sales trends?"
+• Performance Metrics: "Show me production efficiency by line"
+• Root Cause Analysis: "Why did customer satisfaction drop?"
+• Forecasting: "Predict next month's demand"
+• Strategic Planning: "Compare revenue across product categories"
+
+Just ask me any business question and I'll conduct a comprehensive investigation!"""
+        
+        elif intent_type == QueryIntent.CASUAL:
+            return "I'm specialized in business intelligence and data analysis. While I appreciate the casual chat, I'm most helpful when you have business questions about your data. What business insights can I help you discover?"
+        
+        else:
+            return "I'm ready to help with your business analysis needs. Please provide a business question and I'll investigate it for you."
     
     async def get_investigation_status(self, investigation_id: str) -> Dict[str, Any]:
         """Get current status of an investigation."""

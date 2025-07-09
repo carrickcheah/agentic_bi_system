@@ -9,18 +9,23 @@ Summary what we done today. I want save into this file. So other teams members r
 
 
 
+Ultra-deep thinking to plan, We go one by one, step by step.
+1. I change the business_analyst.py to runner.py .
 
 
 
 
 
-Now i wan create my workflow. Import diffrent module and run in main.py .
-I go one by one, step by step.
-
-First, model. i want init model in main.py.
-so i want brainstorm with u. 
-Now i understand runner is the entry, i import all files/functions from these files.
-So in main.py, i onli need to from model.runner import functions xx to init model or use function correct? or i need import class to use all function if i want to?  Ultra-deep thinking to advice
 
 
 
+
+
+Ultra-deep thinking to plan, We go one by one, step by step.
+1. What is Parallel Processing here? Run together?
+2. How to setup run together in main.py?
+3. Do i need to inport search_similar_queries() to main.py again? from /app/qdrant/runner.py , bcos in main.py i already from qdrant import get_qdrant_service.
+4. For this classify_intent(), analyze_complexity(), i just need to  
+just like from model import ModelManager(example), correct?
+
+/login
