@@ -363,6 +363,45 @@ async def process_query_with_validation_and_5_phases(
         yield {"phase": 2, "name": "Intelligence Planning", "status": "completed", 
                "data": results["phases"]["intelligence"]}
     
+    # Check for Qdrant exact match
+    if qdrant_results and len(qdrant_results) > 0:
+        best_match = qdrant_results[0]  # Results are sorted by score
+        
+        if best_match.get("score", 0) > 0.9:  # High confidence exact match
+            if stream_progress:
+                yield {"phase": "qdrant_match", "status": "exact_match", 
+                       "confidence": best_match["score"],
+                       "matched_query": best_match.get("business_question", "")}
+            
+            # Fast execute using stored SQL pattern
+            stored_sql = best_match.get("sql_query", "")
+            if stored_sql:
+                if stream_progress:
+                    yield {"phase": "fast_execute", "status": "using_cached_sql"}
+                
+                # Return fast response with cached SQL
+                yield {
+                    "type": "qdrant_fast_response",
+                    "investigation_id": investigation_id,
+                    "from_qdrant": True,
+                    "confidence": best_match["score"],
+                    "cached_sql": stored_sql,
+                    "original_question": best_match.get("business_question", ""),
+                    "result": f"Found exact match (confidence: {best_match['score']:.2f})",
+                    "note": "Using cached SQL pattern from previous investigation"
+                }
+                return
+            else:
+                # High confidence match but no SQL stored - continue to normal flow
+                if stream_progress:
+                    yield {"phase": "qdrant_match", "status": "no_sql_cached", 
+                           "note": "High confidence match but no SQL pattern stored"}
+        else:
+            # Low confidence - continue to normal routing
+            if stream_progress:
+                yield {"phase": "qdrant_match", "status": "low_confidence", 
+                       "best_score": best_match.get("score", 0)}
+    
     # Route based on complexity
     complexity_score = complexity_result.score if complexity_result else 0.5
     
@@ -610,6 +649,13 @@ async def simple_chat():
                     print(f"\n📋 {insights.get('executive_summary', 'Cached result')}")
                     break
                     
+                elif update.get("type") == "qdrant_fast_response":
+                    print(f"\n🎯 Qdrant Exact Match! (confidence: {update.get('confidence', 0):.2f})")
+                    print(f"   Original: {update.get('original_question', 'N/A')}")
+                    print(f"   SQL: {update.get('cached_sql', 'N/A')[:100]}...")
+                    print(f"\n📋 {update.get('result')}")
+                    break
+                    
                 elif "phase" in update:
                     phase = update.get("phase")
                     status = update.get("status", "")
@@ -618,6 +664,12 @@ async def simple_chat():
                     if phase == "pre-check" and status == "rejected":
                         # Already handled by non_business_response
                         continue
+                    elif phase == "qdrant_match":
+                        status = update.get("status", "")
+                        if status == "exact_match":
+                            print(f"\n🎯 Qdrant Match Found! Confidence: {update.get('confidence', 0):.2f}")
+                        elif status == "low_confidence":
+                            print(f"   ✓ Qdrant best match: {update.get('best_score', 0):.2f} (below threshold)")
                     elif phase == "routing":
                         route = update.get("route", "")
                         complexity = update.get("complexity", 0)
