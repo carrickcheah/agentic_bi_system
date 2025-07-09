@@ -650,9 +650,254 @@ class ComplexityAnalyzer:
             "methodology": methodology.value,
             "complexity_level": complexity_level.value
         }
+    
+    def analyze_query_complexity(self, query: str) -> ComplexityScore:
+        """
+        Simplified complexity analysis based only on query text.
+        Used for true parallel processing without business intent dependency.
+        
+        Args:
+            query: Natural language query
+            
+        Returns:
+            ComplexityScore with basic analysis
+        """
+        # Simple implementation without performance monitoring
+        # Extract basic dimensions from query alone
+        dimensions = ComplexityDimensions(
+            data_sources=self._estimate_data_sources_from_query(query),
+            time_range=self._estimate_time_range_from_query(query),
+            analytical_depth=self._estimate_analytical_depth_from_query(query),
+            cross_validation=self._estimate_cross_validation_from_query(query),
+            business_impact=self._estimate_business_impact_from_query(query)
+        )
+        
+        # Calculate overall score
+        overall_score = self._calculate_overall_score(dimensions)
+        
+        # Determine complexity level and methodology
+        level = self._determine_complexity_level(overall_score, dimensions)
+        # Simple methodology mapping without business intent
+        methodology_map = {
+            ComplexityLevel.SIMPLE: InvestigationMethodology.RAPID_RESPONSE,
+            ComplexityLevel.ANALYTICAL: InvestigationMethodology.SYSTEMATIC_ANALYSIS,
+            ComplexityLevel.COMPUTATIONAL: InvestigationMethodology.SCENARIO_MODELING,
+            ComplexityLevel.INVESTIGATIVE: InvestigationMethodology.MULTI_PHASE_ROOT_CAUSE
+        }
+        methodology = methodology_map.get(level, InvestigationMethodology.SYSTEMATIC_ANALYSIS)
+        
+        # Simple estimates without business intent
+        duration = int(5 + overall_score * 40)  # 5-45 minutes
+        queries = int(1 + overall_score * 9)    # 1-10 queries
+        services = int(1 + overall_score * 2)    # 1-3 services
+        
+        return ComplexityScore(
+            level=level,
+            methodology=methodology,
+            score=overall_score,
+            dimension_scores={
+                "data_sources": dimensions.data_sources,
+                "time_range": dimensions.time_range,
+                "analytical_depth": dimensions.analytical_depth,
+                "cross_validation": dimensions.cross_validation,
+                "business_impact": dimensions.business_impact
+            },
+            estimated_duration_minutes=duration,
+            estimated_queries=queries,
+            estimated_services=services,
+            confidence=0.8,  # Fixed confidence for simplified analysis
+            risk_factors=[],
+            resource_requirements={
+                "computational": "standard",
+                "domain_expertise": "general",
+                "data_quality": "standard"
+            }
+        )
+    
+    def _estimate_data_sources_from_query(self, query: str) -> float:
+        """Estimate data source complexity from query text."""
+        indicators = ["multiple", "across", "combine", "integrate", "compare"]
+        score = sum(0.2 for ind in indicators if ind in query.lower())
+        return min(score, 1.0)
+    
+    def _estimate_time_range_from_query(self, query: str) -> float:
+        """Estimate time range complexity from query text."""
+        indicators = ["historical", "trend", "over time", "last year", "quarterly"]
+        score = sum(0.25 for ind in indicators if ind in query.lower())
+        return min(score, 1.0)
+    
+    def _estimate_analytical_depth_from_query(self, query: str) -> float:
+        """Estimate analytical depth from query text."""
+        indicators = ["analyze", "predict", "forecast", "optimize", "optimal", "correlation", "maximize", "minimize"]
+        score = sum(0.2 for ind in indicators if ind in query.lower())
+        return min(score, 1.0)
+    
+    def _estimate_cross_validation_from_query(self, query: str) -> float:
+        """Estimate cross-validation needs from query text."""
+        indicators = ["validate", "verify", "confirm", "cross-check", "accuracy"]
+        score = sum(0.25 for ind in indicators if ind in query.lower())
+        return min(score, 1.0)
+    
+    def _estimate_business_impact_from_query(self, query: str) -> float:
+        """Estimate business impact from query text."""
+        indicators = ["strategic", "critical", "urgent", "important", "priority"]
+        score = sum(0.25 for ind in indicators if ind in query.lower())
+        return min(score, 1.0)
+    
+    def enhance_complexity_with_intent(
+        self, 
+        base_complexity: ComplexityScore, 
+        business_intent: BusinessIntent
+    ) -> ComplexityScore:
+        """
+        Enhance basic complexity score with business intent context.
+        Used after parallel processing to improve accuracy.
+        
+        Args:
+            base_complexity: Initial complexity from query-only analysis
+            business_intent: Business context from domain expert
+            
+        Returns:
+            Enhanced ComplexityScore with business-aware adjustments
+        """
+        # Start with base score
+        enhanced_score = base_complexity.score
+        
+        # Domain-specific complexity multipliers
+        domain_multipliers = {
+            BusinessDomain.SALES: 1.0,
+            BusinessDomain.CUSTOMER: 1.1,        # Customer analysis often complex
+            BusinessDomain.SUPPLY_CHAIN: 1.15,   # Supply chain optimization is complex
+            BusinessDomain.OPERATIONS: 1.2,      # Operations analysis very complex
+            BusinessDomain.FINANCE: 1.25,        # Financial analysis most complex
+            BusinessDomain.PRODUCTION: 1.1,      # Production analysis
+            BusinessDomain.QUALITY: 1.05,        # Quality metrics
+            BusinessDomain.COST: 1.1,            # Cost analysis
+            BusinessDomain.STRATEGIC: 1.3        # Strategic planning most complex
+        }
+        
+        # Analysis type multipliers
+        analysis_multipliers = {
+            AnalysisType.DESCRIPTIVE: 1.0,    # Simple reporting
+            AnalysisType.DIAGNOSTIC: 1.1,     # Root cause analysis
+            AnalysisType.PREDICTIVE: 1.2,     # Forecasting
+            AnalysisType.PRESCRIPTIVE: 1.3    # Optimization
+        }
+        
+        # Apply domain multiplier
+        if business_intent.primary_domain in domain_multipliers:
+            enhanced_score *= domain_multipliers[business_intent.primary_domain]
+        
+        # Apply analysis type multiplier
+        if business_intent.analysis_type in analysis_multipliers:
+            enhanced_score *= analysis_multipliers[business_intent.analysis_type]
+        
+        # Key indicators-based adjustments (using key_indicators as proxy for entities)
+        if len(business_intent.key_indicators) > 3:
+            enhanced_score *= 1.1  # Multiple indicators increase complexity
+        
+        # Confidence adjustment
+        if business_intent.confidence < 0.7:
+            enhanced_score *= 1.05  # Low confidence needs more investigation
+        
+        # Cap the score
+        enhanced_score = min(enhanced_score, 1.0)
+        
+        # Recalculate level and methodology based on enhanced score
+        # Create a dummy dimensions object from the base complexity
+        dimensions = ComplexityDimensions(
+            data_sources=base_complexity.dimension_scores.get("data_sources", 0.5),
+            time_range=base_complexity.dimension_scores.get("time_range", 0.5),
+            analytical_depth=base_complexity.dimension_scores.get("analytical_depth", 0.5),
+            cross_validation=base_complexity.dimension_scores.get("cross_validation", 0.5),
+            business_impact=base_complexity.dimension_scores.get("business_impact", 0.5)
+        )
+        
+        enhanced_level = self._determine_complexity_level(enhanced_score, dimensions)
+        
+        # Select methodology based on enhanced understanding
+        enhanced_methodology = self._select_methodology_simple(
+            enhanced_level, 
+            business_intent
+        )
+        
+        # Calculate enhanced estimates
+        enhanced_duration = int(10 + enhanced_score * 50)
+        enhanced_queries = int(2 + enhanced_score * 12)
+        enhanced_services = int(1 + enhanced_score * 3)
+        
+        # Build enhanced complexity score
+        return ComplexityScore(
+            level=enhanced_level,
+            methodology=enhanced_methodology,
+            score=enhanced_score,
+            dimension_scores=base_complexity.dimension_scores,
+            estimated_duration_minutes=enhanced_duration,
+            estimated_queries=enhanced_queries,
+            estimated_services=enhanced_services,
+            confidence=max(base_complexity.confidence, business_intent.confidence),
+            risk_factors=self._identify_risk_factors_simple(
+                base_complexity.dimension_scores, 
+                business_intent
+            ),
+            resource_requirements=self._build_resource_requirements(
+                enhanced_level, 
+                enhanced_methodology,
+                enhanced_duration,
+                enhanced_queries,
+                enhanced_services
+            )
+        )
+    
+    def _select_methodology_simple(
+        self, 
+        complexity_level: ComplexityLevel, 
+        business_intent: BusinessIntent
+    ) -> InvestigationMethodology:
+        """Simplified methodology selection for enhancement."""
+        # Base methodology from complexity
+        base_methodology = {
+            ComplexityLevel.SIMPLE: InvestigationMethodology.RAPID_RESPONSE,
+            ComplexityLevel.ANALYTICAL: InvestigationMethodology.SYSTEMATIC_ANALYSIS,
+            ComplexityLevel.COMPUTATIONAL: InvestigationMethodology.SCENARIO_MODELING,
+            ComplexityLevel.INVESTIGATIVE: InvestigationMethodology.MULTI_PHASE_ROOT_CAUSE
+        }
+        
+        methodology = base_methodology.get(
+            complexity_level, 
+            InvestigationMethodology.SYSTEMATIC_ANALYSIS
+        )
+        
+        # Upgrade for specific analysis types
+        if business_intent.analysis_type == AnalysisType.PRESCRIPTIVE:
+            if methodology == InvestigationMethodology.RAPID_RESPONSE:
+                methodology = InvestigationMethodology.SYSTEMATIC_ANALYSIS
+        
+        return methodology
+    
+    def _identify_risk_factors_simple(
+        self, 
+        dimensions: Dict[str, float], 
+        business_intent: BusinessIntent
+    ) -> List[str]:
+        """Identify risks based on complexity and business intent."""
+        risks = []
+        
+        # High complexity risks
+        if dimensions.get("analytical_depth", 0) >= 0.8:
+            risks.append("Advanced analytics may require specialized expertise")
+        
+        # Business domain risks
+        if business_intent.primary_domain == BusinessDomain.FINANCE:
+            risks.append("Financial analysis requires high accuracy validation")
+        
+        # Multi-domain risks
+        if len(business_intent.secondary_domains) > 1:
+            risks.append("Cross-domain analysis may have data consistency issues")
+        
+        return risks[:3]  # Top 3 risks
 
 
-# Standalone execution for testing
 if __name__ == "__main__":
     from domain_expert import DomainExpert
     

@@ -174,6 +174,16 @@ class AgenticBiFlow:
 __all__.append("AgenticBiFlow")
 
 
+def _combined_intent_analysis(query: str, intent_classifier, domain_expert):
+    """Combines general and business intent classification into one operation."""  # Unified intent analysis
+    general_intent = intent_classifier.classify_intent(query)
+    business_intent = domain_expert.classify_business_intent(query)
+    return {
+        "general": general_intent,
+        "business": business_intent
+    }
+
+
 async def process_query_with_validation_and_5_phases(
     query: str, 
     user_context: dict = None,
@@ -285,39 +295,62 @@ async def process_query_with_validation_and_5_phases(
     if qdrant_service is None:
         await initialize_async_services()
     
-    # Run parallel analysis
+    # Run parallel analysis - EXACTLY 3 TASKS as per flow diagram
     import asyncio
     
-    # Task 1: Intent classification
+    # Task 1: Combined Intent Analysis (Extract Intent)
     intent_task = asyncio.create_task(
-        asyncio.to_thread(intent_classifier.classify_intent, query)
+        asyncio.to_thread(_combined_intent_analysis, query, intent_classifier, domain_expert)
     )
     
-    # Task 2: Qdrant search (if available)
-    qdrant_task = None
-    if qdrant_service:
-        qdrant_task = asyncio.create_task(
-            qdrant_service.search_similar_queries(query, limit=5, threshold=0.85)
-        )
-    
-    # Task 3: Business intent (needed for complexity)
-    business_intent = await asyncio.to_thread(
-        domain_expert.classify_business_intent, query
+    # Task 2: Search Qdrant
+    qdrant_task = asyncio.create_task(
+        qdrant_service.search_similar_queries(query, limit=5, threshold=0.85)
+        if qdrant_service else asyncio.sleep(0)  # Dummy task if no qdrant
     )
     
-    # Task 4: Complexity analysis
+    # Task 3: Analyze Complexity (simplified - no business intent dependency)
     complexity_task = asyncio.create_task(
         asyncio.to_thread(
-            complexity_analyzer.analyze_complexity, 
-            business_intent, 
+            complexity_analyzer.analyze_query_complexity,  # Use simpler method
             query
         )
     )
     
-    # Gather results
-    intent_result = await intent_task
-    qdrant_results = await qdrant_task if qdrant_task else None
-    complexity_result = await complexity_task
+    # Gather all 3 results simultaneously - TRUE PARALLELISM
+    intent_results, qdrant_results, complexity_result = await asyncio.gather(
+        intent_task,
+        qdrant_task,
+        complexity_task
+    )
+    
+    # Extract intent components
+    intent_result = intent_results["general"]
+    business_intent = intent_results["business"]
+    
+    # NEW: Enhance complexity with business intent
+    if business_intent and complexity_result:
+        try:
+            # Store original score for comparison
+            original_score = complexity_result.score
+            
+            # Enhance complexity with business context
+            complexity_result = complexity_analyzer.enhance_complexity_with_intent(
+                complexity_result,
+                business_intent
+            )
+            
+            # Log the enhancement
+            print(f"   ✓ Complexity enhanced: {original_score:.2f} → {complexity_result.score:.2f}")
+            
+            if stream_progress:
+                yield {"phase": 2, "name": "Intelligence Planning", 
+                       "enhancement": "complexity_enhanced",
+                       "original_score": original_score,
+                       "enhanced_score": complexity_result.score}
+        except Exception as e:
+            # If enhancement fails, continue with base complexity
+            print(f"   ⚠️  Complexity enhancement failed: {e}")
     
     results["phases"]["intelligence"] = {
         "intent": intent_result.intent.value if intent_result else "unknown",
@@ -475,6 +508,7 @@ async def process_query_with_validation_and_5_phases(
             "executive_summary": synthesis_result.executive_summary,
             "business_impact_assessment": synthesis_result.business_impact_assessment
         },
+        
         "metadata": results
     }
     
@@ -517,15 +551,12 @@ async def _hybrid_investigation(query, business_intent, qdrant_results, investig
         "note": "Would use Qdrant results and partial investigation"
     }
 
-
 # Add new functions to exports
 __all__.extend([
     "process_query_with_validation_and_5_phases",
     "_fast_sql_execution",
     "_hybrid_investigation"
 ])
-
-
 
 
 
