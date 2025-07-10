@@ -70,24 +70,20 @@ class AutonomousBusinessAnalyst:
             self.mcp_manager = MCPClientManager()
             await self.mcp_manager.initialize()
             
-            # Get vector service from main if available
+            # Get vector service directly if available
             if settings.use_qdrant:
                 try:
-                    from main import qdrant_service, initialize_async_services
+                    from qdrant import get_qdrant_service
                     
-                    # Initialize if not already done
-                    if qdrant_service is None:
-                        await initialize_async_services()
-                    
-                    from main import qdrant_service
-                    self.vector_service = qdrant_service
+                    # Initialize Qdrant service
+                    self.vector_service = await get_qdrant_service()
                     
                     if self.vector_service:
-                        logger.info("✅ Using Qdrant vector search from main")
+                        logger.info("✅ Qdrant vector search initialized")
                     else:
                         logger.warning("Qdrant service not available")
                 except Exception as e:
-                    logger.warning(f"Could not get Qdrant from main: {e}")
+                    logger.warning(f"Could not initialize Qdrant: {e}")
                     logger.info("System will continue without vector search capabilities")
             
             # Initialize phase runners

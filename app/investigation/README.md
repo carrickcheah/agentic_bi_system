@@ -1,238 +1,308 @@
-# Phase 5: Investigation Execution
+# Investigation Module - Phase 4: Autonomous Investigation Execution
 
-## Abstract
+## Overview
 
-**Autonomous Investigation Engine** - AI-powered execution module that conducts autonomous multi-step business intelligence analysis using coordinated database services from Phase 4. Transforms strategic investigation plans into actionable business insights through adaptive AI reasoning, hypothesis testing, and intelligent data exploration.
+The Investigation module implements Phase 4 of the Agentic SQL system - the core autonomous investigation engine that conducts intelligent, hypothesis-driven analysis across coordinated database services. This module transforms business questions into comprehensive investigations using a 7-step framework with adaptive reasoning.
 
-## Introduction
-
-**Problem**: Business questions require autonomous investigation that goes beyond simple query execution - they need intelligent analysis, hypothesis testing, and adaptive methodology.
-
-**Solution**: AI-powered investigation engine that conducts autonomous multi-step analysis using Claude's reasoning capabilities combined with coordinated database services.
-
-**Innovation**: Adaptive autonomous investigation that evolves its approach based on real-time findings, applying business intelligence reasoning to generate strategic insights.
-
-## Logic
-
-Phase 5 receives coordinated database services from Phase 4 and uses AI-powered autonomous reasoning to conduct intelligent investigations. It transforms investigation strategy into execution through adaptive methodology and hypothesis-driven analysis.
-
-```
-Phase 4 Coordinated Services -> AI Investigation Engine -> Raw Investigation Results -> Phase 6
-   Database Connections         AI Reasoning Engine       Investigation Findings     Insight Synthesis
-   Service Health Status        Hypothesis Testing        Confidence Scores          Strategic Recommendations  
-   Execution Context            Adaptive Methodology      Validation Status          Business Intelligence
-```
-
-## Workflow
-
-```
-PHASE 4 OUTPUT flows to PHASE 5 PROCESSING flows to PHASE 6 INPUT
-
-               PHASE 5: INVESTIGATION EXECUTION             
-                  (Autonomous AI Engine)                    
-
-  AI-Powered Autonomous Investigation                       
-  Hypothesis Testing & Adaptive Methodology                 
-  Business Intelligence Reasoning                           
-
-     RECEIVES FROM PHASE 4:     
-     - Coordinated Services     -- MariaDB, PostgreSQL, Qdrant, GraphRAG
-     - Optimized Connections    -- Ready database connections
-     - Execution Context        -- Investigation parameters
-     - Health Status            -- Service availability
-
-       AI Investigation Flow   
-     Step 1: Schema Analysis    -- AI discovers database structure
-     Step 2: Data Exploration   -- AI assesses data quality & patterns
-     Step 3: Hypothesis Gen     -- AI generates business hypotheses
-     Step 4: Core Analysis      -- AI executes analysis using services
-     Step 5: Pattern Discovery  -- AI identifies anomalies & trends
-     Step 6: Cross-Validation   -- AI validates across data sources
-     Step 7: Results Synthesis  -- AI combines findings
-
-     Adaptive AI Reasoning     
-     - Hypothesis Evolution     -- Generate new theories from findings
-     - Methodology Adaptation   -- Change approach based on results  
-     - Error Recovery           -- Handle failures intelligently
-     - Business Context         -- Apply domain knowledge
-
-      SENDS TO PHASE 6:        
-     - Investigation Findings   -- Raw analysis results
-     - Confidence Scores        -- AI reliability assessment
-     - Validation Status        -- Cross-validation results
-     - Business Context         -- Domain insights applied
-
-            PHASE 6: SYNTHESIS
-```
-
-## AI Investigation Flow (7 Steps)
-
-### Step 1: Schema Analysis
-- **Purpose**: AI discovers database structure and relationships
-- **Process**: Analyze tables, columns, foreign keys, indexes
-- **Output**: Database schema map with business context
-- **Duration**: 5-15 seconds
-
-### Step 2: Data Exploration  
-- **Purpose**: AI assesses data quality, patterns, and characteristics
-- **Process**: Sample data, check distributions, identify anomalies
-- **Output**: Data quality report with exploration insights
-- **Duration**: 10-30 seconds
-
-### Step 3: Hypothesis Generation
-- **Purpose**: AI generates business hypotheses based on question and data
-- **Process**: Apply business logic, generate testable theories
-- **Output**: Ranked list of hypotheses to investigate
-- **Duration**: 5-20 seconds
-
-### Step 4: Core Analysis
-- **Purpose**: AI executes primary analysis using coordinated services
-- **Process**: Run queries, perform calculations, gather evidence
-- **Output**: Core analytical results with supporting data
-- **Duration**: 30 seconds - 10 minutes
-
-### Step 5: Pattern Discovery
-- **Purpose**: AI identifies anomalies, trends, and unexpected patterns
-- **Process**: Statistical analysis, outlier detection, trend analysis
-- **Output**: Pattern insights with business implications
-- **Duration**: 15 seconds - 5 minutes
-
-### Step 6: Cross-Validation
-- **Purpose**: AI validates findings across multiple data sources
-- **Process**: Compare results, check consistency, verify accuracy
-- **Output**: Validation report with confidence metrics
-- **Duration**: 10 seconds - 3 minutes
-
-### Step 7: Results Synthesis
-- **Purpose**: AI combines all findings into coherent investigation results
-- **Process**: Synthesize evidence, assess reliability, prepare outputs
-- **Output**: Comprehensive investigation findings ready for Phase 5
-- **Duration**: 10-30 seconds
-
-## Use Cases
-
-### 1. Simple Investigation
-**Question**: "What are today's sales numbers?"
-- **AI Process**: Schema discovery -> Simple aggregation -> Quality validation
-- **Steps Used**: 1, 2, 4, 6, 7
-- **Output**: Direct numerical results with confidence scoring
-- **Duration**: 30 seconds
-
-### 2. Analytical Investigation
-**Question**: "How do Q3 sales compare to last year by region?"
-- **AI Process**: Historical analysis -> Regional comparison -> Trend identification
-- **Steps Used**: 1, 2, 3, 4, 5, 6, 7
-- **Output**: Comparative analysis with business insights
-- **Duration**: 2-5 minutes
-
-### 3. Complex Investigation
-**Question**: "Why did customer satisfaction drop in Q2?"
-- **AI Process**: Multi-source correlation -> Hypothesis testing -> Root cause analysis
-- **Steps Used**: All 7 steps with multiple iterations
-- **Output**: Causal analysis with recommended actions
-- **Duration**: 15-30 minutes
-
-### 4. Comprehensive Investigation
-**Question**: "Analyze market position and competitive threats"
-- **AI Process**: Cross-domain analysis -> Pattern recognition -> Strategic synthesis
-- **Steps Used**: All 7 steps with extensive cross-validation
-- **Output**: Strategic intelligence with actionable recommendations
-- **Duration**: 30-60 minutes
-
-## Adaptive AI Reasoning
-
-### Hypothesis Evolution
-- Generate new theories based on findings
-- Refine hypotheses as evidence emerges
-- Abandon disproven theories intelligently
-
-### Methodology Adaptation
-- Change analytical approach based on results
-- Switch between statistical methods dynamically
-- Adjust investigation depth based on findings
-
-### Error Recovery
-- Handle database connection failures gracefully
-- Retry failed queries with alternative approaches
-- Fall back to available data sources when others fail
-
-### Business Context Application
-- Apply domain knowledge throughout investigation
-- Consider industry-specific patterns and trends
-- Incorporate business rules and constraints
-
-## Technical Architecture
+## Architecture
 
 ### Core Components
-- **Investigation Controller**: Orchestrates the 7-step flow
-- **Hypothesis Engine**: Generates and manages business theories
-- **Analysis Executor**: Runs queries and calculations
-- **Pattern Detector**: Identifies trends and anomalies
-- **Validation Framework**: Cross-checks findings across sources
-- **Results Synthesizer**: Combines findings into coherent output
 
-### Service Integration
-- Uses Phase 3 coordinated database services
-- Leverages MCP connections for data access
-- Integrates with Qdrant for similarity search
-- Utilizes GraphRAG for relationship analysis
+1. **AutonomousInvestigationEngine** (`runner.py`)
+   - Main orchestrator for the 7-step investigation framework
+   - Manages adaptive step execution based on complexity
+   - Integrates AI reasoning with database operations
+   - Implements timeout protection and error recovery
 
-### Quality Assurance
-- Confidence scoring for all findings
-- Cross-validation across multiple sources
-- Error detection and handling
-- Result consistency verification
+2. **InvestigationPrompts** (`prompts.py`)
+   - AI prompt templates for each investigation step
+   - Adaptive reasoning prompts for methodology evolution
+   - Business context integration prompts
 
-## Simple Analogy
+3. **InvestigationLogger** (`investigation_logging.py`)
+   - Step-by-step investigation tracking
+   - Performance metrics collection
+   - Error and recovery logging
 
-**Like a Detective Conducting an Investigation:**
+## The 7-Step Investigation Framework
 
-- **Detective** (AI Engine): Uses reasoning and experience to solve cases
-- **Evidence** (Coordinated Services): Different sources of information (witnesses, forensics, records)
-- **Investigation Process**: Follow leads, test theories, adapt approach based on findings
-- **Case Report** (Phase 6 Input): Organized findings ready for prosecutor (insight synthesis)
+### Step 1: Schema Analysis
+**Purpose**: Discover and understand database structures to identify relevant data sources
 
-The detective doesn't just collect evidence - they **reason about it**, **form hypotheses**, and **adapt their investigation** based on what they discover. Phase 5 is the detective work, Phase 6 is writing the final case report.
+**What it does**:
+- Analyzes available tables based on business question keywords
+- Maps table relationships and foreign keys
+- Identifies data types and constraints
+- Evaluates indexing for performance optimization
+- Detects business logic embedded in schema design
 
-## Important Points
+**Example**:
+- Question: "Why did Q4 sales drop?"
+- Discovers: `sales`, `orders`, `customers`, `products` tables
+- Maps: Foreign key relationships between tables
+- Notes: Date columns for temporal analysis
 
-1. **AI-Driven Autonomy**: Uses Claude's reasoning capabilities for genuine autonomous investigation, not just query execution
+**Complexity-based execution**:
+- Simple queries: Analyze 1 most relevant table
+- Complex queries: Analyze up to 15 related tables
 
-2. **Hypothesis-Driven Analysis**: AI generates and tests business hypotheses, evolving theories based on findings
+### Step 2: Data Exploration
+**Purpose**: Assess data quality and identify initial patterns
 
-3. **Adaptive Methodology**: Investigation approach changes dynamically based on real-time discoveries
+**What it does**:
+- Evaluates data completeness and null value patterns
+- Identifies data distributions and outliers
+- Checks temporal coverage and data currency
+- Validates data consistency across sources
+- Estimates row counts and data volumes
 
-4. **Business Intelligence Focus**: Applies domain knowledge and business context throughout the investigation
+**Example**:
+- Finds: 3 months of missing data in Q3
+- Identifies: 15% null values in customer region field
+- Discovers: Data skew in December (holiday season)
 
-5. **Service Integration**: Leverages Phase 4's coordinated services without duplicating orchestration logic
+**Complexity-based execution**:
+- Skipped for simple queries (<0.3 complexity)
+- Full exploration for moderate+ queries
 
-6. **Error Recovery**: Intelligent fallback strategies when data sources fail or queries error
+### Step 3: Hypothesis Generation
+**Purpose**: Generate testable business theories based on initial findings
 
-7. **Confidence Scoring**: AI assesses reliability of its own findings and provides confidence metrics
+**What it does**:
+- Creates 3-5 specific hypotheses addressing the business question
+- Defines clear success/failure criteria for each hypothesis
+- Identifies required data sources for validation
+- Considers confounding variables and alternative explanations
+- Assigns expected confidence levels
 
-8. **Zero External Dependencies**: Self-contained module following project architecture standards
+**Example hypotheses for "Why did Q4 sales drop?":
+1. "Holiday promotions were less effective than previous years"
+2. "Key product categories experienced supply chain issues"
+3. "Competitor pricing changes impacted market share"
+4. "Customer satisfaction issues led to reduced repeat purchases"
 
-9. **Real-Time Adaptation**: Investigation plan evolves as new information is discovered
+**Complexity-based execution**:
+- Skipped for simple and moderate queries (<0.5 complexity)
+- Essential for analytical and complex investigations
 
-10. **Quality Validation**: Cross-validates findings across multiple data sources for reliability
+### Step 4: Core Analysis
+**Purpose**: Execute primary investigation through systematic data analysis
 
-## Performance Characteristics
+**What it does**:
+- Tests each hypothesis using appropriate analytical methods
+- Executes optimized SQL queries across data sources
+- Performs statistical analysis where applicable
+- Calculates confidence scores for findings
+- Documents evidence quality and limitations
 
-| Investigation Type | Steps Used | Typical Duration | Confidence Level |
-|-------------------|------------|------------------|------------------|
-| Simple Queries    | 1,2,4,6,7  | 30 seconds      | High (95%+)      |
-| Analytical Tasks  | All 7      | 2-5 minutes     | High (90%+)      |
-| Complex Analysis  | All 7+     | 15-30 minutes   | Medium (80%+)    |
-| Strategic Review  | All 7++    | 30-60 minutes   | Medium (75%+)    |
+**Example execution**:
+- Hypothesis: "Holiday promotions were less effective"
+- Analysis: Compare promotion response rates YoY
+- Finding: 23% lower conversion rate on promotions
+- Confidence: 0.85 (high statistical significance)
 
-## Summary
+**Complexity-based execution**:
+- Always executed (core step for all complexity levels)
+- Simple queries: Direct SQL execution
+- Complex queries: Multi-step analysis with statistical validation
 
-Phase 5 Investigation Execution serves as the autonomous AI brain that transforms coordinated database services into intelligent business analysis. Using Claude's reasoning capabilities, it conducts adaptive, hypothesis-driven investigations that go far beyond simple query execution.
+### Step 5: Pattern Discovery
+**Purpose**: Identify unexpected patterns, anomalies, and hidden correlations
 
-The module receives ready-to-use database services from Phase 4 and applies AI-powered reasoning to conduct autonomous investigations. Through adaptive methodology, hypothesis testing, and business intelligence reasoning, it generates comprehensive investigation results ready for strategic synthesis in Phase 6.
+**What it does**:
+- Detects temporal patterns and seasonality
+- Identifies anomalies requiring investigation
+- Discovers cross-domain correlations
+- Recognizes emerging trends
+- Evaluates pattern business significance
 
-**Key Responsibility**: Transform database access into autonomous business intelligence through AI-powered investigation and adaptive reasoning.
+**Example discoveries**:
+- Unusual spike in returns 2 weeks after Black Friday
+- Strong correlation between weather events and sales
+- Emerging trend: Mobile orders growing 40% QoQ
+- Anomaly: Southwest region outperforming by 200%
 
-**Core Innovation**: Genuine autonomous investigation that reasons about business problems, not just executes predetermined queries.
+**Complexity-based execution**:
+- Skipped for simple and moderate queries (<0.5 complexity)
+- Full pattern analysis for analytical and complex queries
 
-**Primary Output**: Raw investigation findings with confidence scores, validation status, and business context ready for Phase 6 insight synthesis.
+### Step 6: Cross Validation
+**Purpose**: Validate findings across data sources to ensure reliability
+
+**What it does**:
+- Cross-references findings between databases
+- Validates temporal relationships and causality
+- Checks metric consistency across systems
+- Assesses statistical significance
+- Identifies potential bias or data quality issues
+
+**Example validation**:
+- Sales drop confirmed in both transaction and inventory systems
+- Customer satisfaction metrics align with sales decline
+- No data quality issues found that would invalidate findings
+
+**Complexity-based execution**:
+- Only executed for complex queries (>0.8 complexity)
+- Critical for high-stakes business decisions
+
+### Step 7: Results Synthesis
+**Purpose**: Compile all findings into coherent, actionable results
+
+**What it does**:
+- Integrates findings from all completed steps
+- Prioritizes insights by business impact
+- Calculates overall confidence scores
+- Prepares structured results for Phase 5
+- Documents limitations and uncertainties
+
+**Example synthesis**:
+- Primary finding: Q4 sales dropped 18% due to promotion effectiveness
+- Secondary factors: Supply chain (5% impact), competition (3% impact)
+- Confidence: 0.78 overall (high confidence in primary finding)
+- Recommendation: Revise promotion strategy for next quarter
+
+**Complexity-based execution**:
+- Always executed (required for all investigations)
+- Simple queries: Basic result formatting
+- Complex queries: Comprehensive synthesis with recommendations
+
+## Adaptive Step Execution
+
+The investigation engine intelligently selects which steps to execute based on query complexity:
+
+| Complexity Score | Classification | Steps Executed | Typical Duration |
+|-----------------|----------------|----------------|------------------|
+| < 0.3 | Simple | 1, 4, 7 (3 steps) | 2-3 seconds |
+| 0.3-0.5 | Moderate | 1, 2, 4, 7 (4 steps) | 4-5 seconds |
+| 0.5-0.8 | Analytical | 1, 2, 3, 4, 5, 7 (6 steps) | 8-10 seconds |
+| > 0.8 | Complex | All 7 steps | 12-15 seconds |
+
+### Why Steps Are Skipped
+
+- **Data Exploration**: Skipped for simple queries that need direct answers
+- **Hypothesis Generation**: Not needed for straightforward metric retrieval
+- **Pattern Discovery**: Unnecessary for basic operational queries
+- **Cross Validation**: Only required for complex investigations needing high confidence
+
+## Integration Points
+
+### Input from Phase 3
+```python
+{
+    "coordinated_services": {
+        "mariadb": MariaDBClient,
+        "qdrant": QdrantClient  # Only for complex queries
+    },
+    "investigation_request": "Why did Q4 sales drop?",
+    "execution_context": {
+        "complexity_score": 0.85,
+        "business_intent": "root_cause_analysis",
+        "user_context": {...}
+    }
+}
+```
+
+### Output to Phase 5
+```python
+InvestigationResults(
+    investigation_id="uuid",
+    status="completed",
+    investigation_findings={
+        "schema_analysis": {...},
+        "hypothesis_tests": {...},
+        "pattern_discoveries": {...},
+        "cross_validation": {...}
+    },
+    confidence_scores={
+        "overall": 0.78,
+        "by_hypothesis": {...}
+    },
+    business_context={
+        "domain": "sales",
+        "impact": "high",
+        "urgency": "immediate"
+    }
+)
+```
+
+## Configuration
+
+Configure via `settings.env`:
+```bash
+# Timeout settings
+STEP_TIMEOUT_SIMPLE=10
+STEP_TIMEOUT_COMPLEX=30
+
+# Adaptive execution
+ENABLE_ADAPTIVE_REASONING=true
+ENABLE_RECOVERY_MODE=true
+
+# Table limits by complexity
+MAX_TABLES_SIMPLE=1
+MAX_TABLES_MODERATE=5
+MAX_TABLES_COMPLEX=15
+```
+
+## Performance Optimizations
+
+1. **Timeout Protection**: Each step has complexity-based timeouts
+2. **Table Limiting**: Restricts tables analyzed based on complexity
+3. **Parallel Execution**: Where possible, independent analyses run concurrently
+4. **Early Termination**: Failed critical steps can terminate investigation
+5. **Caching Integration**: Reuses patterns from Qdrant when available
+
+## Error Handling
+
+The module implements sophisticated error recovery:
+
+1. **Step-Level Recovery**: Individual step failures don't crash investigation
+2. **Graceful Degradation**: Missing optional steps reduce confidence, not failure
+3. **Timeout Handling**: Steps that exceed time limits return partial results
+4. **Service Failures**: Continues with available services when some fail
+
+## Logging and Monitoring
+
+Comprehensive logging includes:
+- Step start/completion with duration
+- Key findings with confidence scores
+- Database query execution times
+- Error recovery attempts
+- Overall investigation summary
+
+## Usage Example
+
+```python
+# Initialize engine
+engine = AutonomousInvestigationEngine()
+
+# Conduct investigation
+results = await engine.conduct_investigation(
+    coordinated_services={"mariadb": mariadb_client},
+    investigation_request="Show me top selling products this month",
+    execution_context={
+        "complexity_score": 0.4,
+        "business_intent": "metric_retrieval"
+    }
+)
+
+# Results contain structured findings ready for Phase 5
+print(f"Investigation {results.investigation_id} completed")
+print(f"Confidence: {results.overall_confidence}")
+print(f"Steps executed: {len(results.completed_steps)}")
+```
+
+## Best Practices
+
+1. **Let Complexity Drive Execution**: Trust the adaptive framework
+2. **Monitor Timeouts**: Adjust based on your database performance
+3. **Review Confidence Scores**: Low confidence may indicate data quality issues
+4. **Check Error Logs**: Failed steps may hide important insights
+5. **Validate Critical Findings**: Use cross-validation for high-stakes decisions
+
+## Future Enhancements
+
+- **Streaming Progress**: Real-time updates via WebSocket
+- **Custom Step Framework**: User-defined investigation steps
+- **ML Pattern Learning**: Improve hypothesis generation over time
+- **Collaborative Investigation**: Multi-analyst coordination
+- **Investigation Templates**: Pre-built frameworks for common analyses

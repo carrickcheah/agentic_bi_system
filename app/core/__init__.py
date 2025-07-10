@@ -13,10 +13,12 @@ business questions into strategic insights.
 """
 
 from .business_analyst import AutonomousBusinessAnalyst
+from .agentic_bi_flow import AgenticBiFlow
 
 # Only export the working orchestrator for now
 __all__ = [
-    "AutonomousBusinessAnalyst"
+    "AutonomousBusinessAnalyst",
+    "AgenticBiFlow"
 ]
 
 # Note: Other components (InvestigationEngine, QueryProcessor, etc.) exist in legacy

@@ -1,16 +1,23 @@
 """
-Insight Synthesis Module - Phase 5: Strategic Business Intelligence Generation
-Transforms raw investigation findings into strategic business intelligence.
+Insight Synthesis module - Strategic insight generation from investigation results.
 """
 
-from .runner import InsightSynthesizer
-from .config import InsightSynthesisSettings, settings
+from .runner import (
+    InsightSynthesizer,
+    OutputFormat,
+    InsightType,
+    RecommendationType,
+    Insight,
+    Recommendation,
+    SynthesisResult
+)
 
 __all__ = [
     "InsightSynthesizer",
-    "InsightSynthesisSettings", 
-    "settings"
+    "OutputFormat",
+    "InsightType", 
+    "RecommendationType",
+    "Insight",
+    "Recommendation",
+    "SynthesisResult"
 ]
-
-__version__ = "1.0.0"
-__description__ = "Strategic insight synthesis from investigation findings"
