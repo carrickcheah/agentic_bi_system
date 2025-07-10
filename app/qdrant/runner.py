@@ -310,17 +310,37 @@ class QdrantService:
         if settings.collection_name not in collection_names:
             logger.info(f"Creating collection: {settings.collection_name}")
             
+            # Import OptimizersConfigDiff for indexing configuration
+            from qdrant_client.models import OptimizersConfigDiff
+            
             await self.client.create_collection(
                 collection_name=settings.collection_name,
                 vectors_config=VectorParams(
                     size=settings.embedding_dim,
                     distance=Distance.COSINE
+                ),
+                # Force indexing even with small datasets
+                optimizers_config=OptimizersConfigDiff(
+                    indexing_threshold=0  # Index immediately, don't wait for 20k points
                 )
             )
             
-            logger.info(f"Collection '{settings.collection_name}' created")
+            logger.info(f"Collection '{settings.collection_name}' created with immediate indexing")
         else:
             logger.info(f"Collection '{settings.collection_name}' already exists")
+            
+            # Update existing collection to enable immediate indexing
+            try:
+                from qdrant_client.models import OptimizersConfigDiff
+                await self.client.update_collection(
+                    collection_name=settings.collection_name,
+                    optimizers_config=OptimizersConfigDiff(
+                        indexing_threshold=0  # Force immediate indexing
+                    )
+                )
+                logger.info(f"Updated collection '{settings.collection_name}' to enable immediate indexing")
+            except Exception as e:
+                logger.warning(f"Could not update collection indexing config: {e}")
     
     async def search_similar_queries(
         self,
@@ -335,6 +355,8 @@ class QdrantService:
         limit = limit or settings.search_limit
         threshold = threshold or settings.similarity_threshold
         
+        logger.info(f"Qdrant search started - Query: '{query[:50]}...', Limit: {limit}, Threshold: {threshold}")
+        
         start_time = time.time()
         cached = False
         
@@ -345,6 +367,7 @@ class QdrantService:
                 cached = True
                 duration_ms = (time.time() - start_time) * 1000
                 self.monitor.record_query(duration_ms, True, cached=True)
+                logger.info(f"Qdrant cache hit - Returning {len(cached_results)} cached results")
                 return cached_results
             
             # Get embedding for query using OpenAI embeddings
@@ -367,6 +390,12 @@ class QdrantService:
             
             # Cache results
             await self.cache.set(query, results)
+            
+            # Log results summary
+            logger.info(f"Qdrant search completed - Found {len(results)} matches")
+            if results:
+                best_score = results[0].get('score', 0)
+                logger.info(f"Best match score: {best_score:.3f}")
             
             # Record metrics
             duration_ms = (time.time() - start_time) * 1000
@@ -426,11 +455,12 @@ class QdrantService:
         
         try:
             # Get embeddings using OpenAI embeddings
-            combined_text = f"{business_question} {sql_query}"
+            # IMPORTANT: Only embed the business question for better matching
+            # Do NOT combine with SQL query - that causes search mismatches
             try:
                 from model import create_embedding_model
                 embedding_model = create_embedding_model()
-                embedding = await embedding_model.embed_text_async(combined_text)
+                embedding = await embedding_model.embed_text_async(business_question)
                 logger.debug(f"Generated OpenAI embedding for ingestion, dim: {len(embedding)}")
             except Exception as e:
                 logger.error(f"Failed to generate OpenAI embeddings: {e}")
@@ -451,6 +481,21 @@ class QdrantService:
                 embedding,
                 payload
             )
+            
+            # Force index update for small collections (development mode)
+            if settings.enable_dev_mode:
+                try:
+                    # Get collection info to check point count
+                    info = await self.client.get_collection(settings.collection_name)
+                    if info.points_count < 100:  # Only for small dev collections
+                        logger.info("Forcing index update for development collection")
+                        # Trigger optimization to build index
+                        await self.client.update_collection(
+                            collection_name=settings.collection_name,
+                            optimizers_config={"indexing_threshold": 0}
+                        )
+                except Exception as e:
+                    logger.debug(f"Could not force index update: {e}")
             
             # Record metrics
             duration_ms = (time.time() - start_time) * 1000

@@ -1,35 +1,27 @@
 """
-Multi-Tier Cache Cascade System
+Cache System - Anthropic Cache Only
 
-Implements sophisticated organizational caching with 50ms + 100ms response targets.
+Simplified caching architecture using only Anthropic cache for cost savings.
+PostgreSQL is used exclusively for chat history storage, not caching.
 
 Architecture:
-- Tier 1a: Anthropic Cache (50ms target, organization-wide conversations)
-- Tier 1b: PostgreSQL Hybrid Cache (100ms target, personal + organizational insights)
-- Semantic Cache: Intent-based caching for business intelligence
-- Cache Warming: Predictive cache population
+- Anthropic Cache: 50ms target response time, 90% cost savings
 - TTL Manager: Dynamic time-to-live optimization
+- Organization-wide conversation caching
 
 Features:
 - Organization-wide knowledge sharing
-- Permission-aware caching
 - Business context preservation
-- Intelligent cache warming
-- Cross-user learning acceleration
+- Semantic similarity matching
+- Cost-efficient caching
 """
 
 from .cache_manager import CacheManager
 from .anthropic_cache import AnthropicCacheClient
-from .postgresql_cache import PostgreSQLCacheClient
-from .semantic_cache import SemanticCacheClient
-from .cache_warming import CacheWarmingEngine
 from .ttl_manager import TTLManager
 
 __all__ = [
     "CacheManager",
     "AnthropicCacheClient",
-    "PostgreSQLCacheClient", 
-    "SemanticCacheClient",
-    "CacheWarmingEngine",
     "TTLManager"
 ]

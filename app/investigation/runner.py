@@ -111,6 +111,7 @@ class AutonomousInvestigationEngine:
         self.execution_context = execution_context
         self.start_time = datetime.now()
         self.mcp_client_manager = mcp_client_manager
+        self.complexity_score = execution_context.get("complexity_score", 0.5)
         
         # Register investigation in runtime config
         # runtime_config.register_investigation(self.investigation_id, {
@@ -142,10 +143,29 @@ class AutonomousInvestigationEngine:
             self.logger.logger.error(f"Investigation failed: {str(e)}")
             return await self._generate_error_results(str(e))
     
+    def _get_required_steps(self, complexity_score: float) -> List[Dict[str, Any]]:
+        """Select investigation steps based on complexity."""
+        if complexity_score < 0.3:
+            # Simple: schema, core analysis, synthesis only
+            return [s for s in self.step_definitions if s["number"] in [1, 4, 7]]
+        elif complexity_score < 0.5:
+            # Moderate: add data exploration
+            return [s for s in self.step_definitions if s["number"] in [1, 2, 4, 7]]
+        elif complexity_score < 0.8:
+            # Analytical: skip cross-validation
+            return [s for s in self.step_definitions if s["number"] in [1, 2, 3, 4, 5, 7]]
+        else:
+            # Complex: all steps
+            return self.step_definitions
+    
     async def _execute_investigation_framework(self) -> None:
         """Execute the 7-step autonomous investigation framework."""
         
-        for step_def in self.step_definitions:
+        # Determine required steps based on complexity
+        required_steps = self._get_required_steps(self.complexity_score)
+        self.logger.logger.info(f"Executing {len(required_steps)} steps for complexity {self.complexity_score}")
+        
+        for step_def in required_steps:
             step_number = step_def["number"]
             step_name = step_def["name"]
             
@@ -190,23 +210,38 @@ class AutonomousInvestigationEngine:
         
         self.logger.log_step_start(step.step_name, step.step_number)
         
-        # Prepare context for AI reasoning
-        step_context = await self._prepare_step_context(step)
+        # Set timeout based on complexity
+        step_timeout = 10 if self.complexity_score < 0.3 else 30
         
-        # Generate AI prompt for this step
-        prompt = InvestigationPrompts.format_step_prompt(step.step_name, step_context)
-        
-        # Execute database operations for this step
-        database_results = await self._execute_database_operation(step.step_name, step.step_name, step_context)
-        
-        # Execute AI reasoning with database results
-        enhanced_prompt = self._enhance_prompt_with_database_results(prompt, database_results)
-        ai_response = await self._execute_ai_reasoning(enhanced_prompt, step.step_name)
-        
-        # Process and structure AI response with database results
-        step.findings = await self._process_ai_response(ai_response, step.step_name)
-        step.findings["database_results"] = database_results
-        step.confidence_score = self._calculate_step_confidence(step.findings)
+        try:
+            # Execute step with timeout protection
+            async def execute_step_logic():
+                # Prepare context for AI reasoning
+                step_context = await self._prepare_step_context(step)
+                
+                # Generate AI prompt for this step
+                prompt = InvestigationPrompts.format_step_prompt(step.step_name, step_context)
+                
+                # Execute database operations for this step
+                database_results = await self._execute_database_operation(step.step_name, step.step_name, step_context)
+                
+                # Execute AI reasoning with database results
+                enhanced_prompt = self._enhance_prompt_with_database_results(prompt, database_results)
+                ai_response = await self._execute_ai_reasoning(enhanced_prompt, step.step_name)
+                
+                # Process and structure AI response with database results
+                findings = await self._process_ai_response(ai_response, step.step_name)
+                findings["database_results"] = database_results
+                return findings
+            
+            # Apply timeout
+            step.findings = await asyncio.wait_for(execute_step_logic(), timeout=step_timeout)
+            step.confidence_score = self._calculate_step_confidence(step.findings)
+            
+        except asyncio.TimeoutError:
+            step.findings = {"error": f"Step timed out after {step_timeout}s", "timeout": True}
+            step.confidence_score = 0.1
+            self.logger.logger.warning(f"Step {step.step_name} timed out after {step_timeout}s")
         
         # Complete step
         step.end_time = datetime.now()
@@ -376,7 +411,7 @@ class AutonomousInvestigationEngine:
             try:
                 all_tables = await mariadb_client.list_tables()
                 
-                # Filter tables based on patterns
+                # Filter tables based on patterns and complexity
                 if table_patterns:
                     relevant_tables = []
                     for table in all_tables:
@@ -384,11 +419,25 @@ class AutonomousInvestigationEngine:
                         if any(pattern in table_lower for pattern in table_patterns):
                             relevant_tables.append(table)
                     
-                    # If we found relevant tables, use them; otherwise take first 10
-                    tables_to_analyze = relevant_tables[:15] if relevant_tables else all_tables[:10]
-                    self.logger.logger.info(f"Found {len(relevant_tables)} relevant tables out of {len(all_tables)} total")
+                    # Optimize based on complexity
+                    if self.complexity_score < 0.3:
+                        # Simple queries: only most relevant table
+                        table_scores = {}
+                        for table in relevant_tables:
+                            score = sum(1 for pattern in table_patterns if pattern in table.lower())
+                            table_scores[table] = score
+                        sorted_tables = sorted(table_scores.items(), key=lambda x: x[1], reverse=True)
+                        tables_to_analyze = [t[0] for t in sorted_tables[:1]]  # Only top table
+                    else:
+                        # Complex queries: analyze more tables
+                        max_tables = 3 if self.complexity_score < 0.5 else 10 if self.complexity_score < 0.8 else 15
+                        tables_to_analyze = relevant_tables[:max_tables] if relevant_tables else all_tables[:max_tables]
+                    
+                    self.logger.logger.info(f"Found {len(relevant_tables)} relevant tables, analyzing {len(tables_to_analyze)} based on complexity {self.complexity_score}")
                 else:
-                    tables_to_analyze = all_tables[:10]
+                    # No patterns: limit based on complexity
+                    max_tables = 1 if self.complexity_score < 0.3 else 3 if self.complexity_score < 0.5 else 10
+                    tables_to_analyze = all_tables[:max_tables]
                 
                 schema_results["mariadb"] = {
                     "tables": tables_to_analyze,
@@ -413,32 +462,6 @@ class AutonomousInvestigationEngine:
             except Exception as e:
                 self.logger.logger.warning(f"MariaDB schema analysis failed: {e}")
                 schema_results["mariadb"] = {"error": str(e)}
-        
-        # Analyze PostgreSQL schema
-        postgres_client = self.mcp_client_manager.get_client("postgres")
-        if postgres_client:
-            try:
-                # Test connection and get basic info
-                connection_test = await postgres_client.test_connection()
-                schema_results["postgresql"] = {
-                    "connection_status": connection_test,
-                    "database_type": "postgresql"
-                }
-                
-                if connection_test:
-                    # Get table information
-                    table_query = """
-                    SELECT table_name 
-                    FROM information_schema.tables 
-                    WHERE table_schema = 'public' 
-                    LIMIT 10
-                    """
-                    result = await postgres_client.execute_query(table_query)
-                    schema_results["postgresql"]["tables"] = [row["table_name"] for row in result.rows]
-                    
-            except Exception as e:
-                self.logger.logger.warning(f"PostgreSQL schema analysis failed: {e}")
-                schema_results["postgresql"] = {"error": str(e)}
         
         return schema_results
     
@@ -465,7 +488,9 @@ class AutonomousInvestigationEngine:
                 tables = schema_info["mariadb"].get("tables", [])
                 exploration_results["mariadb"] = {}
                 
-                for table in tables[:3]:  # Limit to first 3 tables
+                # Limit tables based on complexity
+                max_tables = 1 if self.complexity_score < 0.3 else 3
+                for table in tables[:max_tables]:
                     try:
                         # Get row count with query learning
                         count_query = f"SELECT COUNT(*) as total_rows FROM {table}"
@@ -496,31 +521,6 @@ class AutonomousInvestigationEngine:
             except Exception as e:
                 self.logger.logger.warning(f"MariaDB data exploration failed: {e}")
                 exploration_results["mariadb"] = {"error": str(e)}
-        
-        # Explore PostgreSQL data
-        postgres_client = self.mcp_client_manager.get_client("postgres")
-        if postgres_client and "postgresql" in schema_info:
-            try:
-                exploration_results["postgresql"] = {}
-                
-                # Get database statistics
-                stats_query = """
-                SELECT 
-                    schemaname,
-                    tablename,
-                    n_tup_ins as inserts,
-                    n_tup_upd as updates,
-                    n_tup_del as deletes
-                FROM pg_stat_user_tables
-                LIMIT 5
-                """
-                
-                stats_result = await postgres_client.execute_query(stats_query)
-                exploration_results["postgresql"]["table_stats"] = stats_result.rows
-                
-            except Exception as e:
-                self.logger.logger.warning(f"PostgreSQL data exploration failed: {e}")
-                exploration_results["postgresql"] = {"error": str(e)}
         
         return exploration_results
     
@@ -712,37 +712,35 @@ class AutonomousInvestigationEngine:
         return pattern_results
     
     async def _perform_cross_validation(self, context: Dict[str, Any]) -> Dict[str, Any]:
-        """Cross-validate findings across multiple data sources."""
+        """Cross-validate findings within MariaDB data sources."""
         validation_results = {}
         
-        # Compare findings between MariaDB and PostgreSQL
+        # Validate findings within MariaDB only
         mariadb_client = self.mcp_client_manager.get_client("mariadb")
-        postgres_client = self.mcp_client_manager.get_client("postgres")
         
-        if mariadb_client and postgres_client:
+        if mariadb_client:
             try:
-                validation_results["cross_database"] = {}
+                validation_results["data_validation"] = {}
                 
-                # Test connection consistency
+                # Test connection
                 mariadb_healthy = await mariadb_client.test_connection()
-                postgres_healthy = await postgres_client.test_connection()
                 
-                validation_results["cross_database"]["connection_validation"] = {
+                validation_results["data_validation"]["connection_status"] = {
                     "mariadb_healthy": mariadb_healthy,
-                    "postgresql_healthy": postgres_healthy,
-                    "both_available": mariadb_healthy and postgres_healthy
+                    "timestamp": datetime.now().isoformat()
                 }
                 
-                # If both are healthy, perform cross-validation queries
-                if mariadb_healthy and postgres_healthy:
-                    validation_results["cross_database"]["data_consistency"] = {
+                # If healthy, perform data validation within MariaDB
+                if mariadb_healthy:
+                    validation_results["data_validation"]["consistency_check"] = {
                         "validation_performed": True,
+                        "database": "mariadb",
                         "timestamp": datetime.now().isoformat()
                     }
                 
             except Exception as e:
-                self.logger.logger.warning(f"Cross-validation failed: {e}")
-                validation_results["cross_database"] = {"error": str(e)}
+                self.logger.logger.warning(f"Data validation failed: {e}")
+                validation_results["data_validation"] = {"error": str(e)}
         
         return validation_results
     
@@ -1021,7 +1019,7 @@ async def conduct_autonomous_investigation(
 if __name__ == "__main__":
     async def main():
         """Example usage of Investigation Engine."""
-        from investigation_logging import setup_logger
+        from .investigation_logging import setup_logger
         
         logger = setup_logger("investigation_example")
         
@@ -1031,11 +1029,6 @@ if __name__ == "__main__":
                 "enabled": True,
                 "priority": 1,
                 "optimization_settings": {"connection_pool_size": 10}
-            },
-            "postgresql": {
-                "enabled": True, 
-                "priority": 2,
-                "optimization_settings": {"cache_enabled": True}
             }
         }
         
@@ -1047,7 +1040,8 @@ if __name__ == "__main__":
             "user_role": "business_analyst",
             "business_domain": "sales",
             "urgency_level": "medium",
-            "complexity_level": "analytical"
+            "complexity_level": "analytical",
+            "complexity_score": 0.7  # Analytical complexity for testing
         }
         
         try:

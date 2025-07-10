@@ -3,6 +3,11 @@ from utils import QuestionChecker
 from qdrant import get_qdrant_service
 from fastmcp.client_manager import MCPClientManager
 from cache import CacheManager
+import logging
+import json
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 # Initialize core services synchronously
 # OpenAI embeddings are now handled within the model package
@@ -16,7 +21,7 @@ qdrant_service = None
 mcp_client_manager = None
 _mcp_initialized = False
 
-# Initialize Cache (async initialization handled lazily)
+# Initialize Cache (async initialization handled lazily)/login
 cache_manager = None
 _cache_initialized = False
 
@@ -35,26 +40,20 @@ async def get_mcp_client_manager():
     
     if not _mcp_initialized:
         mcp_client_manager = MCPClientManager()
-        await mcp_client_manager.initialize()
+        # Don't initialize any services by default - let Phase 3 decide
         _mcp_initialized = True
     
     return mcp_client_manager
 
 async def get_cache_manager():
-    """Get or initialize cache manager on demand."""  # Initializes multi-tier caching system
+    """Get or initialize cache manager on demand."""  # Initializes Anthropic cache only
     global cache_manager, _cache_initialized
     
     if not _cache_initialized:
-        # Cache depends on MCP for PostgreSQL
-        mcp = await get_mcp_client_manager()
-        
+        # Initialize cache manager with Anthropic cache only
+        # No MCP needed for caching - PostgreSQL is only for chat history
         cache_manager = CacheManager()
         await cache_manager.initialize()
-        
-        # Inject PostgreSQL client into cache tiers that need it
-        if mcp.postgres:
-            cache_manager.postgresql_cache.postgres_client = mcp.postgres
-            cache_manager.semantic_cache.postgres_client = mcp.postgres
         
         _cache_initialized = True
     
@@ -428,23 +427,48 @@ async def process_query_with_validation_and_5_phases(
     if stream_progress:
         yield {"phase": 3, "name": "Service Orchestration", "status": "starting"}
     
-    # Get MCP services
-    mcp = await get_mcp_client_manager()
+    # Determine which services are needed based on complexity
+    complexity_score = complexity_result.score if complexity_result else 0.5
+    services_needed = []
     
+    if complexity_score < 0.8:
+        # Simple to Moderate: Only MariaDB needed
+        services_needed = ["mariadb"]
+    else:
+        # Complex: MariaDB + Qdrant for pattern matching
+        services_needed = ["mariadb"]
+        # Initialize Qdrant if not already initialized
+        if qdrant_service is None:
+            await initialize_async_services()
+    
+    # Initialize MCP with only required services
+    mcp = MCPClientManager()
+    await mcp.initialize(services=services_needed)
+    
+    # Store globally for other functions to use
+    global mcp_client_manager
+    mcp_client_manager = mcp
+    
+    # Verify services are ready
     services_ready = {
-        "mariadb": mcp.clients.get("mariadb") is not None if hasattr(mcp, 'clients') else False,
-        "postgres": mcp.postgres is not None if hasattr(mcp, 'postgres') else False,
+        "mariadb": "mariadb" in mcp.clients,
+        "postgres": "postgres" in mcp.clients,  # Should be False
         "qdrant": qdrant_service is not None
     }
     
     results["phases"]["orchestration"] = {
+        "services_initialized": services_needed,
         "services_ready": services_ready,
-        "mcp_initialized": True
+        "complexity_routing": "simple" if complexity_score < 0.3 else "moderate" if complexity_score < 0.8 else "complex",
+        "complexity_score": complexity_score
     }
     
     if stream_progress:
         yield {"phase": 3, "name": "Service Orchestration", "status": "completed",
-               "data": results["phases"]["orchestration"]}
+               "data": {
+                   "services_initialized": services_needed,
+                   "complexity_routing": results["phases"]["orchestration"]["complexity_routing"]
+               }}
     
     # ========== PHASE 4: Investigation Execution ==========
     if stream_progress:
@@ -457,7 +481,8 @@ async def process_query_with_validation_and_5_phases(
     execution_context = {
         "business_intent": business_intent,
         "investigation_strategy": complexity_result,
-        "user_context": user_context or {}
+        "user_context": user_context or {},
+        "complexity_score": complexity_score  # Pass complexity for adaptive execution
     }
     
     # Run investigation
@@ -512,8 +537,82 @@ async def process_query_with_validation_and_5_phases(
         "methodology": complexity_result.methodology.value if complexity_result else "unknown"
     }
     
-    # Store in cache (simplified for now - would need proper formatting)
-    # await cache.store_insights(cache_key, synthesis_result, cache_metadata)
+    # Store in Anthropic cache (if we have conversation context)
+    conversation_context = {
+        "original_query": query,
+        "investigation_id": investigation_id,
+        "business_intent": business_intent,
+        "user_context": user_context,
+        "organization_context": organization_context
+    }
+    
+    await cache.store_insights(
+        semantic_hash=cache_key,
+        business_domain="general",
+        semantic_intent=semantic_intent,
+        user_context=user_context or {},
+        organization_context=organization_context or {},
+        insights=synthesis_result.executive_summary,
+        conversation_context=conversation_context
+    )
+    
+    # Save chat history to PostgreSQL
+    # Initialize PostgreSQL if not already done
+    if "postgres" not in mcp.clients:
+        await mcp.initialize_service("postgres")
+    
+    if mcp.postgres:
+        try:
+            # Create or update session
+            session_id = user_context.get("session_id", investigation_id)
+            user_id = user_context.get("user_id", "anonymous")
+            
+            # Store conversation in chat history
+            await mcp.postgres.store_short_term_memory(
+                session_id=session_id,
+                memory_key=f"chat_{investigation_id}",
+                memory_value={
+                    "type": "conversation",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "user_message": {
+                        "type": "user_question",
+                        "content": query,
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    "ai_response": {
+                        "type": "ai_response",
+                        "content": synthesis_result.executive_summary,
+                        "insights": [
+                            {
+                                "id": insight.id,
+                                "title": insight.title,
+                                "description": insight.description
+                            } for insight in synthesis_result.insights[:3]  # Top 3 insights
+                        ],
+                        "recommendations": [
+                            {
+                                "id": rec.id,
+                                "title": rec.title,
+                                "description": rec.description
+                            } for rec in synthesis_result.recommendations[:3]  # Top 3 recommendations
+                        ],
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    "metadata": {
+                        "investigation_id": investigation_id,
+                        "complexity_score": complexity_score,
+                        "processing_time": results.get("total_time", 0),
+                        "services_used": results["phases"]["orchestration"]["services_initialized"]
+                    }
+                },
+                ttl_seconds=2592000  # 30 days
+            )
+            
+            logger.debug(f"Saved conversation to PostgreSQL history for session {session_id}")
+            
+        except Exception as e:
+            logger.warning(f"Failed to save chat history: {e}")
+            # Don't fail the whole request if history storage fails
     
     if stream_progress:
         yield {"phase": 5, "name": "Insight Synthesis", "status": "completed",
@@ -560,16 +659,93 @@ async def _fast_sql_execution(query, business_intent, qdrant_results, investigat
     if stream_progress:
         yield {"phase": "fast_path", "status": "executing"}
     
-    # TODO: Implement direct SQL generation and execution
-    # For now, return placeholder
-    yield {
-        "type": "fast_response",
-        "investigation_id": investigation_id,
-        "query": query,
-        "complexity": results["phases"]["intelligence"]["complexity"],
-        "result": "Fast SQL execution not yet implemented",
-        "note": "Would execute simple SQL directly without full investigation"
-    }
+    # Ensure MCP is available
+    global mcp_client_manager
+    if not mcp_client_manager or "mariadb" not in mcp_client_manager.clients:
+        # Initialize MariaDB only
+        mcp = MCPClientManager()
+        await mcp.initialize(services=["mariadb"])
+        mcp_client_manager = mcp
+    
+    try:
+        # Generate simple SQL using model
+        sql_prompt = f"""Generate a simple SQL query for this business question: {query}
+
+Context: This is a simple query with low complexity. Generate only the SQL query without explanation.
+Business intent: {business_intent.get('intent', 'unknown') if business_intent else 'unknown'}
+
+Return only the SQL query in a code block."""
+        
+        sql_response = await model_manager.generate_response(sql_prompt)
+        
+        # Extract SQL from response
+        sql_query = _extract_sql_from_response(sql_response)
+        
+        if stream_progress:
+            yield {"phase": "fast_path", "status": "executing_sql", "sql": sql_query[:100] + "..."}
+        
+        # Execute directly on MariaDB
+        start_time = datetime.utcnow()
+        result = await mcp_client_manager.mariadb.execute_query(sql_query)
+        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # Format the result
+        formatted_result = {
+            "type": "fast_response",
+            "investigation_id": investigation_id,
+            "query": query,
+            "sql": sql_query,
+            "data": result.data[:10] if result.data else [],  # Limit to 10 rows
+            "total_rows": result.row_count,
+            "execution_time": execution_time,
+            "complexity": results["phases"]["intelligence"]["complexity"],
+            "note": "Direct SQL execution for simple query"
+        }
+        
+        # Simple summarization if we have data
+        if result.data:
+            summary_prompt = f"""Summarize this data result for the question: {query}
+
+Data (first 10 rows):
+{result.data[:10]}
+
+Total rows: {result.row_count}
+
+Provide a brief, clear summary in 1-2 sentences."""
+            
+            summary = await model_manager.generate_response(summary_prompt)
+            formatted_result["summary"] = summary
+        
+        # Save to chat history if PostgreSQL is available
+        if hasattr(mcp_client_manager, 'postgres') and mcp_client_manager.postgres:
+            try:
+                session_id = results.get("session_id", investigation_id)
+                await mcp_client_manager.postgres.store_short_term_memory(
+                    session_id=session_id,
+                    memory_key=f"fast_query_{investigation_id}",
+                    memory_value={
+                        "type": "fast_query",
+                        "question": query,
+                        "sql": sql_query,
+                        "summary": formatted_result.get("summary", ""),
+                        "row_count": result.row_count,
+                        "execution_time": execution_time,
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    ttl_seconds=86400  # 1 day for simple queries
+                )
+            except Exception as e:
+                logger.debug(f"Could not save fast query to history: {e}")
+        
+        yield formatted_result
+        
+    except Exception as e:
+        yield {
+            "type": "fast_response_error",
+            "investigation_id": investigation_id,
+            "error": str(e),
+            "note": "Fast SQL execution failed, consider using full investigation"
+        }
 
 
 # Hybrid path implementation  
@@ -578,23 +754,170 @@ async def _hybrid_investigation(query, business_intent, qdrant_results, investig
     if stream_progress:
         yield {"phase": "hybrid_path", "status": "executing"}
     
-    # TODO: Implement hybrid investigation
-    # Uses some investigation steps but not all
-    yield {
-        "type": "hybrid_response",
-        "investigation_id": investigation_id,
-        "query": query,
-        "complexity": results["phases"]["intelligence"]["complexity"],
-        "qdrant_matches": len(qdrant_results) if qdrant_results else 0,
-        "result": "Hybrid investigation not yet implemented",
-        "note": "Would use Qdrant results and partial investigation"
-    }
+    # Ensure MCP is available
+    global mcp_client_manager
+    if not mcp_client_manager or "mariadb" not in mcp_client_manager.clients:
+        # Initialize MariaDB only
+        mcp = MCPClientManager()
+        await mcp.initialize(services=["mariadb"])
+        mcp_client_manager = mcp
+    
+    try:
+        # Use Qdrant results to provide context
+        context_info = []
+        if qdrant_results:
+            for i, match in enumerate(qdrant_results[:3], 1):
+                context_info.append({
+                    "similar_query": match.get("business_question", ""),
+                    "sql_pattern": match.get("sql_query", ""),
+                    "confidence": match.get("score", 0)
+                })
+        
+        # Generate SQL with context from similar queries
+        sql_prompt = f"""Generate an SQL query for this business question: {query}
+
+Context: This is a moderate complexity query. We have found similar queries that might help.
+Business intent: {business_intent.get('intent', 'unknown') if business_intent else 'unknown'}
+
+Similar successful queries:
+{json.dumps(context_info, indent=2) if context_info else "No similar queries found"}
+
+Generate an appropriate SQL query based on the question and similar patterns.
+Return only the SQL query in a code block."""
+        
+        sql_response = await model_manager.generate_response(sql_prompt)
+        sql_query = _extract_sql_from_response(sql_response)
+        
+        if stream_progress:
+            yield {"phase": "hybrid_path", "status": "executing_sql", "sql": sql_query[:100] + "..."}
+        
+        # Execute on MariaDB
+        start_time = datetime.utcnow()
+        result = await mcp_client_manager.mariadb.execute_query(sql_query)
+        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # More detailed analysis than fast path
+        analysis_prompt = f"""Analyze this data to answer the business question: {query}
+
+Data Summary:
+- Total rows: {result.row_count}
+- Columns: {', '.join(result.columns) if result.columns else 'Unknown'}
+- Sample data (first 5 rows): {result.data[:5] if result.data else 'No data'}
+
+Provide:
+1. A clear answer to the business question
+2. Key insights from the data
+3. Any notable patterns or trends
+
+Keep the response concise but informative."""
+        
+        analysis = await model_manager.generate_response(analysis_prompt)
+        
+        # Generate simple recommendations
+        recommendation_prompt = f"""Based on this analysis, provide 1-2 actionable recommendations:
+
+Question: {query}
+Analysis: {analysis}
+
+Provide brief, practical recommendations."""
+        
+        recommendations = await model_manager.generate_response(recommendation_prompt)
+        
+        # Format the result
+        formatted_result = {
+            "type": "hybrid_response",
+            "investigation_id": investigation_id,
+            "query": query,
+            "sql": sql_query,
+            "data_summary": {
+                "total_rows": result.row_count,
+                "columns": result.columns,
+                "sample_data": result.data[:5] if result.data else []
+            },
+            "analysis": analysis,
+            "recommendations": recommendations,
+            "execution_time": execution_time,
+            "complexity": results["phases"]["intelligence"]["complexity"],
+            "qdrant_matches_used": len(context_info),
+            "note": "Hybrid investigation using pattern matching and direct SQL"
+        }
+        
+        # Save to chat history if PostgreSQL is available  
+        if hasattr(mcp_client_manager, 'postgres') and mcp_client_manager.postgres:
+            try:
+                session_id = results.get("session_id", investigation_id)
+                await mcp_client_manager.postgres.store_short_term_memory(
+                    session_id=session_id,
+                    memory_key=f"hybrid_query_{investigation_id}",
+                    memory_value={
+                        "type": "hybrid_query",
+                        "question": query,
+                        "sql": sql_query,
+                        "analysis": analysis,
+                        "recommendations": recommendations,
+                        "row_count": result.row_count,
+                        "execution_time": execution_time,
+                        "qdrant_patterns_used": len(context_info),
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    ttl_seconds=604800  # 7 days for moderate queries
+                )
+            except Exception as e:
+                logger.debug(f"Could not save hybrid query to history: {e}")
+        
+        yield formatted_result
+        
+    except Exception as e:
+        yield {
+            "type": "hybrid_response_error",
+            "investigation_id": investigation_id,
+            "error": str(e),
+            "note": "Hybrid investigation failed, consider using full investigation"
+        }
+
+# Helper function to extract SQL from model response
+def _extract_sql_from_response(response: str) -> str:
+    """Extract SQL query from model response."""
+    import re
+    
+    # Look for SQL in code blocks
+    sql_pattern = r'```sql\n(.*?)\n```'
+    match = re.search(sql_pattern, response, re.DOTALL | re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    
+    # Also try without sql marker
+    code_pattern = r'```\n(.*?)\n```'
+    match = re.search(code_pattern, response, re.DOTALL)
+    if match:
+        potential_sql = match.group(1).strip()
+        # Check if it looks like SQL
+        if any(keyword in potential_sql.upper() for keyword in ['SELECT', 'INSERT', 'UPDATE', 'DELETE']):
+            return potential_sql
+    
+    # Fallback: look for SELECT/INSERT/UPDATE statements
+    lines = response.split('\n')
+    for line in lines:
+        stripped = line.strip()
+        if any(stripped.upper().startswith(cmd) for cmd in ['SELECT', 'INSERT', 'UPDATE', 'DELETE']):
+            # Collect the full query
+            sql_lines = [stripped]
+            idx = lines.index(line) + 1
+            while idx < len(lines) and not lines[idx].strip().endswith(';'):
+                sql_lines.append(lines[idx])
+                idx += 1
+            if idx < len(lines):
+                sql_lines.append(lines[idx])
+            return '\n'.join(sql_lines).strip()
+    
+    raise ValueError("No SQL query found in response")
 
 # Add new functions to exports
 __all__.extend([
     "process_query_with_validation_and_5_phases",
     "_fast_sql_execution",
-    "_hybrid_investigation"
+    "_hybrid_investigation",
+    "_extract_sql_from_response"
 ])
 
 

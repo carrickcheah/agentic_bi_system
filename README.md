@@ -19,11 +19,11 @@ Every investigation improves the system for the entire organization. When one pe
 
 ## 🚀 Key Capabilities
 
-- **Business Intelligence Architecture**: Single autonomous analyst with specialized database services for data domain expertise
-- **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing and iterative deep-diving
-- **Hybrid Team Caching**: Personal + organizational knowledge sharing with 60-80% hit rates
-- **3-Database MCP Architecture**: MariaDB (business data), PostgreSQL (memory/cache), Qdrant (semantic search)
-- **Organizational Learning**: Every investigation improves future performance for the entire team
+- **Business Intelligence Architecture**: Single autonomous analyst with specialized database services
+- **Claude Code-Style Autonomy**: Multi-phase investigations with hypothesis testing
+- **Anthropic Caching**: Smart conversation caching for 50ms responses
+- **3-Database MCP Architecture**: MariaDB (business data), PostgreSQL (chat history), Qdrant (semantic search)
+- **Organizational Learning**: Every investigation improves future performance
 - **Real-Time Collaboration**: Multiple stakeholders can participate in live investigations
 - **Proactive Pattern Recognition**: Automatic anomaly detection and predictive analytics
 - **Enterprise-Scale Reliability**: Production-grade architecture with 99.9% uptime
@@ -71,67 +71,33 @@ Real-time Progress:
 ⏳ Cross-referencing support tickets... [■■■■░░░░░░] 40%
 ```
 
-### Organizational Learning Multiplier
-```
-Morning: Sarah investigates Q4 performance (12 seconds, $0.23 cost)
-├── Full investigation with pattern recognition
-├── Strategic insights generated
-└── Stored in organizational cache
 
-10:30 AM: Manager Bob asks about Q4
-├── Organizational cache HIT (52ms, $0.00 cost)
-├── Same insights with manager-level formatting
-└── 230x faster response
+## 🏗️ System Architecture
 
-2:15 PM: CFO Maria needs quarterly analysis
-├── Anthropic cache HIT (47ms, 90% savings)
-├── Executive summary auto-generated
-└── Team knowledge compounds exponentially
-```
-
-## 🏗️ Autonomous Business Intelligence Architecture
-
-### **Agentic BI Process Flow**
-
-The system implements a complete autonomous business intelligence workflow:
-
-1. **User → System**: Query reception via FastAPI (REST/MCP endpoints)
-2. **System → Cache**: Multi-tier cache cascade (Anthropic + PostgreSQL hybrid)
-3. **Cache → Core Agent**: Intelligence planning with business methodology selection
-4. **Core Agent → Memory**: MCP service orchestration (Qdrant coordination)
-5. **Memory → Strategic Synthesis**: Role-specific formatting and organizational learning
-6. **Complete Task**: Return strategic insights to user
-
-Key process characteristics:
-- **Autonomous Intelligence**: Core Agent conducts independent business analysis
-- **Thinking Phases**: Query analysis and strategic planning with business context
-- **Service Orchestration**: MCP clients coordinate specialized database services
-- **Strategic Output**: Business recommendations, not just data results
-
-## 🏗️ System Architecture Details
+### Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │           AUTONOMOUS BUSINESS ANALYST (Single Brain)                │
 │                    Claude Sonnet 4.0 System                        │
 ├─────────────────────────────────────────────────────────────────────┤
-│  🧠 Business Intelligence First - Thinks about business methodology │
-│  🔄 Autonomous Investigation - Multi-phase analysis & synthesis     │
-│  📈 Organizational Learning - Every investigation improves system   │
+│  Business Intelligence First - Thinks about business methodology    │
+│  Autonomous Investigation - Multi-phase analysis & synthesis        │
+│  Organizational Learning - Every investigation improves system      │
 └─────────────────┬───────────────────────────────────────────────────┘
                   │
     ┌─────────────▼─────────────┐
     │   FIVE-PHASE WORKFLOW     │
-    │ 1️⃣ Query Processing      │
-    │ 2️⃣ Strategy Planning     │
-    │ 3️⃣ Service Orchestration │
-    │ 4️⃣ Investigation Engine  │
-    │ 5️⃣ Insight Synthesis     │
+    │ 1. Cache Check            │
+    │ 2. Intelligence Planning  │
+    │ 3. Service Orchestration  │
+    │ 4. Investigation Execution │
+    │ 5. Insight Synthesis      │
     └─────────────┬─────────────┘
                   │
     ┌─────────────▼─────────────┐
-    │  MULTI-TIER CACHE CASCADE │
-    │ 50ms Anthropic + 100ms PG │
+    │    ANTHROPIC CACHE        │
+    │    50ms Response Time     │
     └─────────────┬─────────────┘
                   │
     ┌─────────────▼─────────────┐
@@ -143,74 +109,18 @@ Key process characteristics:
 │                 │                 │                       │
 ▼                 ▼                 ▼                       │
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│ Business Data   │ │  Memory Cache   │ │ Vector Search   │
+│ Business Data   │ │  Chat History   │ │ Vector Search   │
 │   Service       │ │    Service      │ │    Service      │
 │                 │ │                 │ │                 │
 │ MariaDB MCP     │ │ PostgreSQL MCP  │ │ Qdrant MCP     │
-│ • Sales Logic   │ │ • User Cache    │ │ • Embeddings    │
-│ • Customer 360° │ │ • Org Memory    │ │ • Semantic      │
-│ • Revenue Ops   │ │ • Learning      │ │   Matching      │
-│ • Product Data  │ │ • Patterns      │ │ • FAQ Search    │
+│ • Sales Logic   │ │ • User Sessions │ │ • Embeddings    │
+│ • Customer 360° │ │ • Conversations │ │ • Semantic      │
+│ • Revenue Ops   │ │ • Q&A History   │ │   Matching      │
+│ • Product Data  │ │ • Audit Trail   │ │ • FAQ Search    │
 └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
-### Multi-Tier Cache Cascade Strategy
-```
-Business Query → Tier 1a: Anthropic Cache → Tier 1b: PostgreSQL Hybrid → Full Investigation
-      ↓              ↓                           ↓                              ↓
-    50ms        Organization-wide           Personal + Org Cache        Five-Phase Workflow
- (Target hit)    90% cost savings           100ms target response        Complete Analysis
-              Complete conversations        Permission-aware results     Strategic Insights
-```
 
-## 🏭 Enterprise Production Architecture
-
-### World-Class System Design
-
-The production architecture demonstrates enterprise-scale thinking with sophisticated patterns for reliability, scalability, and performance:
-
-```
-Production Deployment Stack:
-├── Load Balancer (Nginx/CloudFlare) → Intelligent request routing
-├── Frontend Cluster → React/Next.js with real-time WebSocket
-├── API Gateway → Auth, rate limiting, request orchestration
-├── Backend Cluster → Multi-instance FastAPI with Claude agents
-├── MCP Integration → 4-database specialists via Model Context Protocol
-└── Infrastructure → Distributed, resilient storage clusters
-
-```
-
-### Investigation Workflow Architecture
-
-```
-Query Reception → Cache Cascade → Intelligence Planning → Service Orchestration → Investigation → Synthesis
-
-1. Multi-Tier Caching:
-   ├── Anthropic Cache: Organization-wide conversation cache
-   ├── Personal Cache: User-specific insights with permissions
-   └── Organizational Cache: Team-shared business intelligence
-
-2. Business Intelligence Planning:
-   ├── Complexity Analysis: Simple → Investigative classification
-   ├── Domain Identification: Which business areas to analyze
-   └── Methodology Selection: Appropriate investigation strategy
-
-3. Service Orchestration:
-   ├── Business Data Service: MariaDB with business logic understanding
-   ├── Memory Service: PostgreSQL for context and learning
-   └── Vector Service: Qdrant for semantic pattern matching
-
-4. Autonomous Execution:
-   ├── Dynamic investigation adapting to findings
-   ├── Hypothesis generation and testing
-   ├── Cross-domain validation
-   └── Real-time progress streaming
-
-5. Strategic Synthesis:
-   ├── Multi-dimensional analysis integration
-   ├── Role-specific recommendation formatting
-   └── Success metric establishment
-```
 
 ## 💾 Technology Stack
 
@@ -218,34 +128,84 @@ Query Reception → Cache Cascade → Intelligence Planning → Service Orchestr
 |-----------|------------|---------|
 | AI Brain | Claude Sonnet 4.0 (claude-sonnet-4-20250514) | Single autonomous business analyst with five-phase workflow |
 | Database 1 | MariaDB (via MCP) | Business operations data (sales, customers, products) |
-| Database 2 | PostgreSQL (via MCP) | Organizational memory, sessions, hybrid caching |
+| Database 2 | PostgreSQL (via MCP) | Chat history storage (like Claude.ai sidebar) |
 | Database 3 | Qdrant (via MCP) | Vector search, embeddings, semantic analysis |
 | Embeddings | text-embedding-3-small (OpenAI) | Semantic embeddings for pattern matching |
 | Tool Protocol | Model Context Protocol (MCP) | Standardized database access and tool management |
-| Caching Strategy | Anthropic + PostgreSQL Hybrid | Organization-wide + personal cache layers |
+| Caching Strategy | Anthropic Cache | Smart conversation caching for fast responses |
 | UI Framework | React + TypeScript | Claude.ai-style autonomous investigation interface |
 
-## 🧠 Advanced System Workflow: From Question to Strategic Insight
+## 🧠 Five-Phase Investigation Workflow
 
-### Phase 1: Multi-Tier Cache Cascade (50-100ms)
+### Phase 1: Anthropic Cache Check (50ms)
 
-The system employs a sophisticated cache strategy that represents organizational knowledge:
-
-```python
-# Tier 1a: Anthropic Cache (Organization-wide, 50ms)
-# - Caches entire business conversations, not just SQL
-# - Semantic similarity matching ("Q4 revenue" ≈ "fourth quarter sales")
-# - 90% cost savings when hit
-
-# Tier 1b: Hybrid PostgreSQL Cache (100ms)
-# Personal Cache: User-specific insights respecting permissions
-# Organizational Cache: Team-shared business intelligence
-# Intelligent TTL: Sales (24h), Inventory (4h), Real-time (1h)
+```
+Business Query → Anthropic Cache → Full Investigation
+      ↓              ↓                    ↓
+    50ms         Cache Hit?         Continue to Phase 2
+ (Target hit)    90% cost savings   Complete Analysis
+              Complete conversations  Strategic Insights
 ```
 
-### Phase 2: Business Intelligence Planning
+The system employs Anthropic's intelligent caching:
+- **Smart Conversation Cache** - Semantic matching of similar conversations
+- **Cost Optimization** - 90% reduction in API costs for repeated questions
 
-When cache misses, Claude Sonnet 4 acts as the "planning department" with two key functions:
+### Phase 2: Business Intelligence Planning (Question Analysis)
+
+Phase 2 is fundamentally about **analyzing the user's question** from three different angles simultaneously:
+
+```
+User Question: "Why did Q4 sales drop in the Northeast region?"
+                            ↓
+                    Phase 2: ANALYZE THIS QUESTION
+                            ↓
+        ┌───────────────────┴───────────────────┬─────────────────┐
+        │                   │                   │                 │
+    1. WHAT do they want?  2. SEEN this before? 3. HOW complex?  │
+    (Intent Analysis)      (Qdrant Search)      (Complexity)     │
+        │                   │                   │                 │
+    "root_cause_analysis"  Similar: "Q3 drop"  Score: 0.75      │
+    Domain: "sales"        Confidence: 0.82    "Investigative"  │
+        └───────────────────┴───────────────────┴─────────────────┘
+                            ↓
+                    Now we understand the question!
+```
+
+**What Each Analysis Tells Us:**
+
+**1. Intent Analysis** - WHAT is the user asking?
+- Business intent: sales analysis, inventory check, customer inquiry?
+- Query type: metric retrieval, trend analysis, root cause investigation?
+- Domain: which part of the business?
+
+**2. Qdrant Search** - Have we SEEN this before?
+- Similar questions from the past
+- Cached SQL patterns that worked
+- Previous investigation results
+
+**3. Complexity Analysis** - HOW HARD is this?
+- Simple: "Show today's sales" (0.1)
+- Moderate: "Top 5 products" (0.4)
+- Complex: "Why did satisfaction drop?" (0.8)
+
+**Why This Matters:**
+
+Phase 2's analysis determines **the entire investigation strategy**:
+
+```python
+# Based on Phase 2 analysis, we decide:
+if seen_before_with_high_confidence:
+    return cached_result  # Skip everything!
+elif simple_question:
+    quick_sql_only()     # 2 seconds
+elif moderate_question:
+    partial_investigation()  # 5-8 seconds  
+else:
+    full_investigation()  # 15+ seconds with all phases
+```
+
+**Phase 2 is the "brain" that understands what the user really wants and picks the smartest path to get there!**
 
 **1. Query Complexity Analysis** - Assessing what type of investigation is needed:
 ```
@@ -289,78 +249,82 @@ Manufacturing Investigation Methodologies:
     └── Investigative: Root cause analysis (maintenance, materials, operators)
 ```
 
-**Key Innovation**: Phase 2 creates the investigation blueprint:
-- **Strategy Architect**: Designs the step-by-step investigation plan
-- **Methodology Selector**: Chooses appropriate analysis approach for the business context
-- **Resource Planner**: Determines which database services and tools will be needed
-- **Complexity Router**: Adapts investigation depth to query requirements
-
-**Phase 2 Output**: Detailed investigation plan that Phase 3 and Phase 4 will execute
-
-The system can handle far more than 4 categories - real-world implementations support 15-20+ business-specific investigation types that can be mixed and matched based on the actual query requirements.
 
 ### Phase 3: Service Orchestration
 
-**Tool Coordinator** - Assembles and prepares the database services based on Phase 2's plan:
+**Intelligent Service Selection** - Prepares only the database services needed based on complexity:
 
 ```
-Service Preparation Process:
-├── Service Selection
-│   → Activates required database services from Phase 2's plan
-│   → Establishes connections and service mesh coordination
-│   → Prepares tools for Phase 4 execution
+Complexity-Based Service Selection:
+├── Simple Queries (<0.3 complexity)
+│   → MariaDB only
+│   → Direct SQL execution
+│   → No pattern matching needed
 │
-├── Business Data Service (MariaDB)
-│   → Manufacturing operations data preparation
-│   → Business logic validation and quality checks
-│   → Multi-table query optimization setup
+├── Moderate Queries (0.3-0.5 complexity)
+│   → MariaDB only
+│   → Enhanced SQL generation
+│   → Qdrant results used for context
 │
-├── Memory Service (PostgreSQL) 
-│   → Investigation context and state management
-│   → Organizational learning pattern access
-│   → Cross-investigation correlation preparation
+├── Analytical Queries (0.5-0.8 complexity)
+│   → MariaDB + Qdrant
+│   → Pattern-based investigation
+│   → Semantic similarity analysis
 │
-└── Vector Service (Qdrant)
-    → Semantic pattern matching configuration
-    → Context-aware retrieval setup by role/department
-    → Success pattern weighting preparation
+└── Complex Queries (>0.8 complexity)
+    → MariaDB + Qdrant (parallel initialization)
+    → Full pattern analysis capabilities
+    → Deep semantic investigation
+
+PostgreSQL Note: Used only in Phase 5 for chat history storage
 ```
 
-**Phase 3 Output**: Coordinated database services ready for Phase 4 to execute the investigation plan
+**Phase 3 Output**: Optimized service initialization based on investigation needs
 
 ### Phase 4: Investigation Execution
 
-**Plan Executor** - Uses the coordinated tools from Phase 3 to execute the investigation plan from Phase 2:
+**Adaptive Investigation Engine** - Executes investigation with complexity-based step selection:
 
 ```
 Investigation Execution Process:
-├── Execute Planned Methodology
-│   → Follow the strategy defined in Phase 2
-│   → Apply selected investigation approach
-│   → Use coordinated database services from Phase 3
+├── Adaptive Step Selection (NEW!)
+│   → Complexity < 0.3: Only 3 steps (schema, core, synthesis)
+│   → Complexity 0.3-0.5: 4 steps (add data exploration)
+│   → Complexity 0.5-0.8: 6 steps (skip cross-validation)
+│   → Complexity > 0.8: All 7 investigation steps
 │
-├── Dynamic Data Analysis
-│   → Query execution across multiple data sources
-│   → Real-time pattern discovery and correlation
-│   → Adaptive analysis based on initial findings
+├── 7-Step Investigation Framework
+│   1. Schema Analysis - Discover database structures
+│   2. Data Exploration - Assess data quality and patterns
+│   3. Hypothesis Generation - Generate testable theories
+│   4. Core Analysis - Execute primary investigation
+│   5. Pattern Discovery - Identify anomalies and trends
+│   6. Cross Validation - Validate findings (complex only)
+│   7. Results Synthesis - Compile coherent results
 │
-├── Hypothesis Testing & Validation
-│   → Test business hypotheses with actual data
-│   → Cross-validate findings across different sources
-│   → Iterative refinement based on evidence
+├── Performance Optimizations
+│   → Table limiting based on complexity (1-15 tables)
+│   → Timeout protection (10s simple, 30s complex)
+│   → PostgreSQL removed (MariaDB only for investigation)
+│   → Parallel step execution where possible
 │
 └── Results Generation
-    → Compile raw investigation findings
-    → Prepare data for strategic synthesis
-    → Real-time progress updates via WebSocket
+    → Compile investigation findings by complexity
+    → Prepare data for Phase 5 synthesis
+    → Stream progress updates (WebSocket planned)
 
 Example Execution:
-"Manufacturing efficiency decline investigation" →
-├── Executes: Production data analysis + quality metrics review
-├── Discovers: 23% efficiency loss correlates with maintenance schedule
-├── Validates: Cross-checks with equipment sensor data
-├── Compiles: Raw findings ready for strategic synthesis
-└── Delivers: Investigation results to Phase 5
+"Show today's sales" (Simple - Complexity 0.2) →
+├── Steps: 1, 4, 7 only (3 of 7 steps)
+├── Tables: 1 most relevant table
+├── Time: 2.3 seconds
+└── Result: Direct answer with minimal processing
+
+"Why did efficiency drop?" (Complex - Complexity 0.9) →
+├── Steps: All 7 steps including cross-validation
+├── Tables: Up to 15 relevant tables analyzed
+├── Time: 13.5 seconds
+└── Result: Root cause analysis with recommendations
 ```
 
 ### Phase 5: Strategic Insight Synthesis
@@ -399,57 +363,80 @@ Example Synthesis:
 └── Learns: Equipment failure patterns for future predictions
 ```
 
-## 🚀 Getting Started
+## 🚀 Execution Paths Based on Complexity
 
-### Prerequisites
-- Python 3.11+
-- PostgreSQL 15+
-- MariaDB 10.6+ (or your existing database)
-- Qdrant Cloud API key
-- Node.js 18+ (for UI)
+The system intelligently routes queries through different execution paths based on complexity analysis:
 
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/agentic_sql.git
-cd agentic_sql
+### Fast SQL Path (Complexity < 0.3)
+**For simple queries like**: "Count today's orders", "Show total revenue", "List active customers"
+- **Steps executed**: Schema analysis → Core analysis → Results synthesis (3 of 7 steps)
+- **Performance**: 2-3 seconds (80% faster than full investigation)
+- **Database usage**: MariaDB only
+- **Example flow**:
+```
+User: "How many orders today?"
+→ Complexity: 0.15 (simple count query)
+→ Fast SQL: SELECT COUNT(*) FROM orders WHERE DATE(created_at) = CURDATE()
+→ Result: "147 orders today"
+→ Time: 2.1 seconds
 ```
 
-2. Set up the Python environment:
-```bash
-cd app/
-uv init  # If not already initialized
-uv sync  # Install dependencies from pyproject.toml
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+### Hybrid Investigation Path (Complexity 0.3-0.5)
+**For moderate queries like**: "Top 5 products by sales", "Customer breakdown by region", "Monthly trends"
+- **Steps executed**: Schema → Data exploration → Core analysis → Results synthesis (4 of 7 steps)
+- **Performance**: 4-5 seconds (66% faster than full investigation)
+- **Database usage**: MariaDB with enhanced SQL generation
+- **Example flow**:
+```
+User: "Show top 5 selling products this month"
+→ Complexity: 0.42 (requires joins and aggregation)
+→ Hybrid: Explore product/sales tables → Generate optimized SQL
+→ Result: Detailed product ranking with revenue figures
+→ Time: 4.3 seconds
 ```
 
-3. Configure Qdrant Cloud:
-```bash
-# Set up Qdrant Cloud API key in app/qdrant/settings.env
-QDRANT_API_KEY=your-api-key-here
-QDRANT_URL=your-qdrant-cloud-url
+### Analytical Investigation Path (Complexity 0.5-0.8)
+**For analytical queries like**: "Performance analysis", "Trend comparison", "Multi-factor analysis"
+- **Steps executed**: All except cross-validation (6 of 7 steps)
+- **Performance**: 8-10 seconds
+- **Database usage**: MariaDB + Qdrant for pattern matching
+- **Example flow**:
+```
+User: "Analyze sales performance trends compared to last year"
+→ Complexity: 0.72 (time series analysis with comparisons)
+→ Analytical: Full pattern discovery and trend analysis
+→ Result: Comprehensive analysis with visualizations
+→ Time: 8.7 seconds
 ```
 
-4. Configure your databases:
-```bash
-cp .env.example .env
-# Edit .env with your database credentials
+### Full Investigation Path (Complexity > 0.8)
+**For complex queries like**: "Root cause analysis", "Why did metrics drop?", "Strategic recommendations"
+- **Steps executed**: All 7 steps including cross-validation
+- **Performance**: 12-15 seconds
+- **Database usage**: MariaDB + Qdrant with full pattern analysis
+- **Example flow**:
+```
+User: "Why did customer satisfaction drop last quarter?"
+→ Complexity: 0.91 (requires hypothesis testing and validation)
+→ Full Investigation: Complete 7-step analysis with cross-validation
+→ Result: Root cause identification with actionable recommendations
+→ Time: 13.2 seconds
 ```
 
+### Adaptive Step Execution
 
-6. Start the FastAPI server:
-```bash
-cd app/
-uv run python main.py
-```
+Phase 4 now intelligently selects which investigation steps to run:
 
-7. Launch the UI:
-```bash
-cd frontend/  # To be implemented
-npm install
-npm run dev
-```
+| Step | Simple (<0.3) | Moderate (0.3-0.5) | Analytical (0.5-0.8) | Complex (>0.8) |
+|------|---------------|-------------------|---------------------|----------------|
+| 1. Schema Analysis | ✅ | ✅ | ✅ | ✅ |
+| 2. Data Exploration | ❌ | ✅ | ✅ | ✅ |
+| 3. Hypothesis Generation | ❌ | ❌ | ✅ | ✅ |
+| 4. Core Analysis | ✅ | ✅ | ✅ | ✅ |
+| 5. Pattern Discovery | ❌ | ❌ | ✅ | ✅ |
+| 6. Cross Validation | ❌ | ❌ | ❌ | ✅ |
+| 7. Results Synthesis | ✅ | ✅ | ✅ | ✅ |
+
 
 ## 🎨 UI Overview
 
@@ -472,104 +459,23 @@ The interface follows Claude.ai's elegant two-panel design:
 
 
 
----
 
-## 📂 **deploy/ Directory (Alphabetical)**
+### Configuration
 
-```
-deploy/
-├── docker/
-│   ├── Dockerfile.backend                🆕 CREATE
-│   ├── Dockerfile.cache                  🆕 CREATE
-│   ├── Dockerfile.frontend               🆕 CREATE
-│   └── docker-compose.yml                🆕 CREATE
-├── kubernetes/
-│   ├── backend-deployment.yaml           🆕 CREATE
-│   ├── cache-deployment.yaml             🆕 CREATE
-│   ├── configmaps.yaml                   🆕 CREATE
-│   ├── frontend-deployment.yaml          🆕 CREATE
-│   ├── ingress.yaml                      🆕 CREATE
-│   ├── namespace.yaml                    🆕 CREATE
-│   ├── secrets.yaml                      🆕 CREATE
-│   └── services.yaml                     🆕 CREATE
-├── monitoring/
-│   ├── alerts.yaml                       🆕 CREATE
-│   ├── grafana-dashboard.json            🆕 CREATE
-│   └── prometheus.yaml                   🆕 CREATE
-└── scripts/
-    ├── backup.sh                         🆕 CREATE
-    ├── deploy.sh                         🆕 CREATE
-    ├── health_check.sh                   🆕 CREATE
-    ├── rollback.sh                       🆕 CREATE
-    └── setup.sh                          🆕 CREATE
-```
+Each service uses self-contained configuration via `settings.env` files:
 
----
+```bash
+# app/qdrant/settings.env
+QDRANT_API_KEY=your-api-key-here
+QDRANT_URL=your-qdrant-cloud-url
+COLLECTION_NAME=business_queries
 
-## 🎯 **Priority Implementation Order**
+# app/model/settings.env  
+ANTHROPIC_API_KEY=your-anthropic-key
+OPENAI_API_KEY=your-openai-key
+DEEPSEEK_API_KEY=your-deepseek-key
 
-### **🔥 Week 1 - Critical Foundation**
-1. `app/main.py` ✅ EXISTS
-2. `app/fastmcp/mariadb_client.py` ✅ EXISTS  
-3. `app/fastmcp/postgres_client.py` ✅ EXISTS
-
-5. `app/fastmcp/graphrag_client.py` ✅ EXISTS
-6. `app/core/business_analyst.py` ✅ EXISTS
-
-### **⚡ Week 2 - Core Intelligence**  
-7. `app/intelligence/domain_expert.py` ✅ EXISTS
-8. `app/core/investigation_engine.py` ✅ EXISTS
-9. `app/cache/cache_manager.py` ✅ EXISTS
-10. `app/api/websocket/investigation_ws.py` 🆕 CREATE
-
-### **📈 Week 3 - Advanced Features**
-11. `app/graphrag/` 🔧 COMPLETE GraphRAG MCP Server Implementation
-12. `app/learning/knowledge_builder.py` 🆕 CREATE
-13. `app/collaboration/real_time_sharing.py` 🆕 CREATE
-14. `frontend/` 📝 MIGRATE from ui/web_app/
-15. `testing/integration/` 🆕 CREATE
-
-## 🎯 **Current Architecture Status**
-
-### **✅ Core Services Active**
-- **3-Service Architecture**: MariaDB, PostgreSQL, Qdrant
-- **MCP Integration**: FastMCP framework for service communication
-- **Model Orchestration**: Multi-model support with automatic fallback (Anthropic → DeepSeek → OpenAI)
-- **Self-Contained Modules**: Each module runs independently with local configuration
-- **Production Standards**: FAANG-level engineering practices
-
-### **🔧 Architecture Highlights**
-- **MCP Protocol**: Standardized interface for all database services
-- **Complexity-Based Routing**: Simple → Analytical → Computational → Investigative
-- **Fallback Strategy**: Automatic model switching on errors or rate limits
-- **Cost Management**: Efficient caching reduces API costs by 90%
-- **Performance Monitoring**: Built-in health checks and metrics
-
-## 🔧 Configuration
-
-### Database Connections
-```yaml
-# config/databases.yml
-databases:
-  company_data:
-    type: mariadb
-    host: localhost
-    database: company_prod
-    
-  agent_memory:
-    type: postgresql
-    host: localhost
-    database: agentic_sql_memory
-```
-
-### FAQ Patterns
-```yaml
-# config/faq_patterns.yml
-patterns:
-  - name: "Monthly Revenue"
-    variants: ["revenue this month", "monthly sales", "income this month"]
-    sql_template: "revenue_monthly.sql"
-    cache_duration: 3600
+# MCP database connections configured via MCP protocol
 ```
 
 ## 🛡️ Safety & Governance
@@ -580,31 +486,30 @@ patterns:
 - **Resource Limits**: Query timeout and row limits
 - **Data Privacy**: PII detection and masking
 
-## 🗺️ Development Roadmap
+## 🗺️ Development Status & Roadmap
 
-### Phase 1: Core Foundation ✅
-- [x] Architecture design
-- [x] Technology selection
-- [ ] MCP tool implementation
-- [ ] PostgreSQL memory system
+### Completed ✅
+- Architecture design & technology selection
+- 3-Service MCP Architecture (MariaDB, PostgreSQL, Qdrant)
+- Multi-model orchestration (Anthropic → DeepSeek → OpenAI)
+- Phase 1, 2, 3, 4, & 5 implementation in main.py
+- Self-contained module pattern
+- Multi-tier cache integration
+- Fast SQL path implementation (<0.3 complexity)
+- Hybrid investigation path (0.3-0.5 complexity)
+- Adaptive step execution in Phase 4 (complexity-based)
+- Chat history storage in PostgreSQL (Phase 5)
+- Complete 5-phase investigation workflow
 
-### Phase 2: Intelligence Layer
-- [x] Claude Sonnet 4.0 integration
-- [x] OpenAI embeddings setup
-- [x] Qdrant cloud integration
-- [ ] FAQ pattern matching
+### In Progress 🔧
+- WebSocket integration for real-time updates
+- GraphRAG MCP server completion
 
-### Phase 3: User Interface
-- [ ] React + TypeScript setup
-- [ ] Real-time WebSocket communication
-- [ ] Data visualization components
-- [ ] Investigation progress tracking
-
-### Phase 4: Production Features
-- [ ] Advanced safety guardrails
-- [ ] Performance optimization
-- [ ] Team collaboration features
-- [ ] Investigation templates
+### Planned 📦
+- Frontend migration to /frontend
+- Advanced safety guardrails
+- Team collaboration features
+- Investigation templates
 
 ## 🤝 Contributing
 

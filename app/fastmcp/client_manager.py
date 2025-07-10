@@ -7,7 +7,7 @@ Manages MCP client connections for all databases and provides unified interface.
 import json
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from contextlib import asynccontextmanager
 
 from mcp.client.session import ClientSession
@@ -38,24 +38,37 @@ class MCPClientManager:
         self.mariadb: Optional[MariaDBClient] = None
         self.postgres: Optional[PostgreSQLClient] = None
     
-    async def initialize(self):
-        """Initialize all MCP client connections."""
-        if self._initialized:
+    async def initialize(self, services: Optional[List[str]] = None):
+        """Initialize MCP client connections.
+        
+        Args:
+            services: List of services to initialize. If None, initializes all services.
+        """
+        if self._initialized and services is None:
             return
         
         try:
             # Load MCP configuration
             mcp_config = self._load_mcp_config()
             
-            # Initialize each MCP client
-            for server_name, config in mcp_config.get("mcpServers", {}).items():
-                await self._init_mcp_client(server_name, config)
+            if services is None:
+                # Initialize all services (backward compatibility)
+                for server_name, config in mcp_config.get("mcpServers", {}).items():
+                    await self._init_mcp_client(server_name, config)
+            else:
+                # Initialize only specified services
+                for service_name in services:
+                    if service_name not in self.clients:
+                        if service_name in mcp_config.get("mcpServers", {}):
+                            await self._init_mcp_client(service_name, mcp_config["mcpServers"][service_name])
+                        else:
+                            logger.warning(f"Service '{service_name}' not found in MCP configuration")
             
             # Initialize database client wrappers
             await self._init_database_clients()
             
             self._initialized = True
-            logger.info("MCP client manager initialized successfully")
+            logger.info(f"MCP client manager initialized with services: {list(self.clients.keys())}")
             
         except Exception as e:
             logger.error(f"Failed to initialize MCP clients: {e}")
@@ -143,6 +156,34 @@ class MCPClientManager:
         
         if "postgres" in self.sessions:
             self.postgres = PostgreSQLClient(self.sessions["postgres"])
+    
+    async def initialize_service(self, service_name: str):
+        """Initialize a specific MCP service on demand."""
+        if service_name in self.clients:
+            logger.info(f"Service '{service_name}' already initialized")
+            return
+        
+        try:
+            # Load MCP configuration
+            mcp_config = self._load_mcp_config()
+            
+            if service_name not in mcp_config.get("mcpServers", {}):
+                raise ValueError(f"Service '{service_name}' not found in MCP configuration")
+            
+            # Initialize the specific service
+            await self._init_mcp_client(service_name, mcp_config["mcpServers"][service_name])
+            
+            # Initialize database client wrapper if needed
+            if service_name == "mariadb" and "mariadb" in self.sessions:
+                self.mariadb = MariaDBClient(self.sessions["mariadb"])
+            elif service_name == "postgres" and "postgres" in self.sessions:
+                self.postgres = PostgreSQLClient(self.sessions["postgres"])
+            
+            logger.info(f"Service '{service_name}' initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize service '{service_name}': {e}")
+            raise
     
     @asynccontextmanager
     async def get_client_session(self, client_name: str):

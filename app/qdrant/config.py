@@ -91,6 +91,10 @@ class QdrantSettings(BaseSettings):
         default=True,
         description="Enable circuit breaker pattern"
     )
+    enable_dev_mode: bool = Field(
+        default=True,
+        description="Enable development mode features (force indexing for small collections)"
+    )
     
     # Operational settings
     timeout_seconds: int = Field(
