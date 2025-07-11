@@ -145,19 +145,34 @@ class AutonomousInvestigationEngine:
             return await self._generate_error_results(str(e))
     
     def _get_required_steps(self, complexity_score: float) -> List[Dict[str, Any]]:
-        """Select investigation steps based on complexity."""
+        """Select investigation steps based on complexity and fast mode."""
+        # Check if schema should be skipped (default: True)
+        skip_schema = self.execution_context.get("skip_schema", True)
+        
+        # Check for fast mode override
+        if self.execution_context.get("fast_mode", False):
+            # Fast mode: core analysis and synthesis only (no schema!)
+            return [s for s in self.step_definitions if s["number"] in [4, 7]]
+        
+        # Normal mode based on complexity
         if complexity_score < 0.3:
-            # Simple: schema, core analysis, synthesis only
-            return [s for s in self.step_definitions if s["number"] in [1, 4, 7]]
+            # Simple: core analysis and synthesis only
+            steps = [4, 7]
         elif complexity_score < 0.5:
             # Moderate: add data exploration
-            return [s for s in self.step_definitions if s["number"] in [1, 2, 4, 7]]
+            steps = [2, 4, 7]
         elif complexity_score < 0.8:
-            # Analytical: skip cross-validation
-            return [s for s in self.step_definitions if s["number"] in [1, 2, 3, 4, 5, 7]]
+            # Analytical: add hypothesis generation and pattern discovery
+            steps = [2, 3, 4, 5, 7]
         else:
-            # Complex: all steps
-            return self.step_definitions
+            # Complex: all steps except schema (unless explicitly needed)
+            steps = [2, 3, 4, 5, 6, 7]
+        
+        # Add schema analysis only if explicitly requested
+        if not skip_schema:
+            steps = [1] + steps
+            
+        return [s for s in self.step_definitions if s["number"] in steps]
     
     async def _execute_investigation_framework(self) -> None:
         """Execute the 7-step autonomous investigation framework."""
@@ -355,8 +370,17 @@ class AutonomousInvestigationEngine:
                 results = await self._perform_schema_analysis()
             elif operation_type == "data_exploration":
                 results = await self._perform_data_exploration(context)
-            elif operation_type == "hypothesis_testing":
-                results = await self._perform_hypothesis_testing(context)
+            elif operation_type == "hypothesis_testing" or operation_type == "core_analysis":
+                # Check if schema is available
+                schema_available = any(
+                    s.step_name == "schema_analysis" and s.status == "completed" 
+                    for s in self.steps
+                )
+                if schema_available:
+                    results = await self._perform_hypothesis_testing(context)
+                else:
+                    # No schema - use pattern-based approach
+                    results = await self._perform_pattern_based_analysis(context)
             elif operation_type == "pattern_discovery":
                 results = await self._perform_pattern_discovery(context)
             elif operation_type == "cross_validation":
@@ -373,8 +397,14 @@ class AutonomousInvestigationEngine:
         """Analyze database schemas using intelligent table filtering based on business question."""
         schema_results = {}
         
-        # Determine relevant table patterns based on the business question
-        table_patterns = []
+        # Check if we're in fast mode
+        if self.execution_context.get("fast_mode", False):
+            self.logger.logger.info("Fast mode enabled - minimal schema analysis")
+        
+        # Get patterns from execution context first (if provided by workflow)
+        table_patterns = self.execution_context.get("table_patterns", []).copy()
+        
+        # Then extract additional patterns from the business question
         request_lower = self.investigation_request.lower()
         
         if any(word in request_lower for word in ["product", "item", "sku"]):
@@ -387,6 +417,9 @@ class AutonomousInvestigationEngine:
             table_patterns.extend(["inventory", "stock", "warehouse"])
         if any(word in request_lower for word in ["price", "pricing", "cost"]):
             table_patterns.extend(["price", "pricing", "cost", "rate"])
+        
+        # Remove duplicates
+        table_patterns = list(set(table_patterns))
             
         # Log the search strategy
         if table_patterns:
@@ -398,7 +431,23 @@ class AutonomousInvestigationEngine:
         mariadb_client = self.mcp_client_manager.get_client("mariadb")
         if mariadb_client:
             try:
+                # For queries with patterns, we can be more selective
+                if table_patterns:
+                    self.logger.logger.info(f"Query has patterns: {table_patterns}, will filter tables")
+                
                 all_tables = await mariadb_client.list_tables()
+                
+                # CRITICAL PERFORMANCE FIX: Limit tables BEFORE processing
+                # This prevents timeout issues with large databases (292+ tables)
+                self.logger.logger.info(f"Total tables in database: {len(all_tables)}")
+                
+                # Safety check for large databases
+                if len(all_tables) > 50 and not table_patterns:
+                    # For non-specific queries on large databases, sample intelligently
+                    self.logger.logger.warning(f"Large database detected ({len(all_tables)} tables), applying safety limits")
+                    # Take a representative sample: system tables + recent tables
+                    all_tables = sorted(all_tables)[:20]  # Just take first 20 alphabetically
+                    self.logger.logger.info(f"Limited to {len(all_tables)} tables for safety")
                 
                 # Filter tables based on patterns and complexity
                 if table_patterns:
@@ -408,8 +457,19 @@ class AutonomousInvestigationEngine:
                         if any(pattern in table_lower for pattern in table_patterns):
                             relevant_tables.append(table)
                     
-                    # Optimize based on complexity
-                    if self.complexity_score < 0.3:
+                    # Optimize based on complexity and fast mode
+                    if self.execution_context.get("fast_mode", False):
+                        # Fast mode: only the most relevant table
+                        if relevant_tables:
+                            table_scores = {}
+                            for table in relevant_tables:
+                                score = sum(1 for pattern in table_patterns if pattern in table.lower())
+                                table_scores[table] = score
+                            sorted_tables = sorted(table_scores.items(), key=lambda x: x[1], reverse=True)
+                            tables_to_analyze = [t[0] for t in sorted_tables[:1]]  # Only top table
+                        else:
+                            tables_to_analyze = all_tables[:1]  # Just first table if no patterns
+                    elif self.complexity_score < 0.3:
                         # Simple queries: only most relevant table
                         table_scores = {}
                         for table in relevant_tables:
@@ -427,6 +487,7 @@ class AutonomousInvestigationEngine:
                     # No patterns: limit based on complexity
                     max_tables = 1 if self.complexity_score < 0.3 else 3 if self.complexity_score < 0.5 else 10
                     tables_to_analyze = all_tables[:max_tables]
+                    self.logger.logger.info(f"No specific patterns, analyzing {len(tables_to_analyze)} tables based on complexity {self.complexity_score}")
                 
                 schema_results["mariadb"] = {
                     "tables": tables_to_analyze,
@@ -580,6 +641,109 @@ class AutonomousInvestigationEngine:
         
         # Default to general analytics
         return "analytics"
+    
+    def _generate_pattern_based_sql(self, request: str, table_patterns: List[str] = None) -> List[str]:
+        """Generate SQL queries based on common patterns without schema."""
+        sql_patterns = []
+        request_lower = request.lower()
+        domain = self._extract_business_domain(request)
+        
+        # Common patterns for different types of queries
+        if any(word in request_lower for word in ["top", "best", "highest"]):
+            if "product" in request_lower or table_patterns and any("product" in p for p in table_patterns):
+                sql_patterns.extend([
+                    "SELECT product_name, SUM(quantity) as total_sold FROM products JOIN order_items ON products.id = order_items.product_id GROUP BY product_name ORDER BY total_sold DESC LIMIT 10",
+                    "SELECT name, sales_count FROM products ORDER BY sales_count DESC LIMIT 10",
+                    "SELECT product, revenue FROM product_sales ORDER BY revenue DESC LIMIT 10"
+                ])
+            elif "sales" in domain:
+                sql_patterns.extend([
+                    "SELECT DATE(order_date) as date, SUM(total) as daily_sales FROM orders GROUP BY DATE(order_date) ORDER BY date DESC LIMIT 10",
+                    "SELECT date, revenue FROM sales ORDER BY revenue DESC LIMIT 10"
+                ])
+                
+        elif any(word in request_lower for word in ["count", "how many", "total"]):
+            if "customer" in request_lower:
+                sql_patterns.extend([
+                    "SELECT COUNT(*) as total_customers FROM customers",
+                    "SELECT COUNT(*) as total_users FROM users",
+                    "SELECT COUNT(DISTINCT customer_id) as unique_customers FROM orders"
+                ])
+            elif "product" in request_lower:
+                sql_patterns.extend([
+                    "SELECT COUNT(*) as total_products FROM products",
+                    "SELECT COUNT(*) as total_items FROM items"
+                ])
+                
+        elif any(word in request_lower for word in ["show", "list", "display"]):
+            if "sales" in domain:
+                sql_patterns.extend([
+                    "SELECT * FROM sales ORDER BY date DESC LIMIT 100",
+                    "SELECT * FROM orders ORDER BY created_at DESC LIMIT 100"
+                ])
+            elif "product" in request_lower:
+                sql_patterns.extend([
+                    "SELECT * FROM products LIMIT 100",
+                    "SELECT * FROM items LIMIT 100"
+                ])
+                
+        # If no specific patterns, try generic queries based on table patterns
+        if not sql_patterns and table_patterns:
+            for pattern in table_patterns[:3]:  # Limit to 3 patterns
+                sql_patterns.append(f"SELECT * FROM {pattern}s LIMIT 10")  # Add 's' for plural
+                sql_patterns.append(f"SELECT * FROM {pattern} LIMIT 10")   # Try singular
+                
+        return sql_patterns
+    
+    async def _perform_pattern_based_analysis(self, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Perform analysis using pattern-based SQL generation without schema."""
+        self.logger.logger.info("Performing pattern-based analysis (no schema available)")
+        
+        results = {
+            "approach": "pattern_based",
+            "queries_attempted": [],
+            "successful_results": []
+        }
+        
+        # Get table patterns from context
+        table_patterns = self.execution_context.get("table_patterns", [])
+        
+        # Generate SQL patterns
+        sql_patterns = self._generate_pattern_based_sql(self.investigation_request, table_patterns)
+        
+        if not sql_patterns:
+            self.logger.logger.warning("No SQL patterns generated")
+            return results
+        
+        # Try each pattern until one succeeds
+        mariadb_client = self.mcp_client_manager.get_client("mariadb")
+        if not mariadb_client:
+            return {"error": "No MariaDB client available"}
+        
+        for sql in sql_patterns[:5]:  # Try up to 5 patterns
+            try:
+                self.logger.logger.info(f"Trying SQL pattern: {sql[:100]}...")
+                result = await mariadb_client.execute_query(sql)
+                
+                if result and hasattr(result, 'rows'):
+                    results["queries_attempted"].append(sql)
+                    results["successful_results"].append({
+                        "sql": sql,
+                        "row_count": len(result.rows),
+                        "data": result.rows[:10]  # Limit to 10 rows
+                    })
+                    self.logger.logger.info(f"SQL succeeded with {len(result.rows)} rows")
+                    
+                    # Cache successful SQL in context for Qdrant later
+                    self.execution_context["successful_sql"] = sql
+                    break
+                    
+            except Exception as e:
+                self.logger.logger.debug(f"SQL pattern failed: {str(e)}")
+                results["queries_attempted"].append(f"{sql} (failed: {str(e)})")
+                continue
+        
+        return results
     
     async def _perform_hypothesis_testing(self, context: Dict[str, Any]) -> Dict[str, Any]:
         """Test hypotheses using actual database queries with learning integration."""

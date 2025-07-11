@@ -12,13 +12,12 @@ The core engine orchestrates five-phase investigations that transform
 business questions into strategic insights.
 """
 
-from .business_analyst import AutonomousBusinessAnalyst
-from .agentic_bi_flow import AgenticBiFlow
+from .workflow import AgenticWorkflow, process_question
 
-# Only export the working orchestrator for now
+# Clean, simple exports
 __all__ = [
-    "AutonomousBusinessAnalyst",
-    "AgenticBiFlow"
+    "AgenticWorkflow",
+    "process_question"
 ]
 
 # Note: Other components (InvestigationEngine, QueryProcessor, etc.) exist in legacy

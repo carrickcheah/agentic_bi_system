@@ -79,7 +79,7 @@ Response:"""
                 rejection_message = await self.model_manager.generate_response(
                     prompt=rejection_prompt,
                     max_tokens=100,
-                    temperature=0.7,
+                    temperature=0.8,
                     use_system_prompt=False
                 )
                 

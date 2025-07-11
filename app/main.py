@@ -67,7 +67,7 @@ async def get_cache_manager():
 
 
 # Import high-level interfaces
-from core import AgenticBiFlow
+from core import AgenticWorkflow, process_question
 
 # Export all services for other modules
 __all__ = [
@@ -77,7 +77,8 @@ __all__ = [
     "get_mcp_client_manager",
     "get_cache_manager",
     "initialize_async_services",
-    "AgenticBiFlow"
+    "AgenticWorkflow",
+    "process_question"
 ]
 
 
@@ -109,7 +110,8 @@ if __name__ == "__main__":
             logger.info(f"  - qdrant_service: {qdrant_service}")
             logger.info(f"  - get_mcp_client_manager: <lazy initialization>")
             logger.info(f"  - get_cache_manager: <lazy initialization>")
-            logger.info(f"  - AgenticBiFlow: <high-level interface>")
+            logger.info(f"  - AgenticWorkflow: <clean workflow controller>")
+            logger.info(f"  - process_question: <simple interface function>")
             
             logger.info("\n✅ All services ready!")
             logger.info("💡 MCP and Cache will be initialized on first use")

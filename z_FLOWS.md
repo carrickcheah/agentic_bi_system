@@ -242,3 +242,15 @@
                         5. Security: Centralized access control
 
                         The MCP layer is essential for making the system production-ready - it's the bridge between your AI logic and actual database operations.
+
+
+
+
+                                                1. ENTRY POINT: main.py --chat
+                        └─> cli/chat.py: simple_chat()
+                                └─> core/agentic_bi_flow.py: AgenticBiFlow
+                                └─> core/business_analyst.py: AutonomousBusinessAnalyst
+                                        ├─> Phase 1&2: intelligence/runner.py (parallel analysis)
+                                        ├─> Phase 3: fastmcp/client_manager.py (service orchestration)
+                                        ├─> Phase 4: investigation/runner.py (data investigation)
+                                        └─> Phase 5: insight_synthesis/runner.py (results synthesis)

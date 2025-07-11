@@ -8,19 +8,23 @@ import uuid
 
 async def simple_chat():
     """Simple chat interface using the 5-phase flow."""
-    # Import here to avoid circular imports
-    from core import AgenticBiFlow
+    # Import the clean workflow
+    from core import AgenticWorkflow
+    from main import initialize_async_services
     
     print("=" * 60)
-    print("Agentic BI Chat - Direct Flow Control")
+    print("Agentic BI Chat - Clean Workflow")
     print("=" * 60)
     print("\n💡 Type 'exit' to quit, 'help' for examples\n")
     
+    # CRITICAL: Initialize async services first (especially Qdrant!)
+    await initialize_async_services()
+    
     session_id = str(uuid.uuid4())
     
-    # Initialize the flow
-    flow = AgenticBiFlow()
-    await flow.initialize()
+    # Initialize workflow
+    workflow = AgenticWorkflow()
+    await workflow.initialize()
     
     while True:
         try:
@@ -44,11 +48,7 @@ async def simple_chat():
             # Process query using AgenticBiFlow
             print("\n" + "-" * 40)
             
-            async for update in flow.investigate_query(
-                question=query,
-                user_context={"session_id": session_id, "role": "analyst"},
-                stream_progress=True
-            ):
+            async for update in workflow.process_query(query):
                 # Handle different update types
                 if update.get("type") == "non_business_response":
                     print(f"\n💬 {update.get('response')}")
@@ -93,9 +93,12 @@ async def simple_chat():
                             print(f"   ✓ Complexity: {data.get('complexity', 0):.2f}")
                             print(f"   ✓ Method: {data.get('methodology', 'unknown')}")
                 
-                elif update.get("type") in ["fast_response", "hybrid_response"]:
-                    print(f"\n🚀 {update.get('type')}: {update.get('result')}")
-                    print(f"   Note: {update.get('note')}")
+                elif update.get("type") == "fast_response":
+                    print(f"\n🚀 Fast Response (Simple Query Path)")
+                    insights = update.get("insights", {})
+                    print(f"\n📋 {insights.get('executive_summary', 'Query completed')}")
+                    if insights.get('data'):
+                        print(f"   Results: {len(insights.get('data', []))} rows")
                     
                 elif update.get("type") == "investigation_completed":
                     insights = update.get("insights", {})
