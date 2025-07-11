@@ -63,7 +63,7 @@ class AutonomousInvestigationEngine:
     Conducts hypothesis-driven business intelligence analysis using coordinated services.
     """
     
-    def __init__(self):
+    def __init__(self, model_manager=None):
         self.investigation_id = None
         self.logger = None
         self.coordinated_services = None
@@ -73,6 +73,7 @@ class AutonomousInvestigationEngine:
         self.steps = []
         self.adaptive_reasoning_log = []
         self.start_time = None
+        self.model_manager = model_manager
         
         # Initialize 7-step investigation framework
         self.step_definitions = [
@@ -301,24 +302,12 @@ class AutonomousInvestigationEngine:
         self.logger.logger.debug(f"Executing AI reasoning for {step_name}")
         
         try:
-            # Import and use the actual model manager
-            import sys
-            from pathlib import Path
-            
-            # Add the model module to the path
-            model_path = Path(__file__).parent.parent / "model"
-            if str(model_path) not in sys.path:
-                sys.path.insert(0, str(model_path))
-            
-            # Import ModelManager from the model runner
-            from runner import ModelManager as ModelRunner
-            
-            # Initialize model manager if not already done
-            if not hasattr(self, '_model_manager'):
-                self._model_manager = ModelRunner()
+            # Use the model manager passed from main.py
+            if not self.model_manager:
+                raise ValueError("Model manager not provided to investigation engine")
             
             # Generate response using actual AI models with default settings
-            response = await self._model_manager.generate_response(
+            response = await self.model_manager.generate_response(
                 prompt=prompt,
                 max_tokens=4000,
                 temperature=0.1,
@@ -340,8 +329,8 @@ class AutonomousInvestigationEngine:
             </investigation_findings>
             
             <confidence_scores>
-            analysis_quality: 0.75
-            data_reliability: 0.80
+            analysis_quality: 0.30
+            data_reliability: 0.25
             </confidence_scores>
             
             <reasoning_process>
@@ -790,16 +779,32 @@ class AutonomousInvestigationEngine:
         return findings
     
     def _calculate_step_confidence(self, findings: Dict[str, Any]) -> float:
-        """Calculate confidence score for step findings."""
-        # TODO: Implement sophisticated confidence calculation
-        # Based on data quality, analysis completeness, validation results
-        base_confidence = 0.8
+        """Calculate dynamic confidence score based on step findings quality."""
+        confidence = 0.5  # Start with baseline confidence
         
-        # Adjust based on findings quality
-        if findings and "status" in findings and findings["status"] == "processed":
-            return base_confidence
-        else:
-            return base_confidence * 0.5
+        # Data availability factor
+        if findings and isinstance(findings, dict):
+            if findings.get("status") == "processed":
+                confidence += 0.2
+            
+            # Check for actual data presence
+            if findings.get("data_found", False) or findings.get("success", False):
+                confidence += 0.15
+                
+            # Check for errors
+            if "error" in findings and findings["error"]:
+                confidence -= 0.2
+                
+            # Check for database results
+            if findings.get("row_count", 0) > 0:
+                confidence += 0.1
+                
+            # Check for AI reasoning completion
+            if "reasoning_process" in findings:
+                confidence += 0.1
+        
+        # Ensure confidence is within bounds
+        return max(0.1, min(0.95, confidence))
     
     async def _apply_adaptive_reasoning(self, completed_step: InvestigationStep) -> None:
         """Apply adaptive reasoning to potentially modify investigation approach."""
@@ -980,7 +985,8 @@ async def conduct_autonomous_investigation(
     coordinated_services: Dict[str, Any],
     investigation_request: str,
     execution_context: Dict[str, Any],
-    mcp_client_manager=None
+    mcp_client_manager=None,
+    model_manager=None
 ) -> InvestigationResults:
     """
     High-level interface for autonomous investigation execution.
@@ -995,7 +1001,7 @@ async def conduct_autonomous_investigation(
     Returns:
         InvestigationResults: Structured results for Phase 5 synthesis
     """
-    engine = AutonomousInvestigationEngine()
+    engine = AutonomousInvestigationEngine(model_manager=model_manager)
     
     try:
         results = await engine.conduct_investigation(

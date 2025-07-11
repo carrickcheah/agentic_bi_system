@@ -35,9 +35,12 @@ class AgenticBiFlow:
         self.cache = CacheManager()
         await self.cache.initialize()
         
-        # Initialize business analyst
+        # Get model manager from main
+        from main import model_manager
+        
+        # Initialize business analyst with model manager
         from .business_analyst import AutonomousBusinessAnalyst
-        self.business_analyst = AutonomousBusinessAnalyst()
+        self.business_analyst = AutonomousBusinessAnalyst(model_manager=model_manager)
         await self.business_analyst.initialize()
         
         self.is_initialized = True

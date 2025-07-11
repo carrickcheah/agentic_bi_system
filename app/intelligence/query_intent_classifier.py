@@ -185,6 +185,15 @@ class QueryIntentClassifier:
                 total_score += 1.0
                 matches.append(f"exact:{exact_match}")
                 break  # One exact match is enough
+            # Check for repeated greetings like "hihihi" or "hello hello"
+            elif query_clean.startswith(exact_match) and len(query_clean) <= len(exact_match) * 3:
+                # Check if it's just the greeting repeated (e.g., "hihihi", "hellohello")
+                if all(query_clean[i:i+len(exact_match)] == exact_match or 
+                       query_clean[i:i+len(exact_match)].startswith(exact_match[:len(query_clean)-i])
+                       for i in range(0, len(query_clean), len(exact_match))):
+                    total_score += 0.9  # Slightly lower than exact match
+                    matches.append(f"repeated:{exact_match}")
+                    break
         
         # Pattern matches (medium weight: 0.7)
         for pattern in patterns["patterns"]:

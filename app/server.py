@@ -10,12 +10,12 @@ from contextlib import asynccontextmanager
 try:
     # Try relative imports first (when used as module)
     from .config import settings
-    from .utils.logging import setup_logger, logger
+    from .utils.utils_logging import setup_logger, logger
     from .fastmcp.client_manager import MCPClientManager
 except ImportError:
     # Fall back to absolute imports (when run directly)
     from config import settings
-    from utils.logging import setup_logger, logger
+    from utils.utils_logging import setup_logger, logger
     from fastmcp.client_manager import MCPClientManager
 
 
@@ -164,7 +164,7 @@ def create_standalone_server() -> BackendService:
 async def main():
     """Main entry point for standalone FastMCP server."""
     # Setup logging
-    setup_logging()
+    setup_logger()
     
     logger.info("Starting FastMCP Backend Service in standalone mode")
     logger.info(f"Configuration: {settings.app_name} v{settings.app_version}")

@@ -29,15 +29,14 @@ class DatabaseSettings(BaseSettings):
     # PostgreSQL MCP configuration
     postgres_url: str = Field(description="PostgreSQL connection URL for MCP")
     
-
-    # General vector/embedding configuration
-    collection_name: str = Field(default="valiant_vector", description="Collection name for patterns")
-    embedding_model: str = Field(default="sentence-transformers/all-MiniLM-L6-v2", description="Embedding model for vectors")
-    
-    # Qdrant configuration (using pydantic settings, NOT os.getenv!)
+    # Qdrant vector database configuration (direct HTTP API, no MCP)
     use_qdrant: bool = Field(default=True, description="Enable Qdrant vector service")
     qdrant_url: str = Field(
         default="https://1f5d419c-2100-483e-a8c7-e1f2cd0ad2a7.us-east4-0.gcp.cloud.qdrant.io:6333",
         description="Qdrant cloud instance URL"
     )
     qdrant_api_key: str = Field(default="", description="Qdrant API key")
+    collection_name: str = Field(default="query_patterns", description="Collection name for patterns")
+    embedding_model: str = Field(default="text-embedding-3-small", description="Embedding model for vectors")
+    
+   

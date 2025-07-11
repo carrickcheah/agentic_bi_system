@@ -70,8 +70,8 @@ class SynthesisResult:
 class InsightSynthesizer:
     """AI analyst that explains investigation findings to humans."""
     
-    def __init__(self):
-        self.model = ModelManager()
+    def __init__(self, model_manager=None):
+        self.model = model_manager if model_manager else ModelManager()
         
     async def synthesize_insights(
         self,

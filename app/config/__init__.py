@@ -28,11 +28,13 @@ class Settings:
     mariadb_password = databases.mariadb_password
     mariadb_database = databases.mariadb_database
     postgres_url = databases.postgres_url
-    collection_name = databases.collection_name
-    embedding_model = databases.embedding_model
+    
+    # Qdrant vector database (direct HTTP API)
     use_qdrant = databases.use_qdrant
     qdrant_url = databases.qdrant_url
     qdrant_api_key = databases.qdrant_api_key
+    collection_name = databases.collection_name
+    embedding_model = databases.embedding_model
     
     # Infrastructure settings (DevOps team)
     app_name = infrastructure.app_name

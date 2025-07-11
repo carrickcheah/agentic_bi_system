@@ -46,7 +46,7 @@ class AutonomousBusinessAnalyst:
     Coordinates the complete 5-phase workflow from query to strategic insights.
     """
     
-    def __init__(self):
+    def __init__(self, model_manager=None):
         self.investigation_cache = {}
         self.active_investigations = {}
         
@@ -55,6 +55,7 @@ class AutonomousBusinessAnalyst:
         self.synthesizer = None
         self.mcp_manager = None
         self.vector_service = None
+        self.model_manager = model_manager
         
         # Components for parallel processing
         self.intent_classifier = None
@@ -66,9 +67,9 @@ class AutonomousBusinessAnalyst:
     async def initialize(self):
         """Initialize all phase components."""
         try:
-            # Initialize MCP client manager
+            # Initialize MCP client manager but don't connect yet
             self.mcp_manager = MCPClientManager()
-            await self.mcp_manager.initialize()
+            # Don't initialize during chat startup - initialize on-demand
             
             # Get vector service directly if available
             if settings.use_qdrant:
@@ -88,7 +89,7 @@ class AutonomousBusinessAnalyst:
             
             # Initialize phase runners
             self.intelligence_runner = IntelligenceModuleRunner()
-            self.synthesizer = InsightSynthesizer()
+            self.synthesizer = InsightSynthesizer(model_manager=self.model_manager)
             
             logger.info("✅ All phase components initialized successfully")
             
@@ -242,7 +243,9 @@ class AutonomousBusinessAnalyst:
                     await self._parallel_query_analysis(business_question)
                 
                 # Handle non-business intents immediately (greetings, help, etc.)
+                logger.info(f"Intent classification result: {intent_classification}")
                 if intent_classification and hasattr(intent_classification, 'intent'):
+                    logger.info(f"Intent type: {intent_classification.intent}, Is greeting: {intent_classification.intent.value}")
                     # Check if it's a non-business query using QueryIntent enum
                     from intelligence.query_intent_classifier import QueryIntent
                     if intent_classification.intent in [QueryIntent.GREETING, QueryIntent.HELP, QueryIntent.CASUAL]:
@@ -294,8 +297,10 @@ class AutonomousBusinessAnalyst:
                 }
                 
             except Exception as e:
-                logger.warning(f"Parallel query analysis failed, proceeding with fallback: {e}")
+                logger.error(f"Parallel query analysis failed: {e}", exc_info=True)
                 # Fallback to basic analysis if parallel processing fails
+                intent_classification = None
+                qdrant_results = None
                 complexity_score = None
                 business_intent = None
             
@@ -354,7 +359,7 @@ class AutonomousBusinessAnalyst:
             if stream_progress:
                 yield self._create_progress_update(
                     investigation_id, "investigation_execution", 3, 5, 80.0,
-                    f"Investigation completed: {len(investigation_result.get('step_results', {}))} steps executed",
+                    f"Investigation completed: {len(investigation_result.completed_steps)} steps executed",
                     investigation_result
                 )
             
@@ -427,10 +432,11 @@ class AutonomousBusinessAnalyst:
             self.active_investigations[investigation_id]["status"] = "completed"
             
             # Store successful investigation in vector database (optional)
-            if self.vector_service and investigation_result.get("sql_queries"):
+            # Skip storing in vector service for now (no sql_queries in InvestigationResults)
+            if False:  # self.vector_service and hasattr(investigation_result, 'sql_queries'):
                 try:
                     # Store each SQL query with its context
-                    for sql_info in investigation_result.get("sql_queries", []):
+                    for sql_info in []:
                         await self.vector_service.store_query(
                             query_id=f"{investigation_id}_{sql_info.get('step', 'unknown')}",
                             sql_query=sql_info.get("query", ""),
@@ -511,6 +517,14 @@ class AutonomousBusinessAnalyst:
     ) -> Dict[str, Any]:
         """Execute Phase 4: Investigation Execution."""
         try:
+            # Initialize MCP manager on-demand if not already initialized
+            if self.mcp_manager and not self.mcp_manager._initialized:
+                try:
+                    await self.mcp_manager.initialize()
+                except Exception as e:
+                    logger.warning(f"MCP initialization failed: {e}")
+                    # Continue without MCP - investigation can still use fallback methods
+            
             # Run autonomous investigation
             # Prepare coordinated services
             coordinated_services = {
@@ -530,7 +544,8 @@ class AutonomousBusinessAnalyst:
                 coordinated_services=coordinated_services,
                 investigation_request=business_question,
                 execution_context=execution_context,
-                mcp_client_manager=self.mcp_manager
+                mcp_client_manager=self.mcp_manager,
+                model_manager=self.model_manager
             )
             
             return investigation_result

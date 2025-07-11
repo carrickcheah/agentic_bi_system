@@ -17,11 +17,6 @@ Ultra-deep thinking to plan, We go one by one, step by step.
 
 
 
-Ultra-deep thinking to plan. 
-1. xxxx 
-
-
-
 
 
 
