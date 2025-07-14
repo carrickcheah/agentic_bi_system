@@ -122,8 +122,7 @@ class AgenticWorkflow:
                 execution_context={
                     "business_intent": plan.business_intent,
                     "investigation_strategy": plan.contextual_strategy,
-                    "complexity_score": complexity.score if complexity else 0.5,
-                    "skip_schema": True  # Skip schema analysis by default
+                    "complexity_score": complexity.score if complexity else 0.5
                 },
                 mcp_client_manager=self.mcp_manager,
                 model_manager=self.model_manager
@@ -226,8 +225,7 @@ class AgenticWorkflow:
                 "table_patterns": table_patterns,
                 "skip_exploration": True,  # Skip data exploration step
                 "skip_validation": True,   # Skip cross-validation
-                "fast_mode": True,
-                "skip_schema": True  # Skip schema analysis by default
+                "fast_mode": True
             }
             
             # Run streamlined investigation

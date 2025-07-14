@@ -139,6 +139,11 @@ class AnthropicModel:
             supports_thinking = any(ver in self.model for ver in ["claude-opus-4", "claude-sonnet-4", "claude-sonnet-3.7"])
             
             if use_thinking and supports_thinking:
+                # Ensure max_tokens is greater than thinking budget
+                if api_params["max_tokens"] <= thinking_tokens:
+                    api_params["max_tokens"] = thinking_tokens + 2000  # Add 2000 tokens for the actual response
+                    logger.info(f"Adjusted max_tokens to {api_params['max_tokens']} to accommodate thinking budget")
+                
                 api_params["thinking"] = {
                     "type": "enabled",
                     "budget_tokens": thinking_tokens

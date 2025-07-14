@@ -133,67 +133,44 @@ class EnhancedModelManager:
         self.health_monitor = ModelHealthMonitor()
         self.initialization_correlation_id = str(uuid.uuid4())
         self.validate_on_init = validate_on_init
+        self._model_configs = {}  # Store model configurations for lazy init
+        self._initialized_models = set()  # Track which models are initialized
         
-        # Initialize models synchronously for now
-        self._initialize_models_safely()
+        # Prepare model configurations instead of initializing
+        self._prepare_model_configs()
     
-    def _initialize_models_safely(self):
-        """Initialize models with comprehensive error handling."""
+    def _prepare_model_configs(self):
+        """Prepare model configurations for lazy initialization."""
         
         logger.info(
-            "Initializing model manager",
+            "Preparing model configurations",
             extra={"correlation_id": self.initialization_correlation_id}
         )
         
-        models_to_try = [
-            ("anthropic", self._init_anthropic),
-            ("deepseek", self._init_deepseek),
-            ("openai", self._init_openai)
-        ]
+        # Check which models have API keys configured
+        if settings.anthropic_api_key:
+            self._model_configs["anthropic"] = self._init_anthropic
+            logger.info("Anthropic model configuration prepared")
         
-        for model_name, init_func in models_to_try:
-            try:
-                model_instance = safe_execute(
-                    init_func,
-                    operation=f"initialize_{model_name}",
-                    component="model_manager",
-                    correlation_id=self.initialization_correlation_id,
-                    default_return=None,
-                    raise_on_failure=False
-                )
-                
-                if model_instance:
-                    self.models.append((model_name, model_instance))
-                    logger.info(
-                        f"{model_name.title()} model added to fallback chain",
-                        extra={
-                            "correlation_id": self.initialization_correlation_id,
-                            "model": model_name
-                        }
-                    )
-                    
-            except Exception as e:
-                logger.warning(
-                    f"Failed to initialize {model_name} model",
-                    extra={
-                        "correlation_id": self.initialization_correlation_id,
-                        "model": model_name,
-                        "error": str(e)
-                    }
-                )
+        if settings.deepseek_api_key:
+            self._model_configs["deepseek"] = self._init_deepseek
+            logger.info("DeepSeek model configuration prepared")
         
-        # Set primary model
-        if self.models:
-            self.current_model = self.models[0]
-            logger.info(
-                f"Primary model set to: {self.current_model[0]}",
-                extra={
-                    "correlation_id": self.initialization_correlation_id,
-                    "primary_model": self.current_model[0]
-                }
-            )
+        if settings.openai_api_key:
+            self._model_configs["openai"] = self._init_openai
+            logger.info("OpenAI model configuration prepared")
+        
+        if not self._model_configs:
+            raise ExternalServiceError("No model API keys configured")
+        
+        # Check if lazy initialization is enabled
+        lazy_init = getattr(settings, 'lazy_model_initialization', True)
+        
+        if not lazy_init:
+            # Initialize all models eagerly (old behavior)
+            self._initialize_all_models()
         else:
-            raise ExternalServiceError("No models could be initialized")
+            logger.info("Lazy model initialization enabled - models will be initialized on demand")
     
     def _init_anthropic(self) -> Optional[AnthropicModel]:
         """Initialize Anthropic model with validation"""
@@ -294,6 +271,24 @@ class EnhancedModelManager:
                 "temperature": validated_params["temperature"]
             }
         )
+        
+        # Ensure at least one model is initialized (lazy initialization)
+        if not self.models:
+            # Try to initialize the primary model (first configured)
+            primary_model_name = next(iter(self._model_configs.keys()))
+            primary_result = self._initialize_model_lazy(primary_model_name)
+            if primary_result:
+                self.current_model = primary_result
+            else:
+                # Try all configured models
+                for model_name in self._model_configs:
+                    result = self._initialize_model_lazy(model_name)
+                    if result:
+                        self.current_model = result
+                        break
+                
+                if not self.current_model:
+                    raise ExternalServiceError("No models could be initialized")
         
         # Try current model first
         if self.current_model:
@@ -448,8 +443,20 @@ class EnhancedModelManager:
         return False
     
     async def validate_models(self):
-        """Validate API keys for all initialized models."""
+        """Validate API keys for models, stopping after first success."""
         validated_models = []
+        
+        # Check if we should validate all models or stop at first success
+        validate_all = settings.validate_all_models if hasattr(settings, 'validate_all_models') else False
+        
+        # For lazy initialization, we need to initialize models first
+        if not self.models:
+            # Initialize at least the primary model for validation
+            for model_name in self._model_configs:
+                result = self._initialize_model_lazy(model_name)
+                if result and not validate_all:
+                    # If we only need one model and got it, stop
+                    break
         
         for model_name, model in self.models:
             try:
@@ -458,22 +465,127 @@ class EnhancedModelManager:
                 # Use higher max_tokens for models with thinking budgets
                 test_max_tokens = 15000 if model_name == "anthropic" else 10
                 await model.generate_response(
-                    "Hi", max_tokens=test_max_tokens, temperature=0, use_system_prompt=False
+                    "Hi", max_tokens=test_max_tokens, temperature=0, use_system_prompt=False,
+                    enable_thinking=False  # Disable thinking for validation to avoid token issues
                 )
                 logger.info(f"✅ {model_name} API key validated successfully")
                 validated_models.append((model_name, model))
                 
+                # If primary model works and we're not validating all, stop here
+                if not validate_all and (self.current_model is None or model_name == self.current_model[0]):
+                    logger.info(f"Primary model {model_name} validated. Skipping fallback validation.")
+                    # Set as current model if we don't have one yet
+                    if self.current_model is None:
+                        self.current_model = (model_name, model)
+                    break
+                    
             except Exception as e:
                 logger.warning(f"❌ {model_name} API key validation failed: {str(e)}")
                 self.health_monitor.record_failure(model_name, str(e))
         
-        # Update models list with only validated ones
+        # Update models list with validated ones first
         if validated_models:
-            self.models = validated_models
+            # Put validated models first, keep others as fallback
+            validated_names = [name for name, _ in validated_models]
+            other_models = [(name, model) for name, model in self.models if name not in validated_names]
+            self.models = validated_models + other_models
             self.current_model = self.models[0]
-            logger.info(f"Models after validation: {[name for name, _ in self.models]}")
+            logger.info(f"Models ready: {[name for name, _ in validated_models]} (validated), {[name for name, _ in other_models]} (fallback)")
         else:
             raise ExternalServiceError("No models passed API key validation")
+
+    def _initialize_all_models(self):
+        """Initialize all configured models (eager initialization)."""
+        for model_name, init_func in self._model_configs.items():
+            try:
+                model_instance = safe_execute(
+                    init_func,
+                    operation=f"initialize_{model_name}",
+                    component="model_manager",
+                    correlation_id=self.initialization_correlation_id,
+                    default_return=None,
+                    raise_on_failure=False
+                )
+                
+                if model_instance:
+                    self.models.append((model_name, model_instance))
+                    self._initialized_models.add(model_name)
+                    logger.info(
+                        f"{model_name.title()} model initialized and added to fallback chain",
+                        extra={
+                            "correlation_id": self.initialization_correlation_id,
+                            "model": model_name
+                        }
+                    )
+                    
+            except Exception as e:
+                logger.warning(
+                    f"Failed to initialize {model_name} model",
+                    extra={
+                        "correlation_id": self.initialization_correlation_id,
+                        "model": model_name,
+                        "error": str(e)
+                    }
+                )
+        
+        # Set primary model
+        if self.models:
+            self.current_model = self.models[0]
+            logger.info(
+                f"Primary model set to: {self.current_model[0]}",
+                extra={
+                    "correlation_id": self.initialization_correlation_id,
+                    "primary_model": self.current_model[0]
+                }
+            )
+    
+    def _initialize_model_lazy(self, model_name: str) -> Optional[Tuple[str, Any]]:
+        """Initialize a specific model on demand."""
+        if model_name in self._initialized_models:
+            # Already initialized
+            for name, model in self.models:
+                if name == model_name:
+                    return (name, model)
+            return None
+        
+        if model_name not in self._model_configs:
+            logger.warning(f"Model {model_name} not configured")
+            return None
+        
+        try:
+            init_func = self._model_configs[model_name]
+            model_instance = safe_execute(
+                init_func,
+                operation=f"lazy_initialize_{model_name}",
+                component="model_manager",
+                correlation_id=self.initialization_correlation_id,
+                default_return=None,
+                raise_on_failure=False
+            )
+            
+            if model_instance:
+                self.models.append((model_name, model_instance))
+                self._initialized_models.add(model_name)
+                logger.info(
+                    f"{model_name.title()} model initialized lazily",
+                    extra={
+                        "correlation_id": self.initialization_correlation_id,
+                        "model": model_name
+                    }
+                )
+                return (model_name, model_instance)
+                
+        except Exception as e:
+            logger.warning(
+                f"Failed to lazily initialize {model_name} model",
+                extra={
+                    "correlation_id": self.initialization_correlation_id,
+                    "model": model_name,
+                    "error": str(e)
+                }
+            )
+        
+        return None
 
 # Maintain compatibility with existing code
 ModelManager = EnhancedModelManager

@@ -71,6 +71,16 @@ class ModelSettings(BaseSettings):
     embedding_model: str = Field(
         description="OpenAI embedding model (text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002)"
     )
+    
+    # Model Initialization Configuration
+    lazy_model_initialization: bool = Field(
+        default=True,
+        description="Enable lazy model initialization - models are initialized only when needed instead of at startup"
+    )
+    validate_all_models: bool = Field(
+        default=False,
+        description="Validate all model API keys even if primary model works"
+    )
 
 
 # Create singleton instance

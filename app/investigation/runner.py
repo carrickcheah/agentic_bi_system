@@ -146,33 +146,24 @@ class AutonomousInvestigationEngine:
     
     def _get_required_steps(self, complexity_score: float) -> List[Dict[str, Any]]:
         """Select investigation steps based on complexity and fast mode."""
-        # Check if schema should be skipped (default: True)
-        skip_schema = self.execution_context.get("skip_schema", True)
-        
         # Check for fast mode override
         if self.execution_context.get("fast_mode", False):
-            # Fast mode: core analysis and synthesis only (no schema!)
-            return [s for s in self.step_definitions if s["number"] in [4, 7]]
+            # Fast mode: minimal steps - schema, core analysis, synthesis
+            return [s for s in self.step_definitions if s["number"] in [1, 4, 7]]
         
-        # Normal mode based on complexity
+        # Normal mode based on complexity - ALWAYS include schema (step 1)
         if complexity_score < 0.3:
-            # Simple: core analysis and synthesis only
-            steps = [4, 7]
+            # Simple: schema, core analysis, synthesis only
+            return [s for s in self.step_definitions if s["number"] in [1, 4, 7]]
         elif complexity_score < 0.5:
             # Moderate: add data exploration
-            steps = [2, 4, 7]
+            return [s for s in self.step_definitions if s["number"] in [1, 2, 4, 7]]
         elif complexity_score < 0.8:
-            # Analytical: add hypothesis generation and pattern discovery
-            steps = [2, 3, 4, 5, 7]
+            # Analytical: skip cross-validation
+            return [s for s in self.step_definitions if s["number"] in [1, 2, 3, 4, 5, 7]]
         else:
-            # Complex: all steps except schema (unless explicitly needed)
-            steps = [2, 3, 4, 5, 6, 7]
-        
-        # Add schema analysis only if explicitly requested
-        if not skip_schema:
-            steps = [1] + steps
-            
-        return [s for s in self.step_definitions if s["number"] in steps]
+            # Complex: all steps
+            return self.step_definitions
     
     async def _execute_investigation_framework(self) -> None:
         """Execute the 7-step autonomous investigation framework."""
@@ -435,7 +426,18 @@ class AutonomousInvestigationEngine:
                 if table_patterns:
                     self.logger.logger.info(f"Query has patterns: {table_patterns}, will filter tables")
                 
-                all_tables = await mariadb_client.list_tables()
+                # Add timeout to prevent hanging on large databases
+                import asyncio
+                try:
+                    # Use 30 second timeout for list_tables (increased for large databases)
+                    all_tables = await asyncio.wait_for(
+                        mariadb_client.list_tables(), 
+                        timeout=30.0
+                    )
+                except asyncio.TimeoutError:
+                    self.logger.logger.warning("list_tables timed out after 30s - using pattern-based approach")
+                    # For timeout, we'll use patterns to guess table names
+                    all_tables = []
                 
                 # CRITICAL PERFORMANCE FIX: Limit tables BEFORE processing
                 # This prevents timeout issues with large databases (292+ tables)
@@ -449,8 +451,50 @@ class AutonomousInvestigationEngine:
                     all_tables = sorted(all_tables)[:20]  # Just take first 20 alphabetically
                     self.logger.logger.info(f"Limited to {len(all_tables)} tables for safety")
                 
+                # Handle empty table list (timeout case)
+                if not all_tables and table_patterns:
+                    # Try direct table access based on patterns
+                    self.logger.logger.info("Using pattern-based table discovery due to timeout")
+                    potential_tables = []
+                    
+                    # Generate potential table names from patterns
+                    for pattern in table_patterns:
+                        potential_tables.extend([
+                            pattern,
+                            f"{pattern}s",  # plural
+                            f"{pattern}_table",
+                            f"tbl_{pattern}",
+                            f"{pattern}_data"
+                        ])
+                    
+                    # Test which tables actually exist
+                    existing_tables = []
+                    for table in set(potential_tables):
+                        # Skip empty or None table names
+                        if not table or not isinstance(table, str) or not table.strip():
+                            self.logger.logger.warning(f"Skipping invalid table name: {repr(table)}")
+                            continue
+                        try:
+                            # Quick test if table exists
+                            await asyncio.wait_for(
+                                mariadb_client.get_table_schema(table),
+                                timeout=2.0
+                            )
+                            existing_tables.append(table)
+                            self.logger.logger.info(f"Found table: {table}")
+                        except:
+                            pass  # Table doesn't exist or timed out
+                    
+                    if existing_tables:
+                        all_tables = existing_tables
+                        self.logger.logger.info(f"Pattern-based discovery found {len(existing_tables)} tables")
+                    else:
+                        # Last resort: assume common tables
+                        all_tables = ["products", "sales", "customers", "orders"]
+                        self.logger.logger.warning("No tables found via patterns, using common table names")
+                
                 # Filter tables based on patterns and complexity
-                if table_patterns:
+                if table_patterns and all_tables:
                     relevant_tables = []
                     for table in all_tables:
                         table_lower = table.lower()
@@ -499,6 +543,10 @@ class AutonomousInvestigationEngine:
                 
                 # Get schema for filtered tables
                 for table in tables_to_analyze:
+                    # Skip empty or invalid table names
+                    if not table or not isinstance(table, str) or not table.strip():
+                        self.logger.logger.warning(f"Skipping invalid table name in schema analysis: {repr(table)}")
+                        continue
                     try:
                         schema = await mariadb_client.get_table_schema(table)
                         schema_results["mariadb"]["schemas"][table] = {
@@ -541,6 +589,10 @@ class AutonomousInvestigationEngine:
                 # Limit tables based on complexity
                 max_tables = 1 if self.complexity_score < 0.3 else 3
                 for table in tables[:max_tables]:
+                    # Skip empty or invalid table names
+                    if not table or not isinstance(table, str) or not table.strip():
+                        self.logger.logger.warning(f"Skipping invalid table name in data exploration: {repr(table)}")
+                        continue
                     try:
                         # Get row count with query learning
                         count_query = f"SELECT COUNT(*) as total_rows FROM {table}"
